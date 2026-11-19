@@ -5,6 +5,7 @@ player_handouts:
   - assets/wils-scrap.png
   - assets/notice-board-old-hand-slip.png
   - assets/pells-room-the-millers-three-daughters.png
+banner: assets/banner-old-hand.jpg
 mw_handout_names:
   - Wil's scrap
   - Notice board - Old Hand slip
