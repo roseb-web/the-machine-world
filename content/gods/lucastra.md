@@ -2,6 +2,7 @@
 title: Lucastra
 player_title: The Kindled
 player_type: New god
+banner: assets/banner-lucastra.jpg
 ---
 
 ## Overview

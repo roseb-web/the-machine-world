@@ -2,6 +2,7 @@
 title: Ordo Calathis
 player_title: The Readers
 player_type: Religious order
+banner: assets/banner-ordo.jpg
 ---
 
 ## Overview

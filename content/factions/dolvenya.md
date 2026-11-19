@@ -1,6 +1,7 @@
 ---
 title: Dolvenya
 player_type: Faith
+banner: assets/banner-dolvenya.jpg
 ---
 
 ## Overview

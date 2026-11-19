@@ -4,6 +4,7 @@ player_name: The Lantern-Bearer
 player_type: Old god
 player_handouts:
   - assets/lore-card-l31-the-lantern-bearer.png
+banner: assets/banner-lanterns.jpg
 mw_handout_names:
   - Lore card L31 - The Lantern-Bearer
 ---
