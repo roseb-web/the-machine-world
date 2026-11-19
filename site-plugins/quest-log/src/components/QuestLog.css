@@ -1,0 +1,92 @@
+.mw-quest-log {
+  margin-top: 2rem;
+}
+
+/* Main quests: a featured card */
+.mw-quest-log a.mw-quest-main-card {
+  display: block;
+  padding: 1rem 1.2rem;
+  margin-bottom: 0.8rem;
+  border: 1px solid var(--lightgray);
+  border-left: 3px solid var(--secondary);
+  border-radius: 0 10px 10px 0;
+  background: none;
+  color: inherit;
+  text-decoration: none;
+  font-weight: normal;
+  transition: border-color 0.2s ease;
+}
+
+.mw-quest-log a.mw-quest-main-card:hover {
+  border-color: var(--secondary);
+}
+
+.mw-quest-main-title {
+  display: block;
+  margin: 0.4rem 0 0.2rem;
+  font-family: var(--headerFont);
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.mw-quest-summary {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--darkgray);
+}
+
+/* Other quests: compact rows */
+.mw-quest-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mw-quest-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 0;
+  padding: 0.45rem 0.2rem;
+}
+
+.mw-quest-list li + li {
+  border-top: 1px solid var(--lightgray);
+}
+
+.mw-quest-type {
+  flex-shrink: 0;
+  min-width: 4.2rem;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 0.05rem 0.6rem;
+  border-radius: 6px;
+  background: var(--lightgray);
+  color: var(--darkgray);
+}
+
+.mw-quest-main-card .mw-quest-type {
+  min-width: 0;
+}
+
+.mw-quest-main { background: color-mix(in srgb, #a46b0a 22%, transparent); color: #6e4706; }
+.mw-quest-personal { background: color-mix(in srgb, #6b6a3a 22%, transparent); color: #4a4926; }
+.mw-quest-faction { background: color-mix(in srgb, #8a4a5a 20%, transparent); color: #6a3040; }
+
+:root[saved-theme="dark"] .mw-quest-main { color: #e5bb68; }
+:root[saved-theme="dark"] .mw-quest-personal { color: #b8b67e; }
+:root[saved-theme="dark"] .mw-quest-faction { color: #d99aaa; }
+
+.mw-quest-log a.mw-quest-title {
+  background: none;
+  padding: 0;
+  font-weight: 500;
+  color: var(--dark);
+  text-decoration: none;
+}
+
+.mw-quest-log a.mw-quest-title:hover {
+  color: var(--secondary);
+}

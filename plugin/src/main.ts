@@ -5,6 +5,7 @@
 import { App, Modal, Notice, parseYaml, Plugin, PluginSettingTab, Setting, stringifyYaml, TFile } from "obsidian";
 import { exportWiki, ExportResult, SectionRule } from "../../shared/export";
 import { pushWiki } from "./github";
+import { gameDateFrom } from "../../shared/calendar";
 
 interface WikiSettings {
   token: string;
@@ -73,7 +74,18 @@ export default class MachineWorldWiki extends Plugin {
     const notes = await Promise.all(
       files.map(async (f) => ({ path: f.path, text: await this.app.vault.cachedRead(f) })),
     );
+    // Today's in-game date, from Calendarium's settings file (if it's there).
+    let gameDate = null;
+    try {
+      const calPath = `${this.app.vault.configDir}/plugins/calendarium/data.json`;
+      if (await this.app.vault.adapter.exists(calPath)) {
+        gameDate = gameDateFrom(JSON.parse(await this.app.vault.adapter.read(calPath)));
+      }
+    } catch (e) {
+      console.warn("Couldn't read the Calendarium date", e);
+    }
     return exportWiki(notes, {
+      gameDate,
       sections: this.settings.sections,
       defaultSection: this.settings.defaultSection,
       playerPagesFolder: this.settings.playerPagesFolder,

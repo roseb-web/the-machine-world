@@ -14,6 +14,11 @@ function parseLink(value: string): { target?: string; text: string } {
   return { target: m[1], text: m[2] ?? m[1].split("/").pop() ?? m[1] }
 }
 
+function renderLink(slug: string, value: string) {
+  const { target, text } = parseLink(value)
+  return target ? <a href={resolveRelative(slug as never, target as never)} class="internal">{text}</a> : text
+}
+
 // Each fixed label gets a tone, from bad to good.
 const TONES: Record<string, string> = {
   hostile: "bad", grudge: "bad", enemy: "bad",
@@ -24,10 +29,37 @@ const TONES: Record<string, string> = {
 }
 
 export default (() => {
-  const PageHeader: QuartzComponent = ({ fileData }: QuartzComponentProps) => {
-    const fm = (fileData.frontmatter ?? {}) as Props
-    const slug = String(fileData.slug ?? "")
+  const PageHeader: QuartzComponent = (props: QuartzComponentProps) => {
+    const fm = (props.fileData.frontmatter ?? {}) as Props
+    const slug = String(props.fileData.slug ?? "")
     const str = (key: string) => (typeof fm[key] === "string" && fm[key] ? (fm[key] as string) : undefined)
+    const banner = str("banner")
+    const focus = ["top", "center", "bottom"].includes(str("banner_focus") ?? "") ? str("banner_focus") : "center"
+    const header = renderHeader(props, fm, slug, str)
+    if (!banner) return header
+    return (
+      <div class="mw-header-wrap">
+        <img
+          class="mw-banner"
+          src={`${pathToRoot(slug as never)}/${banner}`}
+          alt=""
+          style={`object-position: center ${focus};`}
+        />
+        {header}
+      </div>
+    )
+  }
+
+  PageHeader.css = style
+  return PageHeader
+}) satisfies QuartzComponentConstructor
+
+function renderHeader(
+  { fileData }: QuartzComponentProps,
+  fm: Props,
+  slug: string,
+  str: (key: string) => string | undefined,
+) {
     const title = str("title") ?? slug.split("/").pop() ?? ""
 
     const renderValue = (value: string) => {
@@ -44,6 +76,36 @@ export default (() => {
     for (const [key, label] of [["player_favour", "Favour"], ["player_standing", "Standing"]] as const) {
       const v = str(key)
       if (v) chips.push({ text: `${label}: ${v.toLowerCase()}`, tone: TONES[v.toLowerCase()] ?? "mid" })
+    }
+
+    // The home page: a welcome title and today's in-game date.
+    if (slug === "index") {
+      const d = fm.game_date as
+        | { day: number; month: string; year: number; era: string; weekday: string; concord: string; season: string }
+        | undefined
+      return (
+        <header class="mw-header mw-home-header">
+          <div>
+            <h1 class="article-title">Welcome to Vaharan</h1>
+            {str("party_location") && (
+              <p class="mw-party-location">The party is in {renderLink(slug, str("party_location")!)}</p>
+            )}
+          </div>
+          {d && (
+            <div class="mw-date-card" title={d.concord}>
+              <div class="mw-date-day">{d.day}</div>
+              <div class="mw-date-text">
+                <div class="mw-date-month">
+                  {d.month}, {d.year} {d.era}
+                </div>
+                <div class="mw-date-other">
+                  {d.weekday} · {d.season}
+                </div>
+              </div>
+            </div>
+          )}
+        </header>
+      )
     }
 
     const photo = str("photo")
@@ -74,8 +136,4 @@ export default (() => {
         </div>
       </header>
     )
-  }
-
-  PageHeader.css = style
-  return PageHeader
-}) satisfies QuartzComponentConstructor
+}

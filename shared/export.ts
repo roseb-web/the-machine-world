@@ -2,6 +2,7 @@
 // Pure logic: no Obsidian or GitHub code here, so it can be tested on its own.
 
 import { extractPlayerNote, renderPlayerNote, YamlTools } from "./extract";
+import type { GameDate } from "./calendar";
 
 export interface VaultNote {
   path: string; // vault path, e.g. "4. People/NPCs/Pell.md"
@@ -18,6 +19,7 @@ export interface ExportOptions {
   defaultSection: string;
   playerPagesFolder: string; // notes here are published whole
   sectionTitles?: Record<string, string>; // e.g. { people: "People" }, used for the section's own page
+  gameDate?: GameDate | null; // today's in-game date, shown on the home page
   // Finds the vault path a link points to (Obsidian's own resolver in the plugin).
   resolveLink: (link: string, fromPath: string) => string | null;
   yaml: YamlTools;
@@ -35,7 +37,7 @@ export interface ExportResult {
 }
 
 // Properties that hold an image path or a list of them.
-const IMAGE_PROPERTIES = ["photo", "player_sigil", "player_handouts"];
+const IMAGE_PROPERTIES = ["photo", "banner", "player_sigil", "player_handouts"];
 
 export function slugify(text: string): string {
   return text
@@ -74,7 +76,15 @@ function prepare(note: VaultNote, opts: ExportOptions): Prepared | null {
   if (wholePage) {
     // Player Pages are published as written, with a title added.
     title = baseName(note.path);
-    markdown = note.text.match(/^---\r?\n/) ? note.text : `---\ntitle: ${JSON.stringify(title)}\n---\n\n${note.text}`;
+    const fm = note.text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    if (!fm) {
+      markdown = `---\ntitle: ${JSON.stringify(title)}\n---\n\n${note.text}`;
+    } else {
+      // Keep the note's own properties, and add a title if it hasn't got one.
+      const props = (opts.yaml.parse(fm[1]) ?? {}) as Record<string, unknown>;
+      if (typeof props.title !== "string") props.title = title;
+      markdown = `---\n${opts.yaml.stringify(props).trimEnd()}\n---` + note.text.slice(fm[0].length);
+    }
     section = "";
   } else {
     const extracted = extractPlayerNote(note.path, note.text, opts.yaml);
@@ -172,9 +182,32 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
     const withProps = rewriteImageProperties(p.markdown, p.from);
     const front = withProps.match(/^---\r?\n[\s\S]*?\r?\n---/)?.[0] ?? "";
     const body = rewriteLinks(withProps.slice(front.length), p.from);
-    files.push({ path: `${p.to}.md`, text: front + body });
+    let header = front;
+    if (p.to === "index" && opts.gameDate) {
+      // The home page gets today's in-game date in its properties.
+      const props = (header ? opts.yaml.parse(header.replace(/^---\r?\n|\r?\n---$/g, "")) : {}) as Record<string, unknown>;
+      props.game_date = opts.gameDate;
+      header = `---\n${opts.yaml.stringify(props ?? {}).trimEnd()}\n---`;
+    }
+    files.push({ path: `${p.to}.md`, text: header + body });
   }
   for (const [vaultPath, contentPath] of images) files.push({ path: contentPath, copyFrom: vaultPath });
+
+  // Home page: if it names where the party is, it uses that place's banner.
+  const home = files.find((f) => f.path === "index.md" && f.text);
+  if (home?.text) {
+    const m = home.text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    const props = m ? ((opts.yaml.parse(m[1]) ?? {}) as Record<string, unknown>) : {};
+    const loc = typeof props.party_location === "string" ? props.party_location.match(/^\[\[([^\]|]+)/) : null;
+    const place = loc ? files.find((f) => f.path === `${loc[1]}.md` && f.text) : undefined;
+    const pm = place?.text?.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    const placeProps = pm ? ((opts.yaml.parse(pm[1]) ?? {}) as Record<string, unknown>) : {};
+    if (typeof placeProps.banner === "string") {
+      props.banner = placeProps.banner;
+      if (placeProps.banner_focus) props.banner_focus = placeProps.banner_focus;
+      home.text = `---\n${opts.yaml.stringify(props).trimEnd()}\n---` + home.text.slice(m ? m[0].length : 0);
+    }
+  }
 
   // Each section with pages gets its own page, so menus and breadcrumbs show "People", not "people".
   const sections = new Set(prepared.map((p) => p.to.split("/").slice(0, -1).join("/")).filter(Boolean));

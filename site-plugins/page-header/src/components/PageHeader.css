@@ -90,3 +90,69 @@
     width: 110px;
   }
 }
+
+/* Home page: welcome title with a compact date card beside it */
+.mw-home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.mw-date-card {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 10px;
+}
+
+.mw-date-day {
+  font-family: "Fondamento", serif;
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--dark);
+}
+
+.mw-date-month {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--dark);
+  line-height: 1.3;
+}
+
+.mw-date-other {
+  font-size: 0.8rem;
+  color: var(--gray);
+  line-height: 1.3;
+}
+
+@media (max-width: 800px) {
+  .mw-home-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Banner image across the top of the page */
+.mw-banner {
+  display: block;
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin: 0.6rem 0 0 !important;
+}
+
+@media (max-width: 800px) {
+  .mw-banner {
+    height: 170px;
+  }
+}
+
+.mw-party-location {
+  margin: 0.2rem 0 0;
+  color: var(--gray);
+}
