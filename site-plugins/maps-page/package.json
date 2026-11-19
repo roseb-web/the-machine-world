@@ -1,0 +1,31 @@
+{
+  "name": "maps-page",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The Maps page for The Machine World wiki: zoomable survey sheets with pins.",
+  "exports": {
+    ".": { "import": "./dist/index.js" },
+    "./components": { "import": "./dist/components/index.js" },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "scripts": { "build": "node build.mjs" },
+  "quartz": {
+    "name": "maps-page",
+    "displayName": "Maps page",
+    "category": "component",
+    "version": "1.0.0",
+    "quartzVersion": ">=5.0.0",
+    "dependencies": [],
+    "defaultEnabled": true,
+    "defaultOptions": {},
+    "components": {
+      "MapsPage": {
+        "displayName": "Maps page",
+        "defaultPosition": "afterBody",
+        "defaultPriority": 20
+      }
+    }
+  }
+}

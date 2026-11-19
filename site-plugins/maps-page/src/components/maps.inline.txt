@@ -1,0 +1,203 @@
+// Turns .mw-maps into Leaflet maps. Runs on every page change (Quartz "nav" event).
+(function () {
+  // Leaflet ships with the site, in quartz/static/leaflet.
+  const OVERRIDES = `.mw-map .leaflet-control-zoom a {
+  color: var(--dark);
+  background: var(--light);
+  border-color: var(--lightgray);
+}
+
+/* Hover label and click card */
+.mw-tip {
+  font-family: var(--bodyFont);
+  font-size: 0.85rem;
+  color: var(--dark);
+  background: var(--light);
+  border: 1px solid var(--dark);
+  border-radius: 4px;
+  box-shadow: none;
+}
+
+.mw-tip-text {
+  color: var(--darkgray);
+  font-size: 0.8rem;
+}
+
+.mw-popup .leaflet-popup-content-wrapper {
+  background: var(--light);
+  color: var(--darkgray);
+  border: 1px solid var(--dark);
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.mw-popup .leaflet-popup-tip {
+  background: var(--light);
+  border: 1px solid var(--dark);
+  box-shadow: none;
+}
+
+.mw-popup .leaflet-popup-content {
+  margin: 0.7rem 0.9rem;
+  font-family: var(--bodyFont);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.mw-popup .leaflet-popup-content p {
+  margin: 0.3rem 0;
+  line-height: 1.4;
+}
+
+.mw-card-party {
+  font-variant: small-caps;
+  letter-spacing: 0.08em;
+  color: var(--secondary);
+  font-size: 0.8rem;
+}
+
+.mw-card-title {
+  font-family: var(--headerFont);
+  font-size: 1.05rem;
+  color: var(--dark);
+}
+
+.mw-card-chip {
+  display: inline-block;
+  font-size: 0.72rem;
+  padding: 0 0.5rem;
+  margin: 0.25rem 0;
+  border-radius: 6px;
+  background: var(--lightgray);
+  color: var(--darkgray);
+}
+
+.mw-card p {
+  margin: 0.3rem 0;
+}
+
+a.mw-card-link {
+  color: var(--secondary) !important;
+  background: none !important;
+  padding: 0 !important;
+}
+
+.mw-map.leaflet-container {
+  background: var(--light);
+}
+`
+  let loading = null
+  const loadLeaflet = (LEAFLET) => {
+    if (window.L) return Promise.resolve()
+    if (loading) return loading
+    loading = new Promise((resolve, reject) => {
+      const css = document.createElement("link")
+      css.rel = "stylesheet"
+      css.href = LEAFLET + "leaflet.css"
+      document.head.appendChild(css)
+      // Quartz puts component styles in a CSS layer, and Leaflet's unlayered styles would win.
+      // So the rules that restyle Leaflet go in unlayered too, after Leaflet's.
+      const own = document.createElement("style")
+      own.textContent = OVERRIDES
+      document.head.appendChild(own)
+      const js = document.createElement("script")
+      js.src = LEAFLET + "leaflet.js"
+      js.onload = () => resolve()
+      js.onerror = reject
+      document.head.appendChild(js)
+    })
+    return loading
+  }
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c])
+  const imageSize = (src) =>
+    new Promise((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => resolve([img.naturalWidth, img.naturalHeight])
+      img.onerror = reject
+      img.src = src
+    })
+
+  async function setup(root) {
+    const maps = JSON.parse(root.dataset.maps || "[]")
+    const el = root.querySelector(".mw-map")
+    const list = root.querySelector(".mw-legend-list")
+    await loadLeaflet(root.dataset.leaflet)
+    const L = window.L
+    let map = null
+
+    async function show(i) {
+      const m = maps[i]
+      if (map) map.remove()
+      list.innerHTML = ""
+      const [w, h] = await imageSize(m.image)
+      const bounds = [[-h, 0], [0, w]]
+      // The sheet keeps the image's shape, so the whole map fits when it opens.
+      el.style.height = Math.round(Math.min(Math.max(el.clientWidth * (h / w), 320), window.innerHeight * 0.75)) + "px"
+      map = L.map(el, {
+        crs: L.CRS.Simple,
+        zoomSnap: 0, // fits the sheet exactly
+        zoomDelta: m.zoomDelta ?? 0.5,
+        minZoom: -6, // lets the whole sheet fit; tightened to the fitted zoom below
+        maxZoom: m.maxZoom ?? 1,
+        attributionControl: false,
+        maxBounds: [[-h * 1.15, -w * 0.15], [h * 0.15, w * 1.15]],
+      })
+      L.imageOverlay(m.image, bounds).addTo(map)
+      map.fitBounds(bounds)
+      const fitZoom = map.getZoom()
+      map.setMinZoom(fitZoom)
+
+      const pins = [...m.pins].sort((a, b) => (b.party ? 1 : 0) - (a.party ? 1 : 0) || a.title.localeCompare(b.title))
+      for (const p of pins) {
+        const icon = L.divIcon({
+          className: `mw-pin mw-pin-${esc(p.type)} ${p.party ? "mw-pin-party" : ""} ${p.href ? "" : "mw-pin-plain"}`,
+          html: "<span></span>",
+          iconSize: [22, 22],
+          iconAnchor: [11, 11],
+        })
+        const card =
+          `<div class="mw-card">` +
+          (p.party ? `<div class="mw-card-party">The party is here</div>` : "") +
+          `<div class="mw-card-title">${esc(p.title)}</div>` +
+          (p.chip ? `<span class="mw-card-chip">${esc(p.chip)}</span>` : "") +
+          (p.summary ? `<p>${esc(p.summary)}</p>` : "") +
+          (p.href ? `<a class="internal mw-card-link" href="${esc(p.href)}">Open page →</a>` : "") +
+          `</div>`
+        const marker = L.marker([p.lat, p.lng], { icon, title: p.title, riseOnHover: true }).addTo(map)
+        marker.bindTooltip(esc(p.title) + (p.text && !p.href ? `<br><span class="mw-tip-text">${esc(p.text)}</span>` : ""), {
+          direction: "top",
+          offset: [0, -10],
+          className: "mw-tip",
+        })
+        marker.bindPopup(card, { className: "mw-popup", minWidth: 220, maxWidth: 260, closeButton: false, offset: [0, -6] })
+
+        const li = document.createElement("li")
+        li.innerHTML = `<button type="button">${p.party ? '<span class="mw-legend-party"></span>' : ""}${esc(p.title)}</button>`
+        const btn = li.firstChild
+        btn.addEventListener("mouseenter", () => marker.getElement()?.classList.add("mw-pin-hot"))
+        btn.addEventListener("mouseleave", () => marker.getElement()?.classList.remove("mw-pin-hot"))
+        btn.addEventListener("click", () => {
+          // Closer, but not past the image's own size (it gets blurry)
+          map.flyTo([p.lat, p.lng], Math.min(fitZoom + 1.5, 0), { duration: 0.6 })
+          map.once("moveend", () => marker.openPopup())
+        })
+        list.appendChild(li)
+      }
+      if (!pins.length) list.innerHTML = '<li class="mw-legend-empty">No places marked yet.</li>'
+    }
+
+    const buttons = [...root.querySelectorAll(".mw-sheet-btn")]
+    buttons.forEach((b) =>
+      b.addEventListener("click", () => {
+        buttons.forEach((x) => x.classList.toggle("mw-on", x === b))
+        show(Number(b.dataset.sheet))
+      }),
+    )
+    await show(0)
+    window.addCleanup?.(() => map && map.remove())
+  }
+
+  document.addEventListener("nav", () => {
+    for (const root of document.querySelectorAll(".mw-maps")) setup(root).catch((e) => console.error("Map failed", e))
+  })
+})()

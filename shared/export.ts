@@ -3,6 +3,7 @@
 
 import { extractPlayerNote, renderPlayerNote, YamlTools } from "./extract";
 import type { GameDate } from "./calendar";
+import { readMap, MapData } from "./maps";
 
 export interface VaultNote {
   path: string; // vault path, e.g. "4. People/NPCs/Pell.md"
@@ -254,10 +255,44 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
     return `---\n${front}\n---` + markdown.slice(match[0].length);
   }
 
+  const notesByPath = new Map(notes.map((n) => [n.path, n]));
+
+  // Player Pages can embed map notes: ![[Vaharan - Places|Vaharan]].
+  // The embed is replaced by safe map data in the page's properties (mw_maps).
+  function extractMaps(markdown: string, fromPath: string): { markdown: string; maps: MapData[] } {
+    const maps: MapData[] = [];
+    const out = markdown.replace(/^[ \t]*!\[\[([^\]|#]+)(?:\|([^\]]*))?\]\][ \t]*$/gm, (line, target: string, alias?: string) => {
+      const resolved = opts.resolveLink(target, fromPath);
+      const note = resolved ? notesByPath.get(resolved) : undefined;
+      if (!resolved || !note || !note.text.includes("```leaflet")) return line;
+      const map = readMap(note.text, alias ?? baseName(resolved), {
+        fromPath: resolved,
+        partyMap:
+          resolved.startsWith(opts.playerPagesFolder + "/") || /^---\r?\n[\s\S]*?^party_map:\s*true\s*$[\s\S]*?^---/m.test(note.text),
+        resolveLink: opts.resolveLink,
+        published: (vp) => byVaultPath.get(vp),
+        image: imageTarget,
+      });
+      if (map) maps.push(map);
+      return "";
+    });
+    return { markdown: out, maps };
+  }
+
   const files: ExportFile[] = [];
   for (const p of prepared) {
+    let source = p.markdown;
+    let maps: MapData[] = [];
+    if (p.from.startsWith(opts.playerPagesFolder + "/")) {
+      const fm = source.match(/^---\r?\n[\s\S]*?\r?\n---/)?.[0] ?? "";
+      const found = extractMaps(source.slice(fm.length), p.from);
+      if (found.maps.length) {
+        maps = found.maps;
+        source = fm + found.markdown;
+      }
+    }
     // Properties first, then the body (kept apart so links aren't rewritten twice).
-    const withProps = rewriteImageProperties(p.markdown, p.from);
+    const withProps = rewriteImageProperties(source, p.from);
     const front = withProps.match(/^---\r?\n[\s\S]*?\r?\n---/)?.[0] ?? "";
     const body = rewriteLinks(withProps.slice(front.length), p.from);
     let header = front;
@@ -265,6 +300,11 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
       // The home page gets today's in-game date in its properties.
       const props = (header ? opts.yaml.parse(header.replace(/^---\r?\n|\r?\n---$/g, "")) : {}) as Record<string, unknown>;
       props.game_date = opts.gameDate;
+      header = `---\n${opts.yaml.stringify(props ?? {}).trimEnd()}\n---`;
+    }
+    if (maps.length) {
+      const props = (header ? opts.yaml.parse(header.replace(/^---\r?\n|\r?\n---$/g, "")) : {}) as Record<string, unknown>;
+      props.mw_maps = maps;
       header = `---\n${opts.yaml.stringify(props ?? {}).trimEnd()}\n---`;
     }
     files.push({ path: `${p.to}.md`, text: header + body });

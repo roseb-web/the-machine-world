@@ -1,0 +1,168 @@
+/* Old survey sheets: double-rule frame, small-capital legend, ringed survey points */
+
+.mw-maps {
+  margin: 1rem 0 2rem;
+}
+
+.mw-sheets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+}
+
+.mw-sheet-btn {
+  font-family: var(--bodyFont);
+  font-size: 0.9rem;
+  color: var(--darkgray);
+  background: transparent;
+  border: 1px solid var(--lightgray);
+  border-radius: 6px;
+  padding: 0.3rem 0.8rem;
+  cursor: pointer;
+}
+
+.mw-sheet-btn:hover {
+  border-color: var(--secondary);
+}
+
+.mw-sheet-btn.mw-on {
+  color: var(--dark);
+  border-color: var(--dark);
+}
+
+.mw-sheet-no {
+  font-variant: small-caps;
+  letter-spacing: 0.06em;
+  color: var(--gray);
+  margin-right: 0.2rem;
+}
+
+.mw-map-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+/* The double rule */
+.mw-map-frame {
+  border: 1px solid var(--dark);
+  padding: 4px;
+  background: var(--light);
+}
+
+.mw-map {
+  height: 420px;
+  border: 1px solid var(--dark);
+  background: var(--light);
+  font-family: var(--bodyFont);
+}
+
+
+/* Legend */
+.mw-legend {
+  border: 1px solid var(--lightgray);
+  padding: 0.8rem 0.9rem;
+  font-size: 0.9rem;
+}
+
+.mw-legend-title {
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+  color: var(--gray);
+  border-bottom: 1px solid var(--lightgray);
+  padding-bottom: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+
+.mw-legend-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1.4rem;
+}
+
+.mw-legend-list li {
+  margin: 0;
+}
+
+.mw-legend-list button {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0.2rem 0;
+  font: inherit;
+  color: var(--darkgray);
+  cursor: pointer;
+}
+
+.mw-legend-list button:hover {
+  color: var(--secondary);
+}
+
+.mw-legend-party {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--secondary);
+}
+
+.mw-legend-empty,
+.mw-legend-hint {
+  font-size: 0.78rem;
+  color: var(--gray);
+  margin: 0.6rem 0 0;
+}
+
+/* Survey points: a ring with a dot */
+.mw-pin span {
+  display: block;
+  width: 14px;
+  height: 14px;
+  margin: 4px;
+  border-radius: 50%;
+  border: 2px solid var(--dark);
+  background: var(--light);
+  box-sizing: border-box;
+  position: relative;
+  transition: transform 0.15s ease;
+}
+
+.mw-pin span::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--dark);
+}
+
+.mw-pin-plain span {
+  border-color: var(--tertiary);
+}
+
+.mw-pin-plain span::after {
+  background: var(--tertiary);
+}
+
+.mw-pin-party span {
+  width: 18px;
+  height: 18px;
+  margin: 2px;
+  border-color: var(--secondary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--secondary) 30%, transparent);
+}
+
+.mw-pin-party span::after {
+  background: var(--secondary);
+  inset: 4px;
+}
+
+.mw-pin:hover span,
+.mw-pin-hot span {
+  transform: scale(1.35);
+}
