@@ -34,8 +34,8 @@ Twelve constellations: **old gods, heroes of legend, and great beasts long dead.
 | **Somnara** | som-NAR-a  | the Dreamer             | Spring 51–75 | Faint. Only on very dark nights, anywhere | A wanderer. Strange dreams           |
 | **Lucerna** | loo-SER-na | the Lamp                | Summer 1–25  | The coast and harbours                    | Steady. Keeps going when others stop |
 | **Balaena** | ba-LAY-na  | the Leviathan           | Summer 26–50 | Out at sea                                | Big-hearted. Big-tempered            |
-| **Persona** | per-SO-na  | the Player, or the Mask | Summer 51–75 | Bright enough to see from [[places/the-varrow-lands/varrow|Varrow]]      | Charming. Never quite honest         |
-| **Grisham** | GRISH-um   | the Last Sheaf          | Autumn 1–25  | [[places/the-marrowlands/index|The Marrowlands]] farms                 | Generous, careful, a worrier         |
+| **Persona** | per-SO-na  | the Player, or the Mask | Summer 51–75 | Bright enough to see from [[places/the-varrow-lands/varrow\|Varrow]]      | Charming. Never quite honest         |
+| **Grisham** | GRISH-um   | the Last Sheaf          | Autumn 1–25  | [[places/the-marrowlands/index\|The Marrowlands]] farms                 | Generous, careful, a worrier         |
 | **Farlix**  | FAR-licks  | the Lantern-Bearer      | Autumn 26–50 | Everywhere, low in the south              | Kind. Afraid of the dark             |
 | **Venator** | ven-AH-tor | the Hunter              | Autumn 51–75 | The Marrowlands roads                     | Loyal. Can't let things go           |
 | **Valis**   | VAL-iss    | the Old Wolf            | Winter 1–25  | The Ostrand mountains, and the Front      | Tough. A survivor                    |
