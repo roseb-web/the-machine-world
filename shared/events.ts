@@ -2,7 +2,10 @@
 // What's published (see Wiki Scope, "Which events are published"):
 // - An event shows if its category is public (festivals, star signs, the party),
 //   or if its description has #player in it. Nothing else: event names are often DM notes.
-// - Event names only. Calendarium's descriptions are DM text and never leave the vault.
+// - Event names only. Calendarium's descriptions are DM text and never leave the vault,
+//   except two lines you write for the party:
+//     #player: The war begins            <- the name the party sees, in place of the event's name
+//     #player-info: One line they know.  <- shown in the timeline's pop-up
 // - A linked note that is published gives the event a link and the page a date card.
 // - Nothing dated after today (no spoilers). A long event still going loses its end date.
 
@@ -19,6 +22,7 @@ export interface WikiEvent {
   end?: Day;
   ongoing?: boolean; // a long event that hasn't ended yet
   page?: string; // published page it links to
+  info?: string; // from "#player-info:" in the description
 }
 
 export interface CalendarExport {
@@ -65,8 +69,20 @@ export interface EventOptions {
   noteEvents: { vaultPath: string; fcDate: string; fcEnd?: string; category?: string }[]; // notes with fc-date
 }
 
-// "#player" anywhere in the description publishes an event outside the public categories
-export const isMarked = (ev: { description?: string | null }) => /(^|\s)#player\b/i.test(ev.description ?? "");
+// "#player" anywhere in the description publishes an event outside the public categories.
+// ("#player-info:" on its own doesn't: it only adds a line to an event that's published.)
+export const isMarked = (ev: { description?: string | null }) => /(^|\s)#player(?![-\w])/i.test(ev.description ?? "");
+// "#player: The war begins": the name the party sees. Only the rest of that line is used.
+export const playerName = (desc?: string | null) => desc?.match(/(?:^|\s)#player:[ \t]*([^\r\n]*)/i)?.[1].trim() || undefined;
+// "#player-info: One line the party knows", for the pop-up
+export const playerInfo = (desc?: string | null) => desc?.match(/(?:^|\s)#player-info:[ \t]*([^\r\n]*)/i)?.[1].trim() || undefined;
+// The description without the lines written for the party (for the DM's own view)
+export const dmText = (desc?: string | null) =>
+  (desc ?? "")
+    .replace(/(^|\s)#player-info:[^\r\n]*/gi, "$1")
+    .replace(/(^|\s)#player:[^\r\n]*/gi, "$1")
+    .replace(/(^|\s)#player(?![-\w])/gi, "$1")
+    .trim();
 
 const key = (d: { year: number; month: number; day: number }) => d.year * 10000 + d.month * 100 + d.day;
 
@@ -84,11 +100,11 @@ export function calendarExport(raw: unknown, opts: EventOptions): CalendarExport
   const pub = new Set(opts.publicCategories);
   const events: WikiEvent[] = [];
 
-  const add = (name: string, category: string, date: WikiEvent["date"], end: Day | undefined, page?: string) => {
+  const add = (name: string, category: string, date: WikiEvent["date"], end: Day | undefined, page?: string, info?: string) => {
     if (!name) return;
     const recurring = date.year === null;
     if (!recurring && key(date as Day) > key(today)) return; // future: never published
-    const e: WikiEvent = { name, category, date, ...(page ? { page } : {}) };
+    const e: WikiEvent = { name, category, date, ...(page ? { page } : {}), ...(info ? { info } : {}) };
     if (end && !recurring) {
       if (key(end) > key(today)) e.ongoing = true; // still going: no end date
       else e.end = end;
@@ -105,7 +121,7 @@ export function calendarExport(raw: unknown, opts: EventOptions): CalendarExport
     const year = Array.isArray(y) ? null : y;
     const recurring = ev.type === "Recurring" || year === null;
     const date = recurring ? { year: null, month: ev.date.month, day: ev.date.day } : { year: year as number, month: ev.date.month, day: ev.date.day };
-    add(ev.name, category, date, ev.end ?? undefined, page?.to);
+    add(playerName(ev.description) ?? ev.name, category, date, ev.end ?? undefined, page?.to, playerInfo(ev.description));
   }
 
   // Notes with fc-date: their own page, under their own name

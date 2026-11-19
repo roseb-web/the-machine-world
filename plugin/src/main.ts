@@ -276,7 +276,7 @@ class WikiSettingTab extends PluginSettingTab {
     containerEl.createEl("h3", { text: "Calendar and timeline" });
     new Setting(containerEl)
       .setName("Public event categories")
-      .setDesc("Calendarium categories whose events always show, one per line. Other events only show if their description has #player in it. Descriptions never show.")
+      .setDesc("Calendarium categories whose events always show, one per line. Other events only show if their description has #player in it. Descriptions never show, apart from the lines you write for the party: \"#player: Name\" and \"#player-info: One line\".")
       .addTextArea((t) => {
         t.inputEl.rows = 4;
         t.setValue(s.publicCategories.join("\n")).onChange((v) => {

@@ -3,7 +3,7 @@
 
 import { ItemView, parseYaml, TFile, WorkspaceLeaf } from "obsidian";
 import { renderTimeline, TimelineEvent } from "../../shared/timeline-render";
-import { calendarExport, CalendarExport, parseFcDate } from "../../shared/events";
+import { calendarExport, CalendarExport, dmText, parseFcDate, playerInfo, playerName } from "../../shared/events";
 import type MachineWorldWiki from "./main";
 
 export const TIMELINE_VIEW = "machine-world-timeline";
@@ -84,9 +84,11 @@ export class TimelineView extends ItemView {
         category: ev.category ?? "",
         date,
         ...(ev.end ? { end: ev.end } : {}),
-        private: !pubKeys.has(keyOf(ev.name, date)),
+        private: !pubKeys.has(keyOf(playerName(ev.description) ?? ev.name, date)),
+        ...(playerName(ev.description) ? { publicName: playerName(ev.description) } : {}),
+        ...(playerInfo(ev.description) ? { info: playerInfo(ev.description) } : {}),
         ...(ev.note ? { notePath: ev.note, openable: true } : {}),
-        ...(ev.description ? { detail: ev.description.replace(/(^|\s)#player\b/gi, " ").trim() } : {}),
+        ...(dmText(ev.description) ? { detail: dmText(ev.description) } : {}),
       });
     }
     for (const file of this.app.vault.getMarkdownFiles()) {
@@ -117,7 +119,7 @@ export class TimelineView extends ItemView {
     if (!this.playerView) {
       body.createEl("p", {
         cls: "mw-tl-note",
-        text: "Italic events stay off the wiki (their pop-up says so). To publish one, put #player in its description in Calendarium (festivals, star signs and sessions publish on their own).",
+        text: "Italic events stay off the wiki. To publish one, put #player in its description in Calendarium (festivals, star signs and sessions publish on their own). Add \"#player: Name\" to show the party a different name, and \"#player-info: One line\" for a line they know.",
       });
     }
   }
