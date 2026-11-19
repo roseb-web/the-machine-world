@@ -1,0 +1,31 @@
+{
+  "name": "calendar-page",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The Calendar and Timeline pages for The Machine World wiki.",
+  "exports": {
+    ".": { "import": "./dist/index.js" },
+    "./components": { "import": "./dist/components/index.js" },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "scripts": { "build": "node build.mjs" },
+  "quartz": {
+    "name": "calendar-page",
+    "displayName": "Calendar page",
+    "category": "component",
+    "version": "1.0.0",
+    "quartzVersion": ">=5.0.0",
+    "dependencies": [],
+    "defaultEnabled": true,
+    "defaultOptions": {},
+    "components": {
+      "CalendarPage": {
+        "displayName": "Calendar page",
+        "defaultPosition": "afterBody",
+        "defaultPriority": 20
+      }
+    }
+  }
+}

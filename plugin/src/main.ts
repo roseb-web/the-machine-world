@@ -3,8 +3,9 @@
 // and pushes to GitHub only after you confirm.
 
 import { App, Modal, Notice, parseYaml, Plugin, PluginSettingTab, Setting, stringifyYaml, TFile } from "obsidian";
-import { exportWiki, ExportResult, SectionRule } from "../../shared/export";
+import { exportWiki, ExportOptions, ExportResult, SectionRule } from "../../shared/export";
 import { pushWiki } from "./github";
+import { TIMELINE_VIEW, TimelineView } from "./timeline-view";
 import { gameDateFrom } from "../../shared/calendar";
 
 interface WikiSettings {
@@ -17,6 +18,8 @@ interface WikiSettings {
   defaultSection: string;
   sections: SectionRule[];
   sectionTitles: Record<string, string>;
+  publicCategories: string[]; // Calendarium category names whose events are always public
+  publishTimeline: boolean;
 }
 
 const DEFAULT_SETTINGS: WikiSettings = {
@@ -49,6 +52,8 @@ const DEFAULT_SETTINGS: WikiSettings = {
     quests: "Quest log",
     items: "Items",
   },
+  publicCategories: ["Festivals", "Star signs", "The party"],
+  publishTimeline: false,
 };
 
 export default class MachineWorldWiki extends Plugin {
@@ -59,6 +64,30 @@ export default class MachineWorldWiki extends Plugin {
     this.addRibbonIcon("book-up", "Publish wiki", () => this.publish());
     this.addCommand({ id: "publish-wiki", name: "Publish wiki", callback: () => this.publish() });
     this.addSettingTab(new WikiSettingTab(this.app, this));
+
+    // The timeline view: every dated event, with a switch for what the wiki would show
+    this.registerView(TIMELINE_VIEW, (leaf) => new TimelineView(leaf, this));
+    this.addRibbonIcon("calendar-range", "Open timeline", () => this.openTimeline());
+    this.addCommand({ id: "open-timeline", name: "Open timeline", callback: () => this.openTimeline() });
+  }
+
+  async openTimeline() {
+    const existing = this.app.workspace.getLeavesOfType(TIMELINE_VIEW)[0];
+    const leaf = existing ?? this.app.workspace.getLeaf("tab");
+    if (!existing) await leaf.setViewState({ type: TIMELINE_VIEW, active: true });
+    this.app.workspace.revealLeaf(leaf);
+  }
+
+  // Calendarium's settings file, or null if it isn't there
+  async readCalendarium(): Promise<unknown | null> {
+    try {
+      const calPath = `${this.app.vault.configDir}/plugins/calendarium/data.json`;
+      if (!(await this.app.vault.adapter.exists(calPath))) return null;
+      return JSON.parse(await this.app.vault.adapter.read(calPath));
+    } catch (e) {
+      console.warn("Couldn't read Calendarium's settings", e);
+      return null;
+    }
   }
 
   async loadSettings() {
@@ -74,18 +103,29 @@ export default class MachineWorldWiki extends Plugin {
     const notes = await Promise.all(
       files.map(async (f) => ({ path: f.path, text: await this.app.vault.cachedRead(f) })),
     );
-    // Today's in-game date, from Calendarium's settings file (if it's there).
+    // Today's in-game date and the events, from Calendarium's settings file (if it's there).
     let gameDate = null;
+    let calendar: ExportOptions["calendar"] = undefined;
     try {
       const calPath = `${this.app.vault.configDir}/plugins/calendarium/data.json`;
       if (await this.app.vault.adapter.exists(calPath)) {
-        gameDate = gameDateFrom(JSON.parse(await this.app.vault.adapter.read(calPath)));
+        const data = JSON.parse(await this.app.vault.adapter.read(calPath));
+        gameDate = gameDateFrom(data);
+        // Public categories are set by name in the settings; Calendarium stores ids.
+        const wanted = new Set(this.settings.publicCategories.map((n) => n.trim().toLowerCase()));
+        const cats: { id: string; name: string }[] = data?.calendars?.[0]?.categories ?? [];
+        calendar = {
+          data,
+          publicCategories: cats.filter((c) => wanted.has(c.name.toLowerCase()) || wanted.has(c.id.toLowerCase())).map((c) => c.id),
+          publishTimeline: this.settings.publishTimeline,
+        };
       }
     } catch (e) {
-      console.warn("Couldn't read the Calendarium date", e);
+      console.warn("Couldn't read Calendarium's settings", e);
     }
     return exportWiki(notes, {
       gameDate,
+      calendar,
       sections: this.settings.sections,
       defaultSection: this.settings.defaultSection,
       playerPagesFolder: this.settings.playerPagesFolder,
@@ -197,5 +237,21 @@ class WikiSettingTab extends PluginSettingTab {
           save();
         });
       });
+
+    containerEl.createEl("h3", { text: "Calendar and timeline" });
+    new Setting(containerEl)
+      .setName("Public event categories")
+      .setDesc("Calendarium categories whose events always show, one per line. Other events only show if their linked note is published. Descriptions never show.")
+      .addTextArea((t) => {
+        t.inputEl.rows = 4;
+        t.setValue(s.publicCategories.join("\n")).onChange((v) => {
+          s.publicCategories = v.split("\n").map((x) => x.trim()).filter(Boolean);
+          save();
+        });
+      });
+    new Setting(containerEl)
+      .setName("Publish the timeline")
+      .setDesc("Off until the party knows enough history. The calendar is always published.")
+      .addToggle((t) => t.setValue(s.publishTimeline).onChange((v) => { s.publishTimeline = v; save(); }));
   }
 }

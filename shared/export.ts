@@ -4,6 +4,7 @@
 import { extractPlayerNote, renderPlayerNote, YamlTools } from "./extract";
 import type { GameDate } from "./calendar";
 import { readMap, MapData } from "./maps";
+import { calendarExport, dateCard } from "./events";
 
 export interface VaultNote {
   path: string; // vault path, e.g. "4. People/NPCs/Pell.md"
@@ -21,6 +22,12 @@ export interface ExportOptions {
   playerPagesFolder: string; // notes here are published whole
   sectionTitles?: Record<string, string>; // e.g. { people: "People" }, used for the section's own page
   gameDate?: GameDate | null; // today's in-game date, shown on the home page
+  // Calendarium's settings, for the Calendar (and Timeline) pages
+  calendar?: {
+    data: unknown;
+    publicCategories: string[]; // e.g. ["festival", "stars", "party"]
+    publishTimeline: boolean; // the Timeline page stays hidden until the party knows enough history
+  };
   // Finds the vault path a link points to (Obsidian's own resolver in the plugin).
   resolveLink: (link: string, fromPath: string) => string | null;
   yaml: YamlTools;
@@ -324,6 +331,47 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
       props.banner = placeProps.banner;
       if (placeProps.banner_focus) props.banner_focus = placeProps.banner_focus;
       home.text = `---\n${opts.yaml.stringify(props).trimEnd()}\n---` + home.text.slice(m ? m[0].length : 0);
+    }
+  }
+
+  // Calendar and Timeline: built from Calendarium, plus published notes with fc-date
+  if (opts.calendar) {
+    const cal = calendarExport(opts.calendar.data, {
+      publicCategories: opts.calendar.publicCategories,
+      published: (vp) => byVaultPath.get(vp),
+      noteEvents: prepared
+        .filter((p) => typeof p.props["fc-date"] === "string")
+        .map((p) => ({
+          vaultPath: p.from,
+          fcDate: String(p.props["fc-date"]),
+          ...(typeof p.props["fc-end"] === "string" ? { fcEnd: String(p.props["fc-end"]) } : {}),
+          ...(typeof p.props["fc-category"] === "string" ? { category: String(p.props["fc-category"]) } : {}),
+        })),
+    });
+    if (cal) {
+      const page = (slug: string, title: string, extra: Record<string, unknown>, body: string) => {
+        if (files.some((f) => f.path === `${slug}.md`)) return; // a Player Pages note of that name wins
+        files.push({ path: `${slug}.md`, text: `---\n${opts.yaml.stringify({ title, ...extra }).trimEnd()}\n---\n\n${body}\n` });
+      };
+      const t = cal.today;
+      const year = t.year >= 1 ? `${t.year} YC` : `${Math.abs(t.year)} BL`;
+      page("calendar", "Calendar", { mw_calendar: cal }, `Today is **${t.day} ${cal.months[t.month]}, ${year}**. Hover over a day to see its other names.`);
+      if (opts.calendar.publishTimeline)
+        page("timeline", "Timeline", { mw_calendar: cal, mw_timeline: true }, "What the party knows of Vaharan's history, in years. Long events are bars down the side. Click a category to hide or show it.");
+
+      // Date cards: a page that an event links to shows when it happens
+      for (const e of cal.events) {
+        if (!e.page) continue;
+        const f = files.find((x) => x.path === `${e.page}.md` && x.text);
+        const m = f?.text?.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+        if (!f || !m) continue;
+        const props = (opts.yaml.parse(m[1]) ?? {}) as Record<string, unknown>;
+        const cards = Array.isArray(props.mw_dates) ? (props.mw_dates as string[]) : [];
+        const text = dateCard(e, cal);
+        if (!cards.includes(text)) cards.push(text);
+        props.mw_dates = cards;
+        f.text = `---\n${opts.yaml.stringify(props).trimEnd()}\n---` + f.text!.slice(m[0].length);
+      }
     }
   }
 

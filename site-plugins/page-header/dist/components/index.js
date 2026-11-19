@@ -187,6 +187,24 @@ var PageHeader_default = `.mw-header {
 .center:has(.mw-header:not(.mw-folder-header)) .page-listing {
   display: none;
 }
+
+/* Date card: when this page's events happen */
+.mw-datecard {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.3rem 0 0;
+  padding: 0.15rem 0.6rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--darkgray);
+}
+
+.mw-datecard svg {
+  color: var(--secondary);
+  flex-shrink: 0;
+}
 `;
 
 // src/components/PageHeader.tsx
@@ -289,7 +307,8 @@ function renderHeader({ fileData }, fm, slug, str) {
   const sigil = photo ? void 0 : str("player_sigil");
   const subtitle = str("player_title");
   const seen = str("player_seen");
-  const hasDetails = photo || sigil || subtitle || chips.length > 0 || faction || seen;
+  const dates = Array.isArray(fm.mw_dates) ? fm.mw_dates.filter((d) => typeof d === "string") : [];
+  const hasDetails = photo || sigil || subtitle || chips.length > 0 || faction || seen || dates.length > 0;
   if (!hasDetails) {
     return /* @__PURE__ */ jsx("h1", { class: "article-title", children: title });
   }
@@ -311,7 +330,14 @@ function renderHeader({ fileData }, fm, slug, str) {
           seen && /* @__PURE__ */ jsxs("p", { class: "mw-seen", children: [
             "Last seen: ",
             renderValue(seen)
-          ] })
+          ] }),
+          dates.map((d) => /* @__PURE__ */ jsxs("p", { class: "mw-datecard", children: [
+            /* @__PURE__ */ jsxs("svg", { viewBox: "0 0 16 16", width: "14", height: "14", "aria-hidden": "true", children: [
+              /* @__PURE__ */ jsx("rect", { x: "1.5", y: "2.5", width: "13", height: "12", rx: "1.5", fill: "none", stroke: "currentColor" }),
+              /* @__PURE__ */ jsx("path", { d: "M1.5 6h13M5 1v3M11 1v3", stroke: "currentColor" })
+            ] }),
+            d
+          ] }))
         ] })
       ]
     }
