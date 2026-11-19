@@ -7,17 +7,9 @@
   --dark: var(--text-normal);
   --tertiary: #6b6a3a;
   --cat: var(--text-muted);
-  padding: 1rem 1.5rem;
+  padding: 1rem 0;
 }
 
-.mw-tl-view [data-cat="festivals"] { --cat: #a46b0a; }
-.mw-tl-view [data-cat="star signs"] { --cat: #5b6b8f; }
-.mw-tl-view [data-cat="the party"] { --cat: #5a2e1e; }
-.mw-tl-view [data-cat="history"] { --cat: #6b6a3a; }
-.mw-tl-view [data-cat="eras"] { --cat: #8a6d4b; }
-.mw-tl-view [data-cat="wars"] { --cat: #8c3b2e; }
-.theme-dark .mw-tl-view [data-cat="the party"] { --cat: #e5bb68; }
-.theme-dark .mw-tl-view [data-cat="history"] { --cat: #b8b67e; }
 
 .mw-tl-bar {
   display: flex;
@@ -43,98 +35,8 @@
   cursor: pointer;
 }
 
-/* Timeline */
-.mw-tl-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-bottom: 1rem;
-}
-
-.mw-tl-filter {
-  opacity: 0.55;
-}
-
-.mw-tl-filter.mw-on {
-  opacity: 1;
-  border-color: var(--cat);
-  box-shadow: inset 3px 0 0 var(--cat);
-}
-
-.mw-tl-row {
-  display: grid;
-  grid-template-columns: 5.5rem calc(var(--lanes, 1) * 10px) 14px minmax(0, 1fr);
-  column-gap: 0.6rem;
-  align-items: stretch;
-  min-height: 2rem;
-}
-
-.mw-tl-year {
-  text-align: right;
-  color: var(--gray);
-  font-size: 0.85rem;
-  padding-top: 0.35rem;
-}
-
-.mw-tl-bars {
-  display: grid;
-  grid-template-columns: repeat(var(--lanes, 1), 10px);
-}
-
-.mw-tl-seg {
-  grid-row: 1;
-  width: 6px;
-  background: var(--cat);
-  opacity: 0.75;
-}
-
-.mw-tl-seg-start {
-  border-radius: 3px 3px 0 0;
-  margin-top: 0.5rem;
-}
-
-.mw-tl-dot {
-  width: 10px;
-  height: 10px;
-  margin-top: 0.55rem;
-  border-radius: 50%;
-  background: var(--cat);
-}
-
-.mw-tl-dot-today {
-  background: transparent;
-  border: 2px solid var(--secondary);
-  box-sizing: border-box;
-}
-
-.mw-tl-what {
-  padding: 0.3rem 0;
-  font-size: 0.95rem;
-}
-
-.mw-tl-today .mw-tl-what,
-.mw-tl-today .mw-tl-year {
-  color: var(--secondary);
-}
-
-.mw-tl-span {
-  color: var(--gray);
-  font-size: 0.85rem;
-}
-
-.mw-tl-flag {
-  margin-left: 0.5rem;
-  font-size: 0.7rem;
-  padding: 0 0.4rem;
-  border-radius: 4px;
-  background: var(--lightgray);
-  color: var(--darkgray);
-}
-
-.mw-tl-private .mw-tl-what > :first-child {
-  font-style: italic;
-}
-
-.mw-tl-empty {
-  color: var(--gray);
+/* The timeline itself brings its own styles (shared/timeline-render.ts). */
+.mw-tl-view .mw-tl-bar,
+.mw-tl-view .mw-tl-note {
+  padding: 0 1.5rem;
 }

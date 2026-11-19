@@ -47,8 +47,7 @@
   gap: 0.4rem;
 }
 
-.mw-cal-nav button,
-.mw-tl-filter {
+.mw-cal-nav button {
   font-family: var(--bodyFont);
   font-size: 0.85rem;
   color: var(--darkgray);
@@ -59,8 +58,7 @@
   cursor: pointer;
 }
 
-.mw-cal-nav button:hover,
-.mw-tl-filter:hover {
+.mw-cal-nav button:hover {
   border-color: var(--secondary);
 }
 
@@ -272,98 +270,7 @@ a.mw-cal-ev,
   }
 }
 
-/* Timeline */
-.mw-tl-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-bottom: 1rem;
-}
-
-.mw-tl-filter {
-  opacity: 0.55;
-}
-
-.mw-tl-filter.mw-on {
-  opacity: 1;
-  border-color: var(--cat);
-  box-shadow: inset 3px 0 0 var(--cat);
-}
-
-.mw-tl-row {
-  display: grid;
-  grid-template-columns: 5.5rem calc(var(--lanes, 1) * 10px) 14px minmax(0, 1fr);
-  column-gap: 0.6rem;
-  align-items: stretch;
-  min-height: 2rem;
-}
-
-.mw-tl-year {
-  text-align: right;
-  color: var(--gray);
-  font-size: 0.85rem;
-  padding-top: 0.35rem;
-}
-
-.mw-tl-bars {
-  display: grid;
-  grid-template-columns: repeat(var(--lanes, 1), 10px);
-}
-
-.mw-tl-seg {
-  grid-row: 1;
-  width: 6px;
-  background: var(--cat);
-  opacity: 0.75;
-}
-
-.mw-tl-seg-start {
-  border-radius: 3px 3px 0 0;
-  margin-top: 0.5rem;
-}
-
-.mw-tl-dot {
-  width: 10px;
-  height: 10px;
-  margin-top: 0.55rem;
-  border-radius: 50%;
-  background: var(--cat);
-}
-
-.mw-tl-dot-today {
-  background: transparent;
-  border: 2px solid var(--secondary);
-  box-sizing: border-box;
-}
-
-.mw-tl-what {
-  padding: 0.3rem 0;
-  font-size: 0.95rem;
-}
-
-.mw-tl-today .mw-tl-what,
-.mw-tl-today .mw-tl-year {
-  color: var(--secondary);
-}
-
-.mw-tl-span {
-  color: var(--gray);
-  font-size: 0.85rem;
-}
-
-.mw-tl-flag {
-  margin-left: 0.5rem;
-  font-size: 0.7rem;
-  padding: 0 0.4rem;
-  border-radius: 4px;
-  background: var(--lightgray);
-  color: var(--darkgray);
-}
-
-.mw-tl-private .mw-tl-what > :first-child {
-  font-style: italic;
-}
-
-.mw-tl-empty {
-  color: var(--gray);
+/* Timeline: its styles come with the timeline itself (shared/timeline-render.ts) */
+.mw-cal-timeline {
+  margin-top: 1rem;
 }

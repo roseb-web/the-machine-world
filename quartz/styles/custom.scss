@@ -258,3 +258,23 @@ button.mobile-explorer h2 {
     }
   }
 }
+
+// Timeline page: the timeline runs the full width, from the menu to the edge of the screen.
+// The right sidebar is hidden; the title and intro keep their normal reading width.
+body:has(.mw-tl2) {
+  @media all and (min-width: 1200px) {
+    .page > #quartz-body {
+      grid-template-columns: 320px minmax(0, 1fr) 0;
+    }
+  }
+  .page > #quartz-body .sidebar.right {
+    display: none;
+  }
+  .page > #quartz-body .center > *:not(.page-footer),
+  .page > #quartz-body .center > .page-footer > *:not(.mw-cal-timeline) {
+    max-width: 750px;
+  }
+  .page > #quartz-body .center > hr {
+    display: none;
+  }
+}
