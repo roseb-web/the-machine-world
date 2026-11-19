@@ -141,3 +141,52 @@
   border-radius: 8px;
   margin: 0 !important;
 }
+
+/* Moodboard: a masonry grid of the board's pins */
+.mw-mood-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.mw-related a.mw-mood-link {
+  font-size: 0.85rem;
+  color: var(--secondary);
+}
+
+.mw-mood-grid {
+  columns: 4 150px;
+  column-gap: 8px;
+}
+
+.mw-related a.mw-mood-tile {
+  display: block;
+  break-inside: avoid;
+  margin: 0 0 8px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--lightgray);
+  background: var(--lightgray);
+  text-decoration: none;
+}
+
+.mw-mood-tile img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  transition: transform 0.25s ease;
+}
+
+.mw-mood-tile:hover img {
+  transform: scale(1.03);
+}
+
+.mw-mood-more summary {
+  cursor: pointer;
+  color: var(--secondary);
+  font-size: 0.9rem;
+  margin: 0.2rem 0 0.8rem;
+}

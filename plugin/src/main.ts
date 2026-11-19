@@ -2,7 +2,8 @@
 // Adds a "Publish wiki" button. It exports only player content, shows you the list of pages,
 // and pushes to GitHub only after you confirm.
 
-import { App, Modal, Notice, parseYaml, Plugin, PluginSettingTab, Setting, stringifyYaml, TFile } from "obsidian";
+import { App, Modal, Notice, parseYaml, Plugin, PluginSettingTab, requestUrl, Setting, stringifyYaml, TFile } from "obsidian";
+import { boardKey, fetchMoodboards, MoodPin, PinterestAuthError } from "../../shared/pinterest";
 import { exportWiki, ExportOptions, ExportResult, SectionRule } from "../../shared/export";
 import { pushWiki } from "./github";
 import { TIMELINE_VIEW, TimelineView } from "./timeline-view";
@@ -20,6 +21,8 @@ interface WikiSettings {
   sectionTitles: Record<string, string>;
   publicCategories: string[]; // Calendarium category names whose events are always public
   publishTimeline: boolean;
+  pinterestToken: string; // read-only token from the Pinterest developer portal
+  moodboardCache: Record<string, MoodPin[]>; // last good pins, used if Pinterest can't be reached
 }
 
 const DEFAULT_SETTINGS: WikiSettings = {
@@ -54,6 +57,8 @@ const DEFAULT_SETTINGS: WikiSettings = {
   },
   publicCategories: ["Festivals", "Star signs", "The party"],
   publishTimeline: false,
+  pinterestToken: "",
+  moodboardCache: {},
 };
 
 export default class MachineWorldWiki extends Plugin {
@@ -98,7 +103,35 @@ export default class MachineWorldWiki extends Plugin {
     await this.saveData(this.settings);
   }
 
-  async buildExport(): Promise<ExportResult> {
+  // Fetches pins for every `pinterest` link in the vault (only when publishing).
+  // If Pinterest can't be reached, the last good pins are used, so moodboards never vanish.
+  async moodboards(fetchNew: boolean): Promise<Record<string, MoodPin[]>> {
+    const urls = this.app.vault
+      .getMarkdownFiles()
+      .map((f) => this.app.metadataCache.getFileCache(f)?.frontmatter?.pinterest)
+      .filter((u): u is string => typeof u === "string" && u.trim().length > 0);
+    if (fetchNew && urls.length && this.settings.pinterestToken) {
+      const token = this.settings.pinterestToken;
+      try {
+        const { boards, errors } = await fetchMoodboards(async (url) => {
+          const res = await requestUrl({ url, headers: { Authorization: `Bearer ${token}` }, throw: false });
+          return { status: res.status, json: res.status < 400 ? res.json : null };
+        }, urls);
+        this.settings.moodboardCache = { ...this.settings.moodboardCache, ...boards };
+        await this.saveSettings();
+        if (errors.length) new Notice(`Moodboards: ${errors.join(" ")}`, 15000);
+      } catch (e) {
+        const msg = e instanceof PinterestAuthError ? e.message : `Couldn't reach Pinterest (${(e as Error).message}).`;
+        new Notice(`Moodboards: ${msg} The last saved moodboards will be used.`, 15000);
+      }
+    } else if (fetchNew && urls.length && !this.settings.pinterestToken) {
+      new Notice("Moodboards: add a Pinterest token in the plugin settings to update them.", 8000);
+    }
+    const wanted = new Set(urls.map(boardKey));
+    return Object.fromEntries(Object.entries(this.settings.moodboardCache).filter(([k]) => wanted.has(k)));
+  }
+
+  async buildExport(fetchPinterest = false): Promise<ExportResult> {
     const files = this.app.vault.getMarkdownFiles();
     const notes = await Promise.all(
       files.map(async (f) => ({ path: f.path, text: await this.app.vault.cachedRead(f) })),
@@ -123,9 +156,11 @@ export default class MachineWorldWiki extends Plugin {
     } catch (e) {
       console.warn("Couldn't read Calendarium's settings", e);
     }
+    const moodboards = await this.moodboards(fetchPinterest);
     return exportWiki(notes, {
       gameDate,
       calendar,
+      moodboards,
       sections: this.settings.sections,
       defaultSection: this.settings.defaultSection,
       playerPagesFolder: this.settings.playerPagesFolder,
@@ -140,7 +175,7 @@ export default class MachineWorldWiki extends Plugin {
       new Notice("Add your GitHub token in the plugin settings first.");
       return;
     }
-    const result = await this.buildExport();
+    const result = await this.buildExport(true);
     new ConfirmModal(this.app, result, async () => {
       const notice = new Notice("Publishing wiki...", 0);
       try {
@@ -241,7 +276,7 @@ class WikiSettingTab extends PluginSettingTab {
     containerEl.createEl("h3", { text: "Calendar and timeline" });
     new Setting(containerEl)
       .setName("Public event categories")
-      .setDesc("Calendarium categories whose events always show, one per line. Other events only show if their linked note is published. Descriptions never show.")
+      .setDesc("Calendarium categories whose events always show, one per line. Other events only show if their description has #player in it. Descriptions never show.")
       .addTextArea((t) => {
         t.inputEl.rows = 4;
         t.setValue(s.publicCategories.join("\n")).onChange((v) => {
@@ -253,5 +288,14 @@ class WikiSettingTab extends PluginSettingTab {
       .setName("Publish the timeline")
       .setDesc("Off until the party knows enough history. The calendar is always published.")
       .addToggle((t) => t.setValue(s.publishTimeline).onChange((v) => { s.publishTimeline = v; save(); }));
+
+    containerEl.createEl("h3", { text: "Moodboards" });
+    new Setting(containerEl)
+      .setName("Pinterest token")
+      .setDesc("The read-only token from the Pinterest developer portal (pins:read, boards:read). It lasts 30 days. Moodboards update each time you publish.")
+      .addText((t) => {
+        t.inputEl.type = "password";
+        t.setValue(s.pinterestToken).onChange((v) => { s.pinterestToken = v.trim(); save(); });
+      });
   }
 }

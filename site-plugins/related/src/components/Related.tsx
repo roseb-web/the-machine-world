@@ -64,7 +64,18 @@ export default (() => {
       (h): h is string => typeof h === "string" && h.length > 0,
     )
 
-    if (!affinity.length && !npcs.length && !places.length && !quests.length && !handouts.length) return null
+    // Moodboard: pins fetched from Pinterest when publishing (mw_moodboard), for the page's `pinterest` link
+    type Pin = { img: string; big: string; w: number; h: number; pin: string; alt?: string }
+    const mood = (Array.isArray(fm.mw_moodboard) ? (fm.mw_moodboard as Pin[]) : []).filter((p) => p && typeof p.img === "string")
+    const boardUrl = typeof fm.pinterest === "string" && /^https:\/\/([a-z]{2,3}\.)?pinterest\./i.test(fm.pinterest) ? fm.pinterest : undefined
+    const SHOWN = 12
+    const tile = (p: Pin) => (
+      <a href={p.big} class="mw-mood-tile" target="_blank" rel="noopener">
+        <img src={p.img} width={p.w} height={p.h} alt={p.alt ?? ""} loading="lazy" />
+      </a>
+    )
+
+    if (!affinity.length && !npcs.length && !places.length && !quests.length && !handouts.length && !mood.length) return null
 
     return (
       <div class="mw-related">
@@ -152,6 +163,26 @@ export default (() => {
                 )
               })}
             </div>
+          </section>
+        )}
+
+        {mood.length > 0 && (
+          <section class="mw-mood">
+            <div class="mw-mood-head">
+              <h2>Moodboard</h2>
+              {boardUrl && (
+                <a href={boardUrl} class="external mw-mood-link" target="_blank" rel="noopener">
+                  Open on Pinterest
+                </a>
+              )}
+            </div>
+            <div class="mw-mood-grid">{mood.slice(0, SHOWN).map(tile)}</div>
+            {mood.length > SHOWN && (
+              <details class="mw-mood-more">
+                <summary>Show {mood.length - SHOWN} more</summary>
+                <div class="mw-mood-grid">{mood.slice(SHOWN).map(tile)}</div>
+              </details>
+            )}
           </section>
         )}
       </div>
