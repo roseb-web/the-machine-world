@@ -2,7 +2,444 @@
 import { pathToRoot, resolveRelative } from "@quartz-community/utils";
 
 // src/components/Related.css
-var Related_default = ".mw-related {\n  margin-top: 2.5rem;\n}\n\n.mw-related section {\n  margin-bottom: 2rem;\n}\n\n.mw-related h2 {\n  margin: 0 0 0.8rem;\n}\n\n.mw-related ul {\n  list-style: none;\n  margin: 0;\n  padding: 0;\n}\n\n.mw-related li {\n  margin: 0 0 0.4rem;\n  display: flex;\n  align-items: center;\n  gap: 0.5rem;\n}\n\n.mw-related a.internal {\n  background: none;\n  padding: 0;\n  font-weight: inherit;\n  text-decoration: underline;\n  text-decoration-thickness: 1px;\n  text-underline-offset: 3px;\n}\n\n/* Affinity */\n.mw-affinity {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0.6rem;\n}\n\n.mw-affinity-card {\n  display: flex;\n  align-items: center;\n  gap: 0.6rem;\n  padding: 0.4rem 0.8rem;\n  border: 1px solid var(--lightgray);\n  border-radius: 10px;\n}\n\n.mw-affinity-name {\n  font-weight: 500;\n  color: var(--dark);\n}\n\n/* Key NPCs */\n.mw-npc-grid {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));\n  gap: 0.8rem;\n}\n\n.mw-related a.mw-npc-card {\n  display: flex;\n  flex-direction: column;\n  border: 1px solid var(--lightgray);\n  border-radius: 10px;\n  overflow: hidden;\n  text-decoration: none;\n  color: inherit;\n  transition: border-color 0.2s ease;\n}\n\n.mw-related a.mw-npc-card:hover {\n  border-color: var(--secondary);\n}\n\n.mw-npc-card img,\n.mw-npc-noimg {\n  display: block;\n  width: 100%;\n  height: 150px;\n  object-fit: cover;\n  object-position: center top;\n  margin: 0 !important;\n  border-radius: 0 !important;\n  background: var(--lightgray);\n}\n\n.mw-npc-name {\n  padding: 0.5rem 0.7rem 0;\n  font-weight: 500;\n  color: var(--dark);\n}\n\n.mw-npc-role {\n  padding: 0 0.7rem 0.6rem;\n  font-size: 0.8rem;\n  color: var(--gray);\n}\n\n/* Places and quests side by side */\n.mw-related-columns {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));\n  gap: 1.5rem;\n}\n\n.mw-mini-chip {\n  font-size: 0.7rem;\n  text-transform: capitalize;\n  padding: 0 0.5rem;\n  border-radius: 6px;\n  background: var(--lightgray);\n  color: var(--darkgray);\n}\n\n/* Related handouts */\n.mw-handouts {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));\n  gap: 0.8rem;\n}\n\n.mw-related a.mw-handout {\n  display: flex;\n  flex-direction: column;\n  gap: 0.3rem;\n  text-decoration: none;\n  color: var(--darkgray);\n  font-size: 0.8rem;\n  font-weight: 400;\n  line-height: 1.3;\n}\n\n.mw-handout img {\n  width: 100%;\n  height: 180px;\n  object-fit: contain;\n  padding: 6px;\n  box-sizing: border-box;\n  background: #fff;\n  border: 1px solid var(--lightgray);\n  border-radius: 8px;\n  margin: 0 !important;\n}\n\n/* Moodboard: a masonry grid of the board's pins */\n.mw-mood-head {\n  display: flex;\n  justify-content: space-between;\n  align-items: baseline;\n  gap: 1rem;\n}\n\n.mw-related a.mw-mood-link {\n  font-size: 0.85rem;\n  color: var(--secondary);\n}\n\n.mw-mood-grid {\n  columns: 4 150px;\n  column-gap: 8px;\n}\n\n.mw-related a.mw-mood-tile {\n  display: block;\n  break-inside: avoid;\n  margin: 0 0 8px;\n  border-radius: 6px;\n  overflow: hidden;\n  border: 1px solid var(--lightgray);\n  background: var(--lightgray);\n  text-decoration: none;\n}\n\n.mw-mood-tile img {\n  display: block;\n  width: 100%;\n  height: auto;\n  margin: 0 !important;\n  border-radius: 0 !important;\n  transition: transform 0.25s ease;\n}\n\n.mw-mood-tile:hover img {\n  transform: scale(1.03);\n}\n\n.mw-mood-more summary {\n  cursor: pointer;\n  color: var(--secondary);\n  font-size: 0.9rem;\n  margin: 0.2rem 0 0.8rem;\n}\n\n/* Handouts page: a gallery of every handout, grouped under headings */\narticle.mw-handouts-page p:has(figure),\narticle.mw-handouts-page p:has(img) {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));\n  gap: 1rem;\n  align-items: start;\n}\n\narticle.mw-handouts-page br {\n  display: none;\n}\n\n.mw-handout-fig {\n  margin: 0;\n}\n\n.mw-handout-fig a {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  height: 220px;\n  padding: 8px;\n  border: 1px solid var(--lightgray);\n  border-radius: 8px;\n  background: #fff;\n  transition: border-color 0.2s ease;\n}\n\n.mw-handout-fig a:hover {\n  border-color: var(--secondary);\n}\n\n.mw-handout-fig img {\n  max-width: 100%;\n  max-height: 100%;\n  object-fit: contain;\n  margin: 0 !important;\n  border-radius: 0 !important;\n}\n\n.mw-handout-fig figcaption {\n  margin-top: 0.4rem;\n  font-size: 0.85rem;\n  line-height: 1.3;\n  color: var(--darkgray);\n}\n";
+var Related_default = `.mw-related {
+  margin-top: 2.5rem;
+}
+
+.mw-related section {
+  margin-bottom: 2rem;
+}
+
+.mw-related h2 {
+  margin: 0 0 0.8rem;
+}
+
+.mw-related ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mw-related li {
+  margin: 0 0 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mw-related a.internal {
+  background: none;
+  padding: 0;
+  font-weight: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+/* Affinity */
+.mw-affinity {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.mw-affinity-card {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 10px;
+}
+
+.mw-affinity-name {
+  font-weight: 500;
+  color: var(--dark);
+}
+
+/* Key NPCs */
+.mw-npc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.8rem;
+}
+
+.mw-related a.mw-npc-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--lightgray);
+  border-radius: 10px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.mw-related a.mw-npc-card:hover {
+  border-color: var(--secondary);
+}
+
+.mw-npc-card img,
+.mw-npc-noimg {
+  display: block;
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  object-position: center top;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  background: var(--lightgray);
+}
+
+.mw-npc-name {
+  padding: 0.5rem 0.7rem 0;
+  font-weight: 500;
+  color: var(--dark);
+}
+
+.mw-npc-role {
+  padding: 0 0.7rem 0.6rem;
+  font-size: 0.8rem;
+  color: var(--gray);
+}
+
+/* Places and quests side by side */
+.mw-related-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.mw-mini-chip {
+  font-size: 0.7rem;
+  text-transform: capitalize;
+  padding: 0 0.5rem;
+  border-radius: 6px;
+  background: var(--lightgray);
+  color: var(--darkgray);
+}
+
+/* Related handouts */
+.mw-handouts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.8rem;
+}
+
+.mw-related a.mw-handout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  text-decoration: none;
+  color: var(--darkgray);
+  font-size: 0.8rem;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.mw-handout img {
+  width: 100%;
+  height: 180px;
+  object-fit: contain;
+  padding: 6px;
+  box-sizing: border-box;
+  background: #fff;
+  border: 1px solid var(--lightgray);
+  border-radius: 8px;
+  margin: 0 !important;
+}
+
+/* Moodboard: a masonry grid of the board's pins */
+.mw-mood-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.mw-related a.mw-mood-link {
+  font-size: 0.85rem;
+  color: var(--secondary);
+}
+
+.mw-mood-grid {
+  columns: 4 150px;
+  column-gap: 8px;
+}
+
+.mw-related a.mw-mood-tile {
+  display: block;
+  break-inside: avoid;
+  margin: 0 0 8px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--lightgray);
+  background: var(--lightgray);
+  text-decoration: none;
+}
+
+.mw-mood-tile img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  transition: transform 0.25s ease;
+}
+
+.mw-mood-tile:hover img {
+  transform: scale(1.03);
+}
+
+.mw-mood-more summary {
+  cursor: pointer;
+  color: var(--secondary);
+  font-size: 0.9rem;
+  margin: 0.2rem 0 0.8rem;
+}
+
+/* Handouts page: a gallery of every handout, grouped under headings */
+article.mw-handouts-page p:has(figure),
+article.mw-handouts-page p:has(img) {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+article.mw-handouts-page br {
+  display: none;
+}
+
+.mw-handout-fig {
+  margin: 0;
+}
+
+.mw-handout-fig a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 220px;
+  padding: 8px;
+  border: 1px solid var(--lightgray);
+  border-radius: 8px;
+  background: #fff;
+  transition: border-color 0.2s ease;
+}
+
+.mw-handout-fig a:hover {
+  border-color: var(--secondary);
+}
+
+.mw-handout-fig img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+
+.mw-handout-fig figcaption {
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  line-height: 1.3;
+  color: var(--darkgray);
+}
+
+/* Landing pages: a card for each page in the folder */
+.mw-landing {
+  margin-top: 0.5rem;
+}
+
+.mw-landing-overview {
+  margin: 0 0 0.5rem;
+}
+
+.mw-landing-overview a.internal {
+  background: none;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.mw-landing h2 {
+  margin: 1.6rem 0 0.8rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--lightgray);
+}
+
+.mw-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: 1.1rem;
+}
+
+a.mw-card {
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  border: 1.5px solid var(--secondary);
+  border-radius: 10px;
+  background: var(--light);
+  color: var(--darkgray);
+  font-weight: 400;
+  text-decoration: none;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+
+a.mw-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(90, 46, 30, 0.12);
+}
+
+.mw-card-inner {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--secondary) 35%, transparent);
+  border-radius: 6px;
+}
+
+.mw-card-banner {
+  height: 96px;
+  background: center / cover no-repeat;
+}
+
+.mw-card-blank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--secondary) 7%, var(--light)) 0 10px,
+    color-mix(in srgb, var(--secondary) 11%, var(--light)) 10px 20px
+  );
+}
+
+.mw-card-blank img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  margin: 0 !important;
+}
+
+.mw-card-blank span {
+  font-family: var(--headerFont);
+  font-size: 2rem;
+  color: color-mix(in srgb, var(--secondary) 45%, transparent);
+}
+
+.mw-card-row {
+  padding: 0.6rem 0.75rem;
+  border-top: 1px solid var(--lightgray);
+}
+
+.mw-card-banner + .mw-card-row {
+  border-top: none;
+}
+
+.mw-card-name {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.mw-card-sigil {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--secondary);
+  border-radius: 50%;
+  background: #fff;
+  font-family: var(--headerFont);
+  font-size: 0.9rem;
+  color: var(--secondary);
+}
+
+.mw-card-sigil img {
+  width: 74%;
+  height: 74%;
+  object-fit: contain;
+  margin: 0 !important;
+}
+
+.mw-card-title {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--headerFont);
+  font-size: 1.15rem;
+  line-height: 1.2;
+  color: var(--dark);
+}
+
+.mw-card-title small {
+  margin-top: 2px;
+  font-family: var(--bodyFont);
+  font-size: 0.75rem;
+  color: var(--gray);
+}
+
+.mw-card-themes {
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  color: var(--gray);
+}
+
+.mw-card-themes span + span::before {
+  content: "\u2022";
+  margin: 0 0.4rem;
+  color: var(--secondary);
+}
+
+.mw-card-more {
+  margin-top: auto;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--secondary);
+}
+
+/* The cards replace Quartz's dated list on landing pages */
+body:has(.mw-landing) .page-listing,
+body:has(.mw-landing) .center > hr {
+  display: none;
+}
+
+/* Phones: two smaller cards per row */
+@media (max-width: 600px) {
+  .mw-cards {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+  .mw-card-banner {
+    height: 70px;
+  }
+  .mw-card-row {
+    padding: 0.45rem 0.5rem;
+  }
+  .mw-card-name {
+    gap: 0.4rem;
+  }
+  .mw-card-sigil {
+    width: 26px;
+    height: 26px;
+    font-size: 0.75rem;
+  }
+  .mw-card-title {
+    font-size: 0.98rem;
+  }
+  .mw-card-title small,
+  .mw-card-themes,
+  .mw-card-more {
+    font-size: 0.7rem;
+  }
+}
+`;
 
 // src/components/Related.tsx
 import { jsx, jsxs } from "preact/jsx-runtime";
@@ -11,14 +448,74 @@ var titleOf = (f) => String(props(f).title ?? String(f.slug).split("/").pop());
 var linkTarget = (v) => typeof v === "string" ? v.match(/^\[\[([^\]|]+)/)?.[1] : void 0;
 var isPage = (f) => !!f.slug && String(f.slug) !== "index" && props(f).mw_folder !== true;
 var TONES = { enemy: "bad", shunned: "low", noticed: "good", chosen: "best" };
+var str = (v) => typeof v === "string" && v.trim() ? v.trim() : void 0;
+var listOf = (v) => (Array.isArray(v) ? v : typeof v === "string" ? v.split(",") : []).map((x) => String(x).trim()).filter(Boolean);
+var plural = (t) => /s$/i.test(t) ? t : /[^aeiou]y$/i.test(t) ? t.slice(0, -1) + "ies" : t + "s";
+function Landing({ slug, root, href, allFiles }) {
+  const inside = slug.endsWith("index") ? slug.slice(0, -"index".length) : slug + "/";
+  const kids = allFiles.filter((f) => {
+    const s = String(f.slug ?? "");
+    if (!s.startsWith(inside) || s === slug) return false;
+    const rest = s.slice(inside.length);
+    return !rest.includes("/") || /^[^/]+\/index$/.test(rest);
+  }).sort((a, b) => titleOf(a).localeCompare(titleOf(b)));
+  const overviews = kids.filter((f) => props(f).player_type === "Overview");
+  const cards = kids.filter((f) => props(f).player_type !== "Overview");
+  if (cards.length === 0 && overviews.length === 0) return null;
+  const types = /* @__PURE__ */ new Map();
+  for (const f of cards) {
+    const t = str(props(f).player_type) ?? "";
+    types.set(t, [...types.get(t) ?? [], f]);
+  }
+  const grouped = types.size > 1 && [...types.keys()].every((t) => t && types.get(t).length >= 2);
+  const groups = grouped ? [...types.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([t, fs]) => [plural(t), fs]) : [[void 0, cards]];
+  const img = (v) => {
+    const p = str(v);
+    return p ? /^https?:/.test(p) ? p : `${root}/${p}` : void 0;
+  };
+  const card = (f) => {
+    const p = props(f);
+    const title = titleOf(f);
+    const banner = img(p.banner);
+    const sigil = img(p.player_sigil);
+    const themes = listOf(p.player_themes);
+    const sub = str(p.player_title) ?? (grouped ? void 0 : str(p.player_type));
+    const initial = title.replace(/^the\s+/i, "").charAt(0).toUpperCase();
+    const focus = str(p.banner_focus);
+    return /* @__PURE__ */ jsx("a", { href: href(String(f.slug)), class: "mw-card internal", children: /* @__PURE__ */ jsxs("div", { class: "mw-card-inner", children: [
+      banner ? /* @__PURE__ */ jsx("div", { class: "mw-card-banner", style: `background-image:url('${banner}')${focus ? `;background-position:${focus}` : ""}` }) : /* @__PURE__ */ jsx("div", { class: "mw-card-banner mw-card-blank", children: sigil ? /* @__PURE__ */ jsx("img", { src: sigil, alt: "" }) : /* @__PURE__ */ jsx("span", { children: initial }) }),
+      /* @__PURE__ */ jsxs("div", { class: "mw-card-row mw-card-name", children: [
+        sigil && /* @__PURE__ */ jsx("span", { class: "mw-card-sigil", children: /* @__PURE__ */ jsx("img", { src: sigil, alt: "" }) }),
+        /* @__PURE__ */ jsxs("span", { class: "mw-card-title", children: [
+          title,
+          sub && /* @__PURE__ */ jsx("small", { children: sub })
+        ] })
+      ] }),
+      themes.length > 0 && /* @__PURE__ */ jsx("div", { class: "mw-card-row mw-card-themes", children: themes.map((t) => /* @__PURE__ */ jsx("span", { children: t })) }),
+      /* @__PURE__ */ jsx("div", { class: "mw-card-row mw-card-more", children: "Read more \u2192" })
+    ] }) });
+  };
+  return /* @__PURE__ */ jsxs("div", { class: "mw-landing", children: [
+    overviews.map((f) => /* @__PURE__ */ jsx("p", { class: "mw-landing-overview", children: /* @__PURE__ */ jsxs("a", { href: href(String(f.slug)), class: "internal", children: [
+      "Read the overview: ",
+      titleOf(f),
+      " \u2192"
+    ] }) })),
+    groups.map(([name, fs]) => /* @__PURE__ */ jsxs("section", { children: [
+      name && /* @__PURE__ */ jsx("h2", { children: name }),
+      /* @__PURE__ */ jsx("div", { class: "mw-cards", children: fs.map(card) })
+    ] }))
+  ] });
+}
 var Related_default2 = (() => {
   const Related = ({ fileData, allFiles }) => {
     const slug = String(fileData.slug ?? "");
     const fm = fileData.frontmatter ?? {};
-    if (!slug || slug === "index" || fm.mw_folder === true) return null;
+    if (!slug || slug === "index") return null;
     const root = pathToRoot(slug);
     const href = (target) => resolveRelative(slug, target);
     const pages = allFiles.filter(isPage);
+    if (fm.mw_folder === true) return /* @__PURE__ */ jsx(Landing, { slug, root, href, allFiles });
     const ownLinks = new Set((fileData.links ?? []).map(String));
     const affinity = Object.keys(fm).filter((key) => key.startsWith("affinity_") && typeof fm[key] === "string" && fm[key]).map((key) => [key, key.slice(9).charAt(0).toUpperCase() + key.slice(10)]);
     const npcs = pages.filter(

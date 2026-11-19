@@ -16,14 +16,114 @@ const isPage = (f: File) => !!f.slug && String(f.slug) !== "index" && props(f).m
 
 const TONES: Record<string, string> = { enemy: "bad", shunned: "low", noticed: "good", chosen: "best" }
 
+// Landing pages (Gods, Factions, Places, Lore...): a card for each page inside the folder.
+// Card: banner, sigil + name + title, themes, "Read more". Pages with player_type "Overview" become a link at the top.
+const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : undefined)
+const listOf = (v: unknown): string[] =>
+  (Array.isArray(v) ? v : typeof v === "string" ? v.split(",") : []).map((x) => String(x).trim()).filter(Boolean)
+const plural = (t: string) => (/s$/i.test(t) ? t : /[^aeiou]y$/i.test(t) ? t.slice(0, -1) + "ies" : t + "s")
+
+function Landing({ slug, root, href, allFiles }: { slug: string; root: string; href: (t: string) => string; allFiles: File[] }) {
+  const inside = slug.endsWith("index") ? slug.slice(0, -"index".length) : slug + "/"
+  // Direct children: pages in this folder, and the index page of each folder inside it
+  const kids = allFiles
+    .filter((f) => {
+      const s = String(f.slug ?? "")
+      if (!s.startsWith(inside) || s === slug) return false
+      const rest = s.slice(inside.length)
+      return !rest.includes("/") || /^[^/]+\/index$/.test(rest)
+    })
+    .sort((a, b) => titleOf(a).localeCompare(titleOf(b)))
+  const overviews = kids.filter((f) => props(f).player_type === "Overview")
+  const cards = kids.filter((f) => props(f).player_type !== "Overview")
+  if (cards.length === 0 && overviews.length === 0) return null
+
+  // Group by type only when every type has at least two cards (e.g. New gods / Old gods)
+  const types = new Map<string, File[]>()
+  for (const f of cards) {
+    const t = str(props(f).player_type) ?? ""
+    types.set(t, [...(types.get(t) ?? []), f])
+  }
+  const grouped = types.size > 1 && [...types.keys()].every((t) => t && types.get(t)!.length >= 2)
+  const groups: [string | undefined, File[]][] = grouped
+    ? [...types.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([t, fs]) => [plural(t), fs])
+    : [[undefined, cards]]
+
+  const img = (v: unknown) => {
+    const p = str(v)
+    return p ? (/^https?:/.test(p) ? p : `${root}/${p}`) : undefined
+  }
+  const card = (f: File) => {
+    const p = props(f)
+    const title = titleOf(f)
+    const banner = img(p.banner)
+    const sigil = img(p.player_sigil)
+    const themes = listOf(p.player_themes)
+    const sub = str(p.player_title) ?? (grouped ? undefined : str(p.player_type))
+    const initial = title.replace(/^the\s+/i, "").charAt(0).toUpperCase()
+    const focus = str(p.banner_focus)
+    return (
+      <a href={href(String(f.slug))} class="mw-card internal">
+        <div class="mw-card-inner">
+          {banner ? (
+            <div class="mw-card-banner" style={`background-image:url('${banner}')${focus ? `;background-position:${focus}` : ""}`} />
+          ) : (
+            <div class="mw-card-banner mw-card-blank">
+              {sigil ? <img src={sigil} alt="" /> : <span>{initial}</span>}
+            </div>
+          )}
+          <div class="mw-card-row mw-card-name">
+            {sigil && (
+              <span class="mw-card-sigil">
+                <img src={sigil} alt="" />
+              </span>
+            )}
+            <span class="mw-card-title">
+              {title}
+              {sub && <small>{sub}</small>}
+            </span>
+          </div>
+          {themes.length > 0 && (
+            <div class="mw-card-row mw-card-themes">
+              {themes.map((t) => (
+                <span>{t}</span>
+              ))}
+            </div>
+          )}
+          <div class="mw-card-row mw-card-more">Read more →</div>
+        </div>
+      </a>
+    )
+  }
+
+  return (
+    <div class="mw-landing">
+      {overviews.map((f) => (
+        <p class="mw-landing-overview">
+          <a href={href(String(f.slug))} class="internal">
+            Read the overview: {titleOf(f)} →
+          </a>
+        </p>
+      ))}
+      {groups.map(([name, fs]) => (
+        <section>
+          {name && <h2>{name}</h2>}
+          <div class="mw-cards">{fs.map(card)}</div>
+        </section>
+      ))}
+    </div>
+  )
+}
+
 export default (() => {
   const Related: QuartzComponent = ({ fileData, allFiles }: QuartzComponentProps) => {
     const slug = String(fileData.slug ?? "")
     const fm = (fileData.frontmatter ?? {}) as Props
-    if (!slug || slug === "index" || fm.mw_folder === true) return null
+    if (!slug || slug === "index") return null
     const root = pathToRoot(slug as never)
     const href = (target: string) => resolveRelative(slug as never, target as never)
     const pages = allFiles.filter(isPage)
+    if (fm.mw_folder === true) return <Landing slug={slug} root={root} href={href} allFiles={allFiles} />
     const ownLinks = new Set((fileData.links ?? []).map(String))
 
     // Affinity (gods): only the characters that have one set
