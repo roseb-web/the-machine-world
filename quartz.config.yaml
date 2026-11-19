@@ -16,7 +16,7 @@ configuration:
     typography:
       header:
         name: Fraunces
-        weights: [400, 600]
+        weights: [ 400, 600 ]
         includeItalic: false
       body: Spline Sans
       code: JetBrains Mono
@@ -112,16 +112,16 @@ plugins:
       fontOrigin: googleFonts
       title:
         name: Fondamento
-        weights: [400]
+        weights: [ 400 ]
         includeItalic: false
       h1:
         name: Fondamento
-        weights: [400]
+        weights: [ 400 ]
         includeItalic: false
       header: Fraunces
       body:
         name: Spline Sans
-        weights: [400, 500, 600]
+        weights: [ 400, 500, 600 ]
         includeItalic: false
       code: JetBrains Mono
   - source: "@quartz-themes/core"
@@ -165,7 +165,7 @@ plugins:
   - source: "@quartz-community/tag-page"
     enabled: true
   - source: "@quartz-community/explorer"
-    enabled: true
+    enabled: false
     layout:
       position: left
       priority: 50
@@ -276,6 +276,13 @@ plugins:
       darkMode: auto
       exportPadding: 20
     order: 50
+  - source: ./site-plugins/machine-world-components
+    enabled: true
+    options: {}
+    order: 50
+    layout:
+      position: left
+      priority: 50
 layout:
   groups:
     toolbar:

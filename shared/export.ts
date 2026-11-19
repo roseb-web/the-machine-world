@@ -17,6 +17,7 @@ export interface ExportOptions {
   sections: SectionRule[];
   defaultSection: string;
   playerPagesFolder: string; // notes here are published whole
+  sectionTitles?: Record<string, string>; // e.g. { people: "People" }, used for the section's own page
   // Finds the vault path a link points to (Obsidian's own resolver in the plugin).
   resolveLink: (link: string, fromPath: string) => string | null;
   yaml: YamlTools;
@@ -168,6 +169,13 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
     files.push({ path: `${p.to}.md`, text: front + body });
   }
   for (const [vaultPath, contentPath] of images) files.push({ path: contentPath, copyFrom: vaultPath });
+
+  // Each section with pages gets its own page, so menus and breadcrumbs show "People", not "people".
+  const sections = new Set(prepared.map((p) => p.to.split("/").slice(0, -1).join("/")).filter(Boolean));
+  for (const section of sections) {
+    const title = opts.sectionTitles?.[section];
+    if (title) files.push({ path: `${section}/index.md`, text: `---\ntitle: ${JSON.stringify(title)}\n---\n` });
+  }
 
   return {
     files,

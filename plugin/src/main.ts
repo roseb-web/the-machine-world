@@ -15,6 +15,7 @@ interface WikiSettings {
   playerPagesFolder: string;
   defaultSection: string;
   sections: SectionRule[];
+  sectionTitles: Record<string, string>;
 }
 
 const DEFAULT_SETTINGS: WikiSettings = {
@@ -36,6 +37,17 @@ const DEFAULT_SETTINGS: WikiSettings = {
     { folder: "1. Campaign", section: "quests" },
     { folder: "Items", section: "items" },
   ],
+  sectionTitles: {
+    people: "People",
+    party: "The party",
+    factions: "Factions",
+    gods: "Gods",
+    lore: "Lore",
+    places: "Places",
+    sessions: "Session recaps",
+    quests: "Quest log",
+    items: "Items",
+  },
 };
 
 export default class MachineWorldWiki extends Plugin {
@@ -65,6 +77,7 @@ export default class MachineWorldWiki extends Plugin {
       sections: this.settings.sections,
       defaultSection: this.settings.defaultSection,
       playerPagesFolder: this.settings.playerPagesFolder,
+      sectionTitles: { ...DEFAULT_SETTINGS.sectionTitles, ...this.settings.sectionTitles },
       resolveLink: (link, from) => this.app.metadataCache.getFirstLinkpathDest(link, from)?.path ?? null,
       yaml: { parse: parseYaml, stringify: stringifyYaml },
     });

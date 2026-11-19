@@ -1,0 +1,106 @@
+.mw-menu {
+  font-family: var(--bodyFont);
+  font-size: 0.95rem;
+}
+
+.mw-menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.mw-menu li {
+  margin: 0;
+}
+
+.mw-menu-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gray);
+  margin: 1.2rem 0 0.3rem;
+}
+
+.mw-menu-group:first-child .mw-menu-label {
+  margin-top: 0.4rem;
+}
+
+.mw-menu a,
+.mw-menu summary {
+  display: block;
+  padding: 0.15rem 0;
+  color: var(--dark);
+  font-weight: 500;
+  text-decoration: none;
+  background: none;
+  cursor: pointer;
+}
+
+.mw-menu summary {
+  list-style: none;
+}
+
+.mw-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.mw-menu summary::after {
+  content: "›";
+  display: inline-block;
+  margin-left: 0.4rem;
+  color: var(--gray);
+  transition: transform 0.2s ease;
+}
+
+.mw-menu details[open] > summary::after {
+  transform: rotate(90deg);
+}
+
+.mw-menu a:hover,
+.mw-menu summary:hover {
+  color: var(--secondary);
+}
+
+.mw-menu-sub {
+  border-left: 1px solid var(--lightgray);
+  margin: 0.1rem 0 0.4rem 0.3rem !important;
+  padding-left: 0.8rem !important;
+}
+
+.mw-menu-sub a {
+  font-weight: 400;
+  color: var(--darkgray);
+}
+
+.mw-menu .mw-active,
+.mw-menu .mw-active-section {
+  color: var(--secondary);
+}
+
+.mw-menu-toggle {
+  display: none;
+}
+
+@media (max-width: 800px) {
+  .mw-menu-toggle {
+    display: block;
+    font-family: var(--bodyFont);
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--dark);
+    background: none;
+    border: 1px solid var(--lightgray);
+    border-radius: 6px;
+    padding: 0.3rem 0.8rem;
+    cursor: pointer;
+  }
+
+  .mw-menu .mw-menu-body {
+    display: none;
+  }
+
+  .mw-menu.mw-open .mw-menu-body {
+    display: block;
+  }
+}
