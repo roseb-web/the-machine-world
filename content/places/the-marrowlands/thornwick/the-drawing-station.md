@@ -2,11 +2,12 @@
 title: The Drawing Station
 player_name: The Drawing Station
 player_type: Concord drawing station
+player_in: "[[places/the-marrowlands/thornwick/index|Thornwick]]"
 ---
 
 ## Overview
 
-The Concord's Lull drawing station, on the hill above [[places/thornwick|Thornwick]]. Built three months ago. It brought jobs and money, and the village is grateful. Its lamps burn a cold, steady purple.
+The Concord's Lull drawing station, on the hill above [[places/the-marrowlands/thornwick/index|Thornwick]]. Built three months ago. It brought jobs and money, and the village is grateful. Its lamps burn a cold, steady purple.
 
 ## What we know
 

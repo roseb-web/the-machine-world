@@ -1,6 +1,7 @@
 ---
 title: Harrowgate
 player_type: Market town
+player_in: The Varrow Lands
 ---
 
 ## Overview

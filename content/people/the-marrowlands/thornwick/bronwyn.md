@@ -1,7 +1,7 @@
 ---
 title: Bronwyn
 player_title: Luca's younger sister
-player_seen: "[[places/thornwick|Thornwick]]"
+player_seen: "[[places/the-marrowlands/thornwick/index|Thornwick]]"
 ---
 
 ## Overview

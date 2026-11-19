@@ -2,7 +2,7 @@
 title: Mrs Agnes Hesk
 photo: assets/pasted-image-20261022210439.png
 player_title: Odds and Needs, the general store
-player_seen: "[[places/odds-and-needs|Odds and Needs]]"
+player_seen: "[[places/the-marrowlands/thornwick/odds-and-needs|Odds and Needs]]"
 ---
 
 ## Overview

@@ -1,7 +1,7 @@
 ---
 title: Enok
 player_title: Luca's father
-player_seen: "[[places/the-drawing-station|The Drawing Station]]"
+player_seen: "[[places/the-marrowlands/thornwick/the-drawing-station|The Drawing Station]]"
 player_status: Very ill
 ---
 

@@ -2,7 +2,7 @@
 title: Old Corwin
 photo: assets/old-corwin.png
 player_title: Gravedigger
-player_seen: "[[places/thornwick|Thornwick]]"
+player_seen: "[[places/the-marrowlands/thornwick/index|Thornwick]]"
 ---
 
 ## Overview

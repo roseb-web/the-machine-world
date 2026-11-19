@@ -1,6 +1,7 @@
 ---
 title: Varrow
 player_type: City
+player_in: The Varrow Lands
 ---
 
 ## Overview

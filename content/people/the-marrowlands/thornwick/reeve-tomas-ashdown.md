@@ -2,7 +2,7 @@
 title: Reeve Tomas Ashdown
 photo: assets/reeve-tomas-ashdown.png
 player_title: Head of the village
-player_seen: "[[places/thornwick|Thornwick]]"
+player_seen: "[[places/the-marrowlands/thornwick/index|Thornwick]]"
 ---
 
 ## Overview

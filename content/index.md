@@ -1,5 +1,5 @@
 ---
-party_location: "[[places/thornwick|Thornwick]]"
+party_location: "[[places/the-marrowlands/thornwick/index|Thornwick]]"
 title: Home
 game_date:
   day: 3
@@ -17,4 +17,4 @@ Old towers, roads and statues stand all over the land, built by an old kingdom n
 
 The cities run on **Lull**, a glowing pale mist pumped out of the ground by drawing stations. The Meridian Concord, the grey coats of Varrow, rules the great machine city, and has been at war with the Ostrand Empire for twelve years.
 
-It is the year 100 of the Concord. The story begins in [[places/thornwick|Thornwick]], a small farming village in the Marrowlands, on Lantern Night.
+It is the year 100 of the Concord. The story begins in [[places/the-marrowlands/thornwick/index|Thornwick]], a small farming village in the Marrowlands, on Lantern Night.

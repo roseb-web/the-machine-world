@@ -3,7 +3,7 @@ title: Jory Banks
 photo: assets/pasted-image-20261022210238.png
 player_title: Innkeeper of the Banked Fire
 player_species: Harengon
-player_seen: "[[places/the-banked-fire|The Banked Fire]]"
+player_seen: "[[places/the-marrowlands/thornwick/the-banked-fire|The Banked Fire]]"
 player_favour: Favoured
 ---
 

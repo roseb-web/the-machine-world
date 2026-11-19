@@ -9,17 +9,17 @@ player_favour: Warm
 
 ## Overview
 
-A fast-talking tiefling with ink-stained hands. He stayed at [[places/the-banked-fire|The Banked Fire]] as "Mr Penn". He's after Old Hand writing, and can read some of it himself.
+A fast-talking tiefling with ink-stained hands. He stayed at [[places/the-marrowlands/thornwick/the-banked-fire|The Banked Fire]] as "Mr Penn". He's after Old Hand writing, and can read some of it himself.
 
 ## What we know
 
 ### Session 3
 
-Seen drinking at [[places/the-banked-fire|The Banked Fire]].
+Seen drinking at [[places/the-marrowlands/thornwick/the-banked-fire|The Banked Fire]].
 
 ### Session 4
 
-At first the party took him for a Concord agent. [[people/jory-banks|Jory Banks]] said he'd been asking about papers, and gossiping with the old ladies of the village. [[people/dunny-pratt|Dunny Pratt]] accused him of scamming him.
+At first the party took him for a Concord agent. [[people/the-marrowlands/thornwick/jory-banks|Jory Banks]] said he'd been asking about papers, and gossiping with the old ladies of the village. [[people/the-marrowlands/thornwick/dunny-pratt|Dunny Pratt]] accused him of scamming him.
 
 The party searched his room while Jory was busy with a pie. They found travel papers, a stub of white chalk, and a song sheet, *The Miller's Three Daughters*, and put it all back. They decided he was looking for Old Hand script.
 

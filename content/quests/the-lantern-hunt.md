@@ -19,8 +19,8 @@ The party lit the brass lantern they won in the race. Its shapes matched the mar
 
 ### Session 5
 
-[[people/pell|Pell]] read the notice board note for them, and gave them a few more letters. The party gave him the Reeve's lantern in trade.
+[[people/the-marrowlands/thornwick/pell|Pell]] read the notice board note for them, and gave them a few more letters. The party gave him the Reeve's lantern in trade.
 
-[[people/mother-wren|Mother Wren]] had taken the race lantern down from the inn roof. She gave it back to the party: *"Be wary that he will come."*
+[[people/the-marrowlands/thornwick/mother-wren|Mother Wren]] had taken the race lantern down from the inn roof. She gave it back to the party: *"Be wary that he will come."*
 
-[[people/mrs-agnes-hesk|Mrs Agnes Hesk]] sent them to [[people/old-corwin|Old Corwin]], rather than lend her own lantern. *"In the big city they have actual lamps now."*
+[[people/the-marrowlands/thornwick/mrs-agnes-hesk|Mrs Agnes Hesk]] sent them to [[people/the-marrowlands/thornwick/old-corwin|Old Corwin]], rather than lend her own lantern. *"In the big city they have actual lamps now."*
