@@ -1,6 +1,7 @@
 ---
 title: Thornwick
 player_type: Village
+banner: assets/mood-thornwick-village.png
 ---
 
 ## Overview
