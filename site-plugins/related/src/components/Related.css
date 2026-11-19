@@ -241,3 +241,197 @@ article.mw-handouts-page br {
   line-height: 1.3;
   color: var(--darkgray);
 }
+
+/* Landing pages: a card for each page in the folder */
+.mw-landing {
+  margin-top: 0.5rem;
+}
+
+.mw-landing-overview {
+  margin: 0 0 0.5rem;
+}
+
+.mw-landing-overview a.internal {
+  background: none;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.mw-landing h2 {
+  margin: 1.6rem 0 0.8rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--lightgray);
+}
+
+.mw-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: 1.1rem;
+}
+
+a.mw-card {
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  border: 1.5px solid var(--secondary);
+  border-radius: 10px;
+  background: var(--light);
+  color: var(--darkgray);
+  font-weight: 400;
+  text-decoration: none;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+
+a.mw-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(90, 46, 30, 0.12);
+}
+
+.mw-card-inner {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--secondary) 35%, transparent);
+  border-radius: 6px;
+}
+
+.mw-card-banner {
+  height: 96px;
+  background: center / cover no-repeat;
+}
+
+.mw-card-blank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--secondary) 7%, var(--light)) 0 10px,
+    color-mix(in srgb, var(--secondary) 11%, var(--light)) 10px 20px
+  );
+}
+
+.mw-card-blank img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  margin: 0 !important;
+}
+
+.mw-card-blank span {
+  font-family: var(--headerFont);
+  font-size: 2rem;
+  color: color-mix(in srgb, var(--secondary) 45%, transparent);
+}
+
+.mw-card-row {
+  padding: 0.6rem 0.75rem;
+  border-top: 1px solid var(--lightgray);
+}
+
+.mw-card-banner + .mw-card-row {
+  border-top: none;
+}
+
+.mw-card-name {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.mw-card-sigil {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--secondary);
+  border-radius: 50%;
+  background: #fff;
+  font-family: var(--headerFont);
+  font-size: 0.9rem;
+  color: var(--secondary);
+}
+
+.mw-card-sigil img {
+  width: 74%;
+  height: 74%;
+  object-fit: contain;
+  margin: 0 !important;
+}
+
+.mw-card-title {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--headerFont);
+  font-size: 1.15rem;
+  line-height: 1.2;
+  color: var(--dark);
+}
+
+.mw-card-title small {
+  margin-top: 2px;
+  font-family: var(--bodyFont);
+  font-size: 0.75rem;
+  color: var(--gray);
+}
+
+.mw-card-themes {
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  color: var(--gray);
+}
+
+.mw-card-themes span + span::before {
+  content: "•";
+  margin: 0 0.4rem;
+  color: var(--secondary);
+}
+
+.mw-card-more {
+  margin-top: auto;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--secondary);
+}
+
+/* The cards replace Quartz's dated list on landing pages */
+body:has(.mw-landing) .page-listing,
+body:has(.mw-landing) .center > hr {
+  display: none;
+}
+
+/* Phones: two smaller cards per row */
+@media (max-width: 600px) {
+  .mw-cards {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+  .mw-card-banner {
+    height: 70px;
+  }
+  .mw-card-row {
+    padding: 0.45rem 0.5rem;
+  }
+  .mw-card-name {
+    gap: 0.4rem;
+  }
+  .mw-card-sigil {
+    width: 26px;
+    height: 26px;
+    font-size: 0.75rem;
+  }
+  .mw-card-title {
+    font-size: 0.98rem;
+  }
+  .mw-card-title small,
+  .mw-card-themes,
+  .mw-card-more {
+    font-size: 0.7rem;
+  }
+}
