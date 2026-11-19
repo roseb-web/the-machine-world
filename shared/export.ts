@@ -103,7 +103,13 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
   const images = new Map<string, string>(); // vault path -> content path
 
   function imageTarget(vaultPath: string): string {
-    if (!images.has(vaultPath)) images.set(vaultPath, `assets/${baseName(vaultPath).replace(/\s+/g, "-")}`);
+    if (!images.has(vaultPath)) {
+      // Lower-case, dashed names: the same names Quartz gives files, so paths always match.
+      const file = vaultPath.split("/").pop() ?? vaultPath;
+      const dot = file.lastIndexOf(".");
+      const name = slugify(file.slice(0, dot)) || "image";
+      images.set(vaultPath, `assets/${name}${file.slice(dot).toLowerCase()}`);
+    }
     return images.get(vaultPath)!;
   }
 
