@@ -85,6 +85,13 @@ export default class MachineWorldWiki extends Plugin {
 
   // Calendarium's settings file, or null if it isn't there
   async readCalendarium(): Promise<unknown | null> {
+    // Calendarium's own copy in memory is the most up to date; the file is a fallback
+    try {
+      const live = (this.app as unknown as { plugins: { plugins: Record<string, { data?: unknown }> } }).plugins.plugins["calendarium"]?.data;
+      if (live && typeof live === "object" && Array.isArray((live as { calendars?: unknown }).calendars)) return JSON.parse(JSON.stringify(live));
+    } catch {
+      // fall back to the file
+    }
     try {
       const calPath = `${this.app.vault.configDir}/plugins/calendarium/data.json`;
       if (!(await this.app.vault.adapter.exists(calPath))) return null;

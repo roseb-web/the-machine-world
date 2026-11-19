@@ -4,8 +4,10 @@
 //   or if its description has #player in it. Nothing else: event names are often DM notes.
 // - Event names only. Calendarium's descriptions are DM text and never leave the vault,
 //   except two lines you write for the party:
-//     #player: The war begins            <- the name the party sees, in place of the event's name
+//     #player: The war begins            <- publishes it, under the name the party sees
 //     #player-info: One line they know.  <- shown in the timeline's pop-up
+//   ("#player-name: ..." keeps a party name without publishing: the timeline's
+//   edit form writes it when "Show on the wiki" is off.)
 // - A linked note that is published gives the event a link and the page a date card.
 // - Nothing dated after today (no spoilers). A long event still going loses its end date.
 
@@ -73,14 +75,14 @@ export interface EventOptions {
 // ("#player-info:" on its own doesn't: it only adds a line to an event that's published.)
 export const isMarked = (ev: { description?: string | null }) => /(^|\s)#player(?![-\w])/i.test(ev.description ?? "");
 // "#player: The war begins": the name the party sees. Only the rest of that line is used.
-export const playerName = (desc?: string | null) => desc?.match(/(?:^|\s)#player:[ \t]*([^\r\n]*)/i)?.[1].trim() || undefined;
+export const playerName = (desc?: string | null) => desc?.match(/(?:^|\s)#player(?:-name)?:[ \t]*([^\r\n]*)/i)?.[1].trim() || undefined;
 // "#player-info: One line the party knows", for the pop-up
 export const playerInfo = (desc?: string | null) => desc?.match(/(?:^|\s)#player-info:[ \t]*([^\r\n]*)/i)?.[1].trim() || undefined;
 // The description without the lines written for the party (for the DM's own view)
 export const dmText = (desc?: string | null) =>
   (desc ?? "")
     .replace(/(^|\s)#player-info:[^\r\n]*/gi, "$1")
-    .replace(/(^|\s)#player:[^\r\n]*/gi, "$1")
+    .replace(/(^|\s)#player(?:-name)?:[^\r\n]*/gi, "$1")
     .replace(/(^|\s)#player(?![-\w])/gi, "$1")
     .trim();
 
@@ -170,4 +172,15 @@ export function dateCard(e: WikiEvent, cal: CalendarExport): string {
   if (e.ongoing) return `${start} – ongoing`;
   if (e.end) return `${start} – ${e.end.month === 0 && e.end.day === 1 ? yearLabel(e.end.year) : `${e.end.day} ${cal.months[e.end.month]}, ${yearLabel(e.end.year)}`}`;
   return start;
+}
+
+// The description the edit form saves: DM notes, then the lines for the party
+export function composeDescription(dm: string, show: boolean, name: string, info: string): string {
+  const lines = [dm.trim()];
+  const n = name.trim().replace(/[\r\n]+/g, " ");
+  const i = info.trim().replace(/[\r\n]+/g, " ");
+  if (show) lines.push(n ? `#player: ${n}` : "#player");
+  else if (n) lines.push(`#player-name: ${n}`);
+  if (i) lines.push(`#player-info: ${i}`);
+  return lines.filter(Boolean).join("\n");
 }

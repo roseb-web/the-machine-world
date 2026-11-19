@@ -97,3 +97,17 @@ test("#player: gives the name the party sees; #player-info: adds one line; the r
   assert.equal(e.info, "Nobody crosses now.");
   for (const bad of ["SECRET-FULL", "DM-NOTE-A", "DM-NOTE-B", "SECRET-INFO-ONLY"]) assert.ok(!r.files.some((f) => f.text?.includes(bad)), bad);
 });
+
+test("the edit form's description: switch on publishes, switch off keeps the party name private", async () => {
+  const { composeDescription, isMarked, playerName, playerInfo, dmText } = await import("../shared/events");
+  const on = composeDescription("my notes", true, "The bridge falls", "Nobody crosses now.");
+  assert.ok(isMarked({ description: on }));
+  assert.equal(playerName(on), "The bridge falls");
+  assert.equal(playerInfo(on), "Nobody crosses now.");
+  assert.equal(dmText(on), "my notes");
+  const off = composeDescription("my notes", false, "The bridge falls", "");
+  assert.ok(!isMarked({ description: off }));
+  assert.equal(playerName(off), "The bridge falls");
+  assert.equal(dmText(off), "my notes");
+  assert.equal(composeDescription("", true, "", ""), "#player");
+});
