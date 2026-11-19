@@ -3,6 +3,7 @@ title: Dunny Pratt
 photo: assets/dunny-pratt.png
 player_title: Stores clerk at the station
 player_species: Gnome
+player_artist: Gabriel Romann
 ---
 
 ## Overview

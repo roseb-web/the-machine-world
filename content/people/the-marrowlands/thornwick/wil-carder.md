@@ -4,6 +4,7 @@ photo: assets/wil-carder.png
 player_title: Station worker
 player_handouts:
   - assets/wils-scrap.png
+player_artist: Kaiyela
 mw_handout_names:
   - Wil's scrap
 ---

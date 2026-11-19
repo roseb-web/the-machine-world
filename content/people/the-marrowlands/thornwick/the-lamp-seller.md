@@ -2,6 +2,7 @@
 title: The Lamp-Seller
 photo: assets/the-lamp-seller.png
 player_title: Seen only on Lantern Night
+player_artist: Igor Krstic
 ---
 
 ## Overview

@@ -2,6 +2,7 @@
 title: Bram and Sella Thatcher
 photo: assets/pasted-image-20261022204413.png
 player_title: Farmers
+player_artist: Amanda Crowell (Sella) & @foxdoodles (Bram)
 ---
 
 ## Overview

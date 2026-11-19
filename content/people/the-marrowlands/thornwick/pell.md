@@ -11,6 +11,7 @@ player_handouts:
   - assets/pells-room-the-millers-three-daughters.png
   - assets/pells-room-letter.png
   - assets/pells-room-circus-ticket.png
+player_artist: Wes Talbott
 mw_handout_names:
   - Pell's room - Travel papers
   - Pell's room - Marked person permit

@@ -5,6 +5,7 @@ player_title: Innkeeper of the Banked Fire
 player_species: Harengon
 player_seen: "[[places/the-marrowlands/thornwick/the-banked-fire|The Banked Fire]]"
 player_favour: Favoured
+player_artist: "@januaryface"
 ---
 
 ## Overview
