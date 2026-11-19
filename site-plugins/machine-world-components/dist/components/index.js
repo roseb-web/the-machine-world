@@ -133,6 +133,7 @@ document.addEventListener("nav", () => {
     const toggle = () => {
       const open = nav.classList.toggle("mw-open")
       btn.setAttribute("aria-expanded", String(open))
+      btn.textContent = open ? "Close" : "Menu"
     }
     btn.addEventListener("click", toggle)
     window.addCleanup(() => btn.removeEventListener("click", toggle))
