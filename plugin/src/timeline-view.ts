@@ -3,12 +3,14 @@
 
 import { ItemView, parseYaml, TFile, WorkspaceLeaf } from "obsidian";
 import { renderTimeline, TimelineEvent } from "../../shared/timeline-render";
-import { calendarExport, CalendarExport, parseFcDate } from "../../shared/events";
+import { calendarExport, CalendarExport, dmText, parseFcDate, playerInfo, playerName } from "../../shared/events";
 import type MachineWorldWiki from "./main";
+import { CalEvent, calendarium, EventModal } from "./event-modal";
 
 export const TIMELINE_VIEW = "machine-world-timeline";
 
 interface RawEvent {
+  id?: string;
   name?: string;
   description?: string | null;
   category?: string | null;
@@ -84,9 +86,12 @@ export class TimelineView extends ItemView {
         category: ev.category ?? "",
         date,
         ...(ev.end ? { end: ev.end } : {}),
-        private: !pubKeys.has(keyOf(ev.name, date)),
+        private: !pubKeys.has(keyOf(playerName(ev.description) ?? ev.name, date)),
+        ...(playerName(ev.description) ? { publicName: playerName(ev.description) } : {}),
+        ...(playerInfo(ev.description) ? { info: playerInfo(ev.description) } : {}),
         ...(ev.note ? { notePath: ev.note, openable: true } : {}),
-        ...(ev.description ? { detail: ev.description.replace(/(^|\s)#player\b/gi, " ").trim() } : {}),
+        ...(ev.id ? { editId: ev.id } : {}),
+        ...(dmText(ev.description) ? { detail: dmText(ev.description) } : {}),
       });
     }
     for (const file of this.app.vault.getMarkdownFiles()) {
@@ -107,6 +112,9 @@ export class TimelineView extends ItemView {
       { ...base, categories: (cal.categories ?? []).filter((c) => used.has(c.id)), events: shown },
       {
         startHidden: ["the party"],
+        remember: "obsidian-timeline",
+        onEdit: (e) => this.edit(e.editId),
+        onNew: () => this.edit(null),
         onOpen: (e) => {
           const path = (e as { notePath?: string }).notePath;
           const file = path ? this.app.vault.getAbstractFileByPath(path) : null;
@@ -117,9 +125,18 @@ export class TimelineView extends ItemView {
     if (!this.playerView) {
       body.createEl("p", {
         cls: "mw-tl-note",
-        text: "Italic events stay off the wiki (their pop-up says so). To publish one, put #player in its description in Calendarium (festivals, star signs and sessions publish on their own).",
+        text: "Italic events stay off the wiki. Click an event, then Edit, to change it or to switch on “Show on the wiki”.",
       });
     }
   }
-}
 
+  // Open the edit form for a Calendarium event (or a new one), then redraw
+  private edit(id: string | null | undefined) {
+    const cal = calendarium(this.app);
+    const ev: CalEvent | null = id && cal ? (cal.calendar.events.find((e) => e.id === id) ?? null) : null;
+    if (id && cal && !ev) return; // gone since the timeline was drawn
+    const wanted = new Set(this.plugin.settings.publicCategories.map((n) => n.trim().toLowerCase()));
+    const pub = (cal?.calendar.categories ?? []).filter((c) => wanted.has(c.name.toLowerCase()) || wanted.has(c.id.toLowerCase())).map((c) => c.id);
+    new EventModal(this.app, ev ? (JSON.parse(JSON.stringify(ev)) as CalEvent) : null, pub, () => this.draw()).open();
+  }
+}

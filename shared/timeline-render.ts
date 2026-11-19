@@ -16,13 +16,20 @@ export interface TimelineEvent extends WikiEvent {
   openable?: boolean; // Obsidian: has a note that onOpen can open
   private?: boolean; // Obsidian only: would not be published
   detail?: string; // Obsidian only: the event's description, shown in the pop-up
+  publicName?: string; // Obsidian only: the name the party sees, if it's different
+  editId?: string; // Obsidian only: the Calendarium event, for "Edit"
 }
 
 export interface TimelineOptions {
   linkClass?: string; // e.g. "internal" so Quartz shows hover previews
   onOpen?: (e: TimelineEvent) => void; // Obsidian: open the note instead of following a link
   startHidden?: string[]; // category names (any case) whose filter starts switched off
+  onEdit?: (e: TimelineEvent) => void; // Obsidian: an "Edit" button in the pop-up
+  onNew?: () => void; // Obsidian: a "New event" button in the toolbar
+  remember?: string; // keep the zoom and position under this name when redrawn
 }
+
+const VIEWS = new Map<string, [number, number]>();
 
 type Ev = TimelineEvent & { date: Day; p: number; pEnd?: number };
 
@@ -35,7 +42,7 @@ const LANE_GAP = 5;
 export const yearLabel = (y: number) => (y >= 1 ? `${y} YC` : `${Math.abs(y)} BL`);
 
 export function renderTimeline(root: HTMLElement, cal: CalendarExport & { events: TimelineEvent[] }, opts: TimelineOptions = {}) {
-  const host = root as HTMLElement & { _mwTlCleanup?: () => void };
+  const host = root as HTMLElement & { _mwTlCleanup?: () => void; _mwTlView?: [number, number] };
   host._mwTlCleanup?.();
   root.innerHTML = "";
   const doc = root.ownerDocument;
@@ -89,6 +96,16 @@ export function renderTimeline(root: HTMLElement, cal: CalendarExport & { events
   maxP = P(uMax);
   let u0 = uMin;
   let u1 = uMax;
+  // Redrawn in the same place (e.g. after editing an event): keep the same view
+  const saved = opts.remember ? VIEWS.get(opts.remember) : host._mwTlView;
+  if (saved) {
+    u0 = Math.max(uMin, U(saved[0]));
+    u1 = Math.min(uMax, U(saved[1]));
+    if (!(u1 > u0)) {
+      u0 = uMin;
+      u1 = uMax;
+    }
+  }
 
   // ---- The frame ----
   const wrap = el("div", "mw-tl2");
@@ -124,6 +141,12 @@ export function renderTimeline(root: HTMLElement, cal: CalendarExport & { events
     filters.appendChild(b);
   }
   bar.append(zoomOut, zoomIn, showAll, toToday, label, shortNote, hint);
+  if (opts.onNew) {
+    const add = btn("+ New event", "New event");
+    add.classList.add("mw-tl2-new");
+    add.addEventListener("click", () => opts.onNew!());
+    bar.appendChild(add);
+  }
   if (cats.length > 1) bar.appendChild(filters);
 
   const stage = el("div", "mw-tl2-stage");
@@ -196,6 +219,8 @@ export function renderTimeline(root: HTMLElement, cal: CalendarExport & { events
 
   function draw() {
     closePop();
+    host._mwTlView = [P(u0), P(u1)];
+    if (opts.remember) VIEWS.set(opts.remember, host._mwTlView);
     stage.innerHTML = "";
     const W = width();
     const shown = events.filter((e) => !hidden.has(e.category));
@@ -585,8 +610,10 @@ export function renderTimeline(root: HTMLElement, cal: CalendarExport & { events
       if (chip.textContent) meta.appendChild(chip);
       box.appendChild(meta);
       box.appendChild(el("div", "mw-tl2-ptitle", e.name));
+      if (e.info) box.appendChild(el("p", "mw-tl2-pinfo", e.info));
       if (e.detail) box.appendChild(el("p", "mw-tl2-pdetail", e.detail));
       if (e.private) box.appendChild(el("p", "mw-tl2-pprivate", "Not on the wiki"));
+      else if (e.publicName && e.publicName !== e.name) box.appendChild(el("p", "mw-tl2-pprivate", `On the wiki as: ${e.publicName}`));
       if (e.href) {
         const a = el("a", `mw-tl2-open ${opts.linkClass ?? ""}`, "Open page →");
         a.href = e.href;
@@ -596,6 +623,15 @@ export function renderTimeline(root: HTMLElement, cal: CalendarExport & { events
         a.type = "button";
         a.addEventListener("click", () => opts.onOpen!(e));
         box.appendChild(a);
+      }
+      if (opts.onEdit && e.editId) {
+        const ed = el("button", "mw-tl2-open mw-tl2-edit", "✏️ Edit");
+        ed.type = "button";
+        ed.addEventListener("click", () => {
+          closePop();
+          opts.onEdit!(e);
+        });
+        box.appendChild(ed);
       }
       pop.appendChild(box);
     }
@@ -671,7 +707,8 @@ export const TIMELINE_CSS = `
   display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.6rem;
   padding: 0.6rem 1rem; border-bottom: 1px solid var(--tl-line);
 }
-.mw-tl2 button { font: inherit; color: inherit; cursor: pointer; }
+.mw-tl2 button { font: inherit; color: inherit; cursor: pointer; box-shadow: none; height: auto; }
+.mw-tl2-ev, .mw-tl2-more, .mw-tl2-open, .mw-tl2-x { background: none !important; box-shadow: none !important; }
 .mw-tl2-btn {
   min-width: 2rem; padding: 0.2rem 0.6rem; border: 1px solid var(--tl-line); border-radius: 6px;
   background: var(--tl-bg); color: var(--tl-head) !important; line-height: 1.4;
@@ -783,10 +820,14 @@ export const TIMELINE_CSS = `
 .mw-tl2-meta { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; font-size: 0.72rem; font-weight: 600; color: var(--tl-muted); padding-right: 1.2rem; }
 .mw-tl2-pcat { color: var(--cat); text-transform: uppercase; letter-spacing: 0.06em; }
 .mw-tl2-ptitle { margin: 0.25rem 0 0.2rem; font-size: 1rem; line-height: 1.3; color: var(--tl-head); font-family: var(--headerFont, inherit); }
-.mw-tl2-pdetail { margin: 0.3rem 0; font-size: 0.8rem; white-space: pre-wrap; }
+.mw-tl2-pinfo { margin: 0.3rem 0; font-size: 0.85rem; }
+.mw-tl2-pdetail { margin: 0.4rem 0; padding-left: 0.6rem; border-left: 2px solid var(--tl-line); font-size: 0.8rem; color: var(--tl-muted); white-space: pre-wrap; }
 .mw-tl2-pprivate { margin: 0.3rem 0; font-size: 0.75rem; font-style: italic; color: var(--tl-muted); }
 .mw-tl2-open { display: inline-block; margin-top: 0.4rem; padding: 0; border: 0; background: none; font-weight: 600; font-size: 0.82rem; color: var(--tl-accent) !important; }
 .mw-tl2-empty { padding: 2rem 1rem; color: var(--tl-muted); }
+.mw-tl2-edit { margin-left: 1rem; }
+.mw-tl2-new { margin-left: auto; }
+.mw-tl2-new + .mw-tl2-filters { margin-left: 0.6rem; }
 @media (max-width: 800px) {
   .mw-tl2-hint, .mw-tl2-breakline em { display: none; }
   .mw-tl2-toolbar { padding: 0.5rem 0.6rem; }
