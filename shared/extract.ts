@@ -17,6 +17,8 @@ export interface PlayerNote {
 // Properties the wiki is allowed to read. Anything not listed here is dropped.
 const ALLOWED_EXACT = new Set([
   "photo",
+  "banner",
+  "banner_focus",
   "spotify",
   "pinterest",
   "wiki_section",

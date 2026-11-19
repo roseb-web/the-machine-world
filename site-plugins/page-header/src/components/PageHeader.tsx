@@ -24,10 +24,37 @@ const TONES: Record<string, string> = {
 }
 
 export default (() => {
-  const PageHeader: QuartzComponent = ({ fileData }: QuartzComponentProps) => {
-    const fm = (fileData.frontmatter ?? {}) as Props
-    const slug = String(fileData.slug ?? "")
+  const PageHeader: QuartzComponent = (props: QuartzComponentProps) => {
+    const fm = (props.fileData.frontmatter ?? {}) as Props
+    const slug = String(props.fileData.slug ?? "")
     const str = (key: string) => (typeof fm[key] === "string" && fm[key] ? (fm[key] as string) : undefined)
+    const banner = str("banner")
+    const focus = ["top", "center", "bottom"].includes(str("banner_focus") ?? "") ? str("banner_focus") : "center"
+    const header = renderHeader(props, fm, slug, str)
+    if (!banner) return header
+    return (
+      <div class="mw-header-wrap">
+        <img
+          class="mw-banner"
+          src={`${pathToRoot(slug as never)}/${banner}`}
+          alt=""
+          style={`object-position: center ${focus};`}
+        />
+        {header}
+      </div>
+    )
+  }
+
+  PageHeader.css = style
+  return PageHeader
+}) satisfies QuartzComponentConstructor
+
+function renderHeader(
+  { fileData }: QuartzComponentProps,
+  fm: Props,
+  slug: string,
+  str: (key: string) => string | undefined,
+) {
     const title = str("title") ?? slug.split("/").pop() ?? ""
 
     const renderValue = (value: string) => {
@@ -99,8 +126,4 @@ export default (() => {
         </div>
       </header>
     )
-  }
-
-  PageHeader.css = style
-  return PageHeader
-}) satisfies QuartzComponentConstructor
+}

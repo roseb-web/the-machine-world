@@ -37,7 +37,7 @@ export interface ExportResult {
 }
 
 // Properties that hold an image path or a list of them.
-const IMAGE_PROPERTIES = ["photo", "player_sigil", "player_handouts"];
+const IMAGE_PROPERTIES = ["photo", "banner", "player_sigil", "player_handouts"];
 
 export function slugify(text: string): string {
   return text
