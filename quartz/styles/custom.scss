@@ -1,5 +1,8 @@
 @use "./variables.scss" as *;
 
+// Calliope's paper grain
+$grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.22'/%3E%3C/svg%3E");
+
 // The Machine World: styles taken from the vault's Calliope theme and Caelvarn snippets.
 
 
@@ -20,14 +23,28 @@
 
 // Paper grain behind everything (from Calliope)
 body {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.14'/%3E%3C/svg%3E");
+  background-image: $grain;
   background-repeat: repeat;
 }
 
-// Warmer sidebars
+// Warmer sidebars, with the same paper grain
 .page > #quartz-body .sidebar.left,
 .page > #quartz-body .sidebar.right {
   background-color: var(--mw-sidebar);
+  background-image: $grain;
+}
+
+// More breathing room either side of the page content
+.page > #quartz-body .center {
+  box-sizing: border-box;
+  @media all and ($desktop) {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+  @media all and ($tablet) {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
 }
 
 // Site name and page titles in Fondamento (from the caelvarn-headings snippet)
@@ -144,4 +161,29 @@ article pre {
 }
 .toc-header > h3::before {
   content: "On this page";
+}
+
+// Menu: one font and size, so folders and pages read as one list
+button.desktop-explorer h2,
+button.mobile-explorer h2 {
+  font-family: var(--bodyFont);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gray);
+}
+
+.folder-container div > a,
+.folder-container div > button,
+.folder-container div > button span {
+  font-family: var(--bodyFont);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--dark);
+}
+
+.explorer-content ul li > a {
+  font-size: 0.95rem;
+  font-weight: 400;
 }
