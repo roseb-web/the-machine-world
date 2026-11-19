@@ -305,6 +305,8 @@ plugins:
       position: afterBody
       priority: 2
 layout:
+  sidebars:
+    left: scroll
   groups:
     toolbar:
       priority: 35
