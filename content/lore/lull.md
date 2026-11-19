@@ -3,6 +3,7 @@ title: Lull
 player_type: Concept
 player_handouts:
   - assets/lore-card-l04-lull-is-light-a-workers-guide.png
+banner: assets/banner-lull.jpg
 mw_handout_names:
   - Lore card L04 - Lull is light, a worker's guide
 ---

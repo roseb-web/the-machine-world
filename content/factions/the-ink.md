@@ -2,6 +2,7 @@
 title: The Ink
 player_name: The Ink
 player_type: Secret society
+banner: assets/banner-palimpsest.jpg
 ---
 
 ## Overview

@@ -1,6 +1,7 @@
 ---
 title: Ostrand Empire
 player_type: Empire
+banner: assets/banner-ostrand.jpg
 ---
 
 ## Overview
