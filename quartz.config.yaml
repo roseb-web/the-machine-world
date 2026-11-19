@@ -297,6 +297,13 @@ plugins:
     layout:
       position: afterBody
       priority: 5
+  - source: ./site-plugins/related
+    enabled: true
+    options: {}
+    order: 50
+    layout:
+      position: afterBody
+      priority: 2
 layout:
   groups:
     toolbar:

@@ -109,9 +109,10 @@ function renderHeader(
     }
 
     const photo = str("photo")
+    const sigil = photo ? undefined : str("player_sigil")
     const subtitle = str("player_title")
     const seen = str("player_seen")
-    const hasDetails = photo || subtitle || chips.length > 0 || faction || seen
+    const hasDetails = photo || sigil || subtitle || chips.length > 0 || faction || seen
 
     if (!hasDetails) {
       return <h1 class="article-title">{title}</h1>
@@ -119,8 +120,9 @@ function renderHeader(
 
     const root = pathToRoot(slug as never)
     return (
-      <header class={`mw-header ${photo ? "mw-has-photo" : ""}`}>
+      <header class={`mw-header ${photo ? "mw-has-photo" : sigil ? "mw-has-sigil" : ""}`}>
         {photo && <img class="mw-portrait" src={`${root}/${photo}`} alt={`Portrait of ${title}`} />}
+        {sigil && <img class="mw-sigil" src={`${root}/${sigil}`} alt="" />}
         <div class="mw-header-text">
           <h1 class="article-title">{title}</h1>
           {subtitle && <p class="mw-subtitle">{subtitle}</p>}
