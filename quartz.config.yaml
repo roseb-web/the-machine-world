@@ -304,6 +304,13 @@ plugins:
     layout:
       position: afterBody
       priority: 2
+  - source: ./site-plugins/maps-page
+    enabled: true
+    options: {}
+    order: 50
+    layout:
+      position: afterBody
+      priority: 20
 layout:
   sidebars:
     left: scroll
