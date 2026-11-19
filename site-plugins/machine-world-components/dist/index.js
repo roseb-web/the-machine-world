@@ -33,6 +33,7 @@ var defaultOptions = {
       label: "The party",
       items: [
         { title: "The party", section: "party" },
+        { title: "Handouts", page: "handouts" },
         { title: "Session recaps", section: "sessions" }
       ]
     }
