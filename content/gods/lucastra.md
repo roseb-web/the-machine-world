@@ -5,7 +5,10 @@ player_type: New god
 banner: assets/banner-lucastra.jpg
 player_say: loo-KASS-tra
 player_sigil: assets/god-lucastra.png
-player_themes: []
+player_themes:
+  - Time
+  - Architecture
+  - Preservation
 ---
 
 ## Overview
