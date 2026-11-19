@@ -5,7 +5,7 @@ player_type: Inn and tavern
 
 ## Overview
 
-The biggest building in [[places/thornwick|Thornwick]], run by Jory Banks. Warm and busy, with herbs hanging from the beams and a long scaled creature carved along the great beam over the bar.
+The biggest building in [[places/thornwick|Thornwick]], run by [[people/jory-banks|Jory Banks]]. Warm and busy, with herbs hanging from the beams and a long scaled creature carved along the great beam over the bar.
 
 Four guest rooms upstairs, named after card suits:
 - **Heart:** kept for the Warden-Inspector
@@ -21,7 +21,7 @@ Jory is tired out. Something has been on the roof at night. A soldier warned him
 
 ### Session 3
 
-The thing on the roof turned out to be a cat, Biscuit. The party chased it across to the chapel roof. Nix spotted a small paper boat in the pond behind the inn.
+The thing on the roof turned out to be a cat, [[people/biscuit|Biscuit]]. The party chased it across to the chapel roof. Luca spotted a small paper boat in the pond behind the inn.
 
 ### Session 5
 

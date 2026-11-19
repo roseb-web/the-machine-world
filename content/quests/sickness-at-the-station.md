@@ -15,9 +15,9 @@ Since the Concord built its drawing station on the hill above [[places/thornwick
 
 The party visited the station. The guards carry Lull guns. In a shed out the back, sick workers are kept away from everyone. Enok said little, but agreed that things do seem tied to the station. There was moaning from another room. "It's the pipes," said Enok. Fen took a fever list from the desk.
 
-Reeve Tomas Ashdown says it's just a bad cold. Nobody believes him. He says Wil Carder was taken back to the shed.
+[[people/reeve-tomas-ashdown|Reeve Tomas Ashdown]] says it's just a bad cold. Nobody believes him. He says Wil Carder was taken back to the shed.
 
-Jory Banks has been told to get rooms ready: a company of soldiers is on its way, and a Warden-Inspector will stay at [[places/the-banked-fire|The Banked Fire]].
+[[people/jory-banks|Jory Banks]] has been told to get rooms ready: a company of soldiers is on its way, and a Warden-Inspector will stay at [[places/the-banked-fire|The Banked Fire]].
 
 ### Session 4
 

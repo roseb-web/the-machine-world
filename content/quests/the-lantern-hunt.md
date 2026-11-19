@@ -23,4 +23,4 @@ The party lit the brass lantern they won in the race. Its shapes matched the mar
 
 [[people/mother-wren|Mother Wren]] had taken the race lantern down from the inn roof. She gave it back to the party: *"Be wary that he will come."*
 
-Mrs Agnes Hesk sent them to Old Corwin, rather than lend her own lantern. *"In the big city they have actual lamps now."*
+[[people/mrs-agnes-hesk|Mrs Agnes Hesk]] sent them to [[people/old-corwin|Old Corwin]], rather than lend her own lantern. *"In the big city they have actual lamps now."*
