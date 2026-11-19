@@ -1,0 +1,31 @@
+{
+  "name": "related",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Key NPCs, places, related quests and related handouts for The Machine World wiki.",
+  "exports": {
+    ".": { "import": "./dist/index.js" },
+    "./components": { "import": "./dist/components/index.js" },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "scripts": { "build": "node build.mjs" },
+  "quartz": {
+    "name": "related",
+    "displayName": "Related",
+    "category": "component",
+    "version": "1.0.0",
+    "quartzVersion": ">=5.0.0",
+    "dependencies": [],
+    "defaultEnabled": true,
+    "defaultOptions": {},
+    "components": {
+      "Related": {
+        "displayName": "Related",
+        "defaultPosition": "afterBody",
+        "defaultPriority": 2
+      }
+    }
+  }
+}
