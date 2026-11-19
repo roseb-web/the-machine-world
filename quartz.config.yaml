@@ -14,30 +14,33 @@ configuration:
     fontOrigin: googleFonts
     cdnCaching: true
     typography:
-      header: Schibsted Grotesk
-      body: Source Sans Pro
-      code: IBM Plex Mono
+      header:
+        name: Fraunces
+        weights: [400, 600]
+        includeItalic: false
+      body: Spline Sans
+      code: JetBrains Mono
     colors:
       lightMode:
-        light: "#faf8f8"
-        lightgray: "#e5e5e5"
-        gray: "#b8b8b8"
-        darkgray: "#4e4e4e"
-        dark: "#2b2b2b"
-        secondary: "#284b63"
-        tertiary: "#84a59d"
-        highlight: rgba(143, 159, 169, 0.15)
-        textHighlight: "#fff23688"
+        light: "#FBF8F3"
+        lightgray: "#E2D9CC"
+        gray: "#A39A90"
+        darkgray: "#2B2724"
+        dark: "#5A2E1E"
+        secondary: "#a46b0a"
+        tertiary: "#6B6A3A"
+        highlight: rgba(164, 107, 10, 0.10)
+        textHighlight: rgba(232, 196, 104, 0.4)
       darkMode:
-        light: "#161618"
-        lightgray: "#393639"
-        gray: "#646464"
-        darkgray: "#d4d4d4"
-        dark: "#ebebec"
-        secondary: "#7b97aa"
-        tertiary: "#84a59d"
-        highlight: rgba(143, 159, 169, 0.15)
-        textHighlight: "#b3aa0288"
+        light: "#1C1A18"
+        lightgray: "#34302B"
+        gray: "#6F675E"
+        darkgray: "#E6DFD5"
+        dark: "#E5BB68"
+        secondary: "#D6A24C"
+        tertiary: "#B8B67E"
+        highlight: rgba(214, 162, 76, 0.12)
+        textHighlight: rgba(214, 170, 80, 0.3)
   links:
     markdownLinkResolution: shortest
   contentIndex:
@@ -104,8 +107,25 @@ plugins:
     order: 92
   - source: "@quartz-community/quartz-fonts"
     enabled: true
+    options:
+      useThemeFonts: false
+      fontOrigin: googleFonts
+      title:
+        name: Fondamento
+        weights: [400]
+        includeItalic: false
+      h1:
+        name: Fondamento
+        weights: [400]
+        includeItalic: false
+      header: Fraunces
+      body:
+        name: Spline Sans
+        weights: [400, 500, 600]
+        includeItalic: false
+      code: JetBrains Mono
   - source: "@quartz-themes/core"
-    enabled: true
+    enabled: false
     options:
       theme: default
       mode: both
@@ -150,7 +170,7 @@ plugins:
       position: left
       priority: 50
   - source: "@quartz-community/graph"
-    enabled: true
+    enabled: false
     layout:
       position: right
       priority: 10
@@ -173,7 +193,7 @@ plugins:
       position: beforeBody
       priority: 10
   - source: "@quartz-community/content-meta"
-    enabled: true
+    enabled: false
     layout:
       position: beforeBody
       priority: 20
@@ -216,9 +236,7 @@ plugins:
   - source: "@quartz-community/footer"
     enabled: true
     options:
-      links:
-        GitHub: https://github.com/jackyzha0/quartz
-        Discord Community: https://discord.gg/cRFFHYye7t
+      links: {}
     layout:
       position: footer
       priority: 50
