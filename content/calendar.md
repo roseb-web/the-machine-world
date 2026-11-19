@@ -261,13 +261,6 @@ mw_calendar:
         month: 6
         day: 3
       page: sessions/session-5
-    - name: Session 3
-      category: party
-      date:
-        year: 100
-        month: 6
-        day: 2
-      page: sessions/session-3
     - name: Session 4
       category: party
       date:
@@ -275,6 +268,13 @@ mw_calendar:
         month: 6
         day: 3
       page: sessions/session-4
+    - name: Session 3
+      category: party
+      date:
+        year: 100
+        month: 6
+        day: 2
+      page: sessions/session-3
     - name: Session 2
       category: party
       date:
