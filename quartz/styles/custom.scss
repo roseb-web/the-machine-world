@@ -187,3 +187,74 @@ button.mobile-explorer h2 {
   font-size: 0.95rem;
   font-weight: 400;
 }
+
+// Phones: a tidy header, and the menu as a full-width panel underneath it.
+//   Row 1: title, then the Menu button on the right
+//   Row 2: search across the width, then dark mode and reader mode
+//   Row 3: the menu, when it's open
+@media all and (max-width: 800px) {
+  .page > #quartz-body .sidebar.left {
+    flex-wrap: wrap;
+    align-items: center;
+    row-gap: 0.75rem;
+    column-gap: 0.75rem;
+    padding: 1.25rem 1rem 1rem;
+
+    & > .page-title {
+      order: 1;
+      flex: 1 1 auto;
+      margin: 0;
+      font-size: 1.55rem;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    & > .mobile-only {
+      display: none;
+    }
+
+    // The menu's button and panel take their own places in the header
+    & > .mw-menu {
+      display: contents;
+    }
+
+    & .mw-menu-toggle {
+      order: 2;
+      flex: 0 0 auto;
+    }
+
+    & > .flex-component {
+      order: 3;
+      flex: 1 1 100%;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      & > :first-child {
+        flex: 1 1 auto;
+        min-width: 0;
+
+        // The search box fills the row
+        & .search,
+        & .search > button,
+        & .search-button {
+          width: 100%;
+          max-width: none;
+        }
+      }
+    }
+
+    & .mw-menu-body {
+      order: 4;
+      flex: 1 1 100%;
+      border-top: 1px solid var(--lightgray);
+      padding-top: 0.75rem;
+    }
+
+    // Nested folders: smaller steps in, so long names have room
+    & .mw-menu-sub {
+      margin-left: 0.15rem !important;
+      padding-left: 0.7rem !important;
+    }
+  }
+}
