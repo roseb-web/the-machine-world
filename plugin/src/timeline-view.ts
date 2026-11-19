@@ -85,7 +85,8 @@ export class TimelineView extends ItemView {
         date,
         ...(ev.end ? { end: ev.end } : {}),
         private: !pubKeys.has(keyOf(ev.name, date)),
-        ...(ev.note ? { notePath: ev.note } : {}),
+        ...(ev.note ? { notePath: ev.note, openable: true } : {}),
+        ...(ev.description ? { detail: ev.description.replace(/(^|\s)#player\b/gi, " ").trim() } : {}),
       });
     }
     for (const file of this.app.vault.getMarkdownFiles()) {
@@ -94,7 +95,7 @@ export class TimelineView extends ItemView {
       if (!date) continue;
       const pub = result.published.find((p) => p.from === file.path);
       const name = pub?.title ?? file.basename;
-      all.push({ name, category: String(fm?.["fc-category"] ?? ""), date, private: !pubKeys.has(keyOf(name, date)), notePath: file.path });
+      all.push({ name, category: String(fm?.["fc-category"] ?? ""), date, private: !pubKeys.has(keyOf(name, date)), notePath: file.path, openable: true });
     }
 
     const shown = this.playerView ? all.filter((e) => !e.private) : all;
@@ -116,7 +117,7 @@ export class TimelineView extends ItemView {
     if (!this.playerView) {
       body.createEl("p", {
         cls: "mw-tl-note",
-        text: "Italic events with a “not published” tag stay off the wiki. To publish one, put #player in its description in Calendarium (festivals, star signs and sessions publish on their own).",
+        text: "Italic events stay off the wiki (their pop-up says so). To publish one, put #player in its description in Calendarium (festivals, star signs and sessions publish on their own).",
       });
     }
   }
