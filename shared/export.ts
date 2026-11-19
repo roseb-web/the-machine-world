@@ -212,14 +212,27 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
     return images.get(vaultPath)!;
   }
 
+  // Inside a table row, the "|" in [[page|name]] would start a new column, so it's written "\|".
+  // (Obsidian notes may already write it that way: "[[Varrow\|the city]]".)
   function rewriteLinks(markdown: string, fromPath: string): string {
+    return markdown
+      .split("\n")
+      .map((line) => {
+        if (!/^\s*(>\s*)*\|/.test(line)) return rewriteLine(line, fromPath, "|");
+        const fixed = line.replace(/\[\[([^\]]*?)\\\|/g, "[[$1|"); // "\|" -> "|" so the link can be read
+        return rewriteLine(fixed, fromPath, "\\|");
+      })
+      .join("\n");
+  }
+
+  function rewriteLine(markdown: string, fromPath: string, bar: string): string {
     return markdown.replace(WIKILINK, (_all, bang: string, target: string, _heading, alias?: string) => {
       const resolved = target ? opts.resolveLink(target, fromPath) : null;
 
       // Images: copy them, and keep the embed.
       if (bang && resolved && IMAGE_EXT.test(resolved)) {
         const dest = imageTarget(resolved);
-        return `![[${dest}${alias ? "|" + alias : ""}]]`;
+        return `![[${dest}${alias ? bar + alias : ""}]]`;
       }
 
       const page = resolved ? byVaultPath.get(resolved) : undefined;
@@ -230,7 +243,7 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
       }
       // Headings come from the vault note and won't exist on the wiki, so they're dropped.
       // Display text: the alias if given, otherwise the name the party knows.
-      return `[[${page.to}|${alias ?? page.title}]]`;
+      return `[[${page.to}${bar}${alias ?? page.title}]]`;
     });
   }
 
