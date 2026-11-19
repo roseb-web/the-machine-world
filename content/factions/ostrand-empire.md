@@ -2,6 +2,8 @@
 title: Ostrand Empire
 player_type: Empire
 banner: assets/banner-ostrand.jpg
+mw_dates:
+  - 3 Orrimel, 540 BL – ongoing
 ---
 
 ## Overview

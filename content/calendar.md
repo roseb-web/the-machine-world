@@ -64,6 +64,15 @@ mw_calendar:
     - id: party
       name: The party
       color: "#9b2c2c"
+    - id: ID_689a3a3bba3a
+      name: History
+      color: "#5fddba"
+    - id: ID_4978d84a2a4b
+      name: Eras
+      color: "#dba867"
+    - id: ID_7aa9387a0a0b
+      name: Wars
+      color: "#c69d43"
   events:
     - name: New Year
       category: festival
@@ -156,6 +165,95 @@ mw_calendar:
         year:
         month: 9
         day: 6
+    - name: The Ostrand Empire
+      category: ID_4978d84a2a4b
+      date:
+        year: -540
+        month: 6
+        day: 3
+      page: factions/ostrand-empire
+      ongoing: true
+    - name: Ostrand is founded
+      category: ID_689a3a3bba3a
+      date:
+        year: -540
+        month: 0
+        day: 1
+      info: Year 1 of the Ostrand calendar (YM).
+    - name: The age of Lull
+      category: ID_4978d84a2a4b
+      date:
+        year: 1
+        month: 0
+        day: 1
+      ongoing: true
+    - name: The first Lull lamp is lit
+      category: ID_689a3a3bba3a
+      date:
+        year: 1
+        month: 0
+        day: 1
+      info: Varrow breaks away. Year 1 of the Concord calendar (YC).
+    - name: The old border wars
+      category: ID_7aa9387a0a0b
+      date:
+        year: 45
+        month: 0
+        day: 1
+      page: places/the-pale-front
+      end:
+        day: 1
+        month: 0
+        year: 60
+    - name: The Battle of Hollin
+      category: ID_7aa9387a0a0b
+      date:
+        year: 60
+        month: 0
+        day: 1
+      info: A ceasefire. The Hill of Swords is raised.
+    - name: The Hungry Years, under the Civic Union
+      category: ID_4978d84a2a4b
+      date:
+        year: 53
+        month: 0
+        day: 1
+      end:
+        day: 1
+        month: 0
+        year: 59
+    - name: "The Miracle: stations, railways, factory towns"
+      category: ID_4978d84a2a4b
+      date:
+        year: 60
+        month: 0
+        day: 1
+      end:
+        day: 1
+        month: 0
+        year: 75
+    - name: Steadfast rule
+      category: ID_4978d84a2a4b
+      date:
+        year: 60
+        month: 0
+        day: 1
+      ongoing: true
+    - name: The war begins
+      category: ID_7aa9387a0a0b
+      date:
+        year: 88
+        month: 0
+        day: 1
+      page: places/the-pale-front
+      info: Ostrand and the Concord are at war again.
+    - name: The war
+      category: ID_7aa9387a0a0b
+      date:
+        year: 88
+        month: 0
+        day: 1
+      ongoing: true
     - name: Session 5
       category: party
       date:
@@ -163,13 +261,6 @@ mw_calendar:
         month: 6
         day: 3
       page: sessions/session-5
-    - name: Session 4
-      category: party
-      date:
-        year: 100
-        month: 6
-        day: 3
-      page: sessions/session-4
     - name: Session 3
       category: party
       date:
@@ -177,6 +268,13 @@ mw_calendar:
         month: 6
         day: 2
       page: sessions/session-3
+    - name: Session 4
+      category: party
+      date:
+        year: 100
+        month: 6
+        day: 3
+      page: sessions/session-4
     - name: Session 2
       category: party
       date:
