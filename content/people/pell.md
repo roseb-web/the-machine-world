@@ -1,6 +1,6 @@
 ---
 title: Pell
-photo: assets/Pell.png
+photo: assets/pell.png
 player_title: Mr Penn, paper and ink
 player_species: Tiefling
 player_status: Left Thornwick

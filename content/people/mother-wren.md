@@ -1,6 +1,6 @@
 ---
 title: Mother Wren
-photo: assets/Pasted-image-20261022211518.png
+photo: assets/pasted-image-20261022211518.png
 player_title: Thornwick's chapel
 player_seen: "[[places/thornwick|Thornwick]]"
 player_faction: Dolvenya
