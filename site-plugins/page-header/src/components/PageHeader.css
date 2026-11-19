@@ -1,0 +1,90 @@
+.mw-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+  margin-top: 0.8rem;
+  padding-bottom: 1.2rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--lightgray);
+}
+
+.mw-header.mw-has-photo {
+  grid-template-columns: 170px minmax(0, 1fr);
+}
+
+.mw-header .article-title {
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+  margin: 0.2rem 0 0.2rem !important;
+}
+
+.mw-portrait {
+  width: 170px;
+  max-height: 240px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin: 0 !important;
+}
+
+.mw-subtitle {
+  margin: 0 0 0.8rem;
+  color: var(--gray);
+  font-size: 1.05rem;
+}
+
+.mw-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.7rem;
+}
+
+.mw-chip {
+  font-family: var(--bodyFont);
+  font-size: 0.8rem;
+  padding: 0.1rem 0.7rem;
+  border-radius: 6px;
+  background: var(--lightgray);
+  color: var(--darkgray);
+}
+
+.mw-chip a {
+  color: inherit;
+}
+
+.mw-header a.internal {
+  background: none;
+  padding: 0;
+  font-weight: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.mw-tone-bad { background: color-mix(in srgb, #a33a2a 18%, transparent); color: #8a2f22; }
+.mw-tone-low { background: color-mix(in srgb, #b8862b 18%, transparent); color: #7a5512; }
+.mw-tone-mid { background: color-mix(in srgb, var(--gray) 22%, transparent); }
+.mw-tone-good { background: color-mix(in srgb, #a46b0a 20%, transparent); color: #6e4706; }
+.mw-tone-best { background: color-mix(in srgb, #5d7a2e 20%, transparent); color: #3f5a18; }
+
+:root[saved-theme="dark"] .mw-tone-bad { color: #e08f80; }
+:root[saved-theme="dark"] .mw-tone-low { color: #e0b46a; }
+:root[saved-theme="dark"] .mw-tone-good { color: #e5bb68; }
+:root[saved-theme="dark"] .mw-tone-best { color: #b5cf86; }
+
+.mw-seen {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--gray);
+}
+
+@media (max-width: 800px) {
+  .mw-header.mw-has-photo {
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 1rem;
+  }
+  .mw-portrait {
+    width: 110px;
+  }
+}

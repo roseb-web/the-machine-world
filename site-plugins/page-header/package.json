@@ -1,0 +1,31 @@
+{
+  "name": "page-header",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Page header for The Machine World wiki: title, portrait, subtitle and chips.",
+  "exports": {
+    ".": { "import": "./dist/index.js" },
+    "./components": { "import": "./dist/components/index.js" },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "scripts": { "build": "node build.mjs" },
+  "quartz": {
+    "name": "page-header",
+    "displayName": "Page header",
+    "category": "component",
+    "version": "1.0.0",
+    "quartzVersion": ">=5.0.0",
+    "dependencies": [],
+    "defaultEnabled": true,
+    "defaultOptions": {},
+    "components": {
+      "PageHeader": {
+        "displayName": "Page header",
+        "defaultPosition": "beforeBody",
+        "defaultPriority": 10
+      }
+    }
+  }
+}
