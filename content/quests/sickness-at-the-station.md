@@ -3,6 +3,14 @@ title: Sickness at the Station
 quest: main
 quest_status: active
 pinned: true
+player_handouts:
+  - assets/the-fever-list.png
+  - assets/bredes-wagon-list.png
+  - assets/lore-card-l01-dear-mam-the-pay-is-good.png
+mw_handout_names:
+  - The fever list
+  - Brede's wagon list
+  - Lore card L01 - Dear Mam, the pay is good
 ---
 
 ## Overview

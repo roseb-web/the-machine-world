@@ -5,6 +5,18 @@ player_title: Mr Penn, paper and ink
 player_species: Tiefling
 player_status: Left Thornwick
 player_favour: Warm
+player_handouts:
+  - assets/pells-room-travel-papers.png
+  - assets/pells-room-marked-person-permit.png
+  - assets/pells-room-the-millers-three-daughters.png
+  - assets/pells-room-letter.png
+  - assets/pells-room-circus-ticket.png
+mw_handout_names:
+  - Pell's room - Travel papers
+  - Pell's room - Marked person permit
+  - Pell's room - The miller's three daughters
+  - Pell's room - Letter
+  - Pell's room - Circus ticket
 ---
 
 ## Overview

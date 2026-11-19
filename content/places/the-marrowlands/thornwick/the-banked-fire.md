@@ -2,6 +2,26 @@
 title: The Banked Fire
 player_type: Inn and tavern
 player_in: "[[places/the-marrowlands/thornwick/index|Thornwick]]"
+player_handouts:
+  - assets/notice-board-concord-bounty.png
+  - assets/notice-board-rats.png
+  - assets/notice-board-hands-wanted.png
+  - assets/notice-board-lost-dog.png
+  - assets/notice-board-the-chapel-roof-leaks.png
+  - assets/notice-board-escort-wanted.png
+  - assets/notice-board-grave-wants-digging.png
+  - assets/notice-board-night-watch.png
+  - assets/notice-board-old-hand-slip.png
+mw_handout_names:
+  - Notice board - Concord bounty
+  - Notice board - Rats
+  - Notice board - Hands wanted
+  - Notice board - Lost dog
+  - Notice board - The chapel roof leaks
+  - Notice board - Escort wanted
+  - Notice board - Grave wants digging
+  - Notice board - Night watch
+  - Notice board - Old Hand slip
 ---
 
 ## Overview

@@ -3,6 +3,16 @@ title: Meridian Concord
 player_title: The grey coats
 player_type: Government
 player_sigil: assets/concord-the-watching-eye.png
+player_handouts:
+  - assets/concord-poster-lull-is-light.png
+  - assets/lore-card-l04-lull-is-light-a-workers-guide.png
+  - assets/lore-card-l21-register-of-marked-persons.png
+  - assets/notice-board-concord-bounty.png
+mw_handout_names:
+  - Concord poster - Lull is light
+  - Lore card L04 - Lull is light, a worker's guide
+  - Lore card L21 - Register of marked persons
+  - Notice board - Concord bounty
 ---
 
 ## Overview

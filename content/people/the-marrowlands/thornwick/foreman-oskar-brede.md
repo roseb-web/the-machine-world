@@ -3,6 +3,10 @@ title: Foreman Oskar Brede
 photo: assets/brede-1-the-foreman.png
 player_title: Foreman of the drawing station
 player_seen: "[[places/the-marrowlands/thornwick/the-drawing-station|The Drawing Station]]"
+player_handouts:
+  - assets/bredes-wagon-list.png
+mw_handout_names:
+  - Brede's wagon list
 ---
 
 ## Overview

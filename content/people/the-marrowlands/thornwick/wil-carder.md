@@ -2,6 +2,10 @@
 title: Wil Carder
 photo: assets/wil-carder.png
 player_title: Station worker
+player_handouts:
+  - assets/wils-scrap.png
+mw_handout_names:
+  - Wil's scrap
 ---
 
 ## Overview

@@ -3,6 +3,14 @@ title: The Drawing Station
 player_name: The Drawing Station
 player_type: Concord drawing station
 player_in: "[[places/the-marrowlands/thornwick/index|Thornwick]]"
+player_handouts:
+  - assets/the-fever-list.png
+  - assets/lore-card-l35-fitting-14-b.png
+  - assets/concord-poster-lull-is-light.png
+mw_handout_names:
+  - The fever list
+  - Lore card L35 - Fitting 14-B
+  - Concord poster - Lull is light
 ---
 
 ## Overview

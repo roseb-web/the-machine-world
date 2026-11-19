@@ -1,6 +1,10 @@
 ---
 title: Lantern Night
 player_type: Festival
+player_handouts:
+  - assets/lore-card-l31-the-lantern-bearer.png
+mw_handout_names:
+  - Lore card L31 - The Lantern-Bearer
 mw_dates:
   - 1 Orrimel, every year · in 298 days
 ---

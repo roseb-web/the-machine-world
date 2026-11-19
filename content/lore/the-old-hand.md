@@ -1,6 +1,14 @@
 ---
 title: The Old Hand
 player_type: Writing
+player_handouts:
+  - assets/wils-scrap.png
+  - assets/notice-board-old-hand-slip.png
+  - assets/pells-room-the-millers-three-daughters.png
+mw_handout_names:
+  - Wil's scrap
+  - Notice board - Old Hand slip
+  - Pell's room - The miller's three daughters
 ---
 
 ## Overview
