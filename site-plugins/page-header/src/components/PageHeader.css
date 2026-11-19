@@ -21,8 +21,10 @@
 
 .mw-portrait {
   width: 170px;
-  max-height: 240px;
-  object-fit: cover;
+  height: auto;
+  max-height: 340px;
+  object-fit: contain;
+  object-position: top left;
   border-radius: 10px;
   margin: 0 !important;
 }
