@@ -9,7 +9,7 @@ game_date:
   weekday: Morva
   concord: 3 Septimus, 100 YC
   season: Autumn 33
-banner: assets/thornwick-banner.jpg
+banner: assets/banner-thornwick.jpg
 ---
 Vaharan is a cold, old land of forest, marsh and mountain. Lately, something is wrong with it. Harvests fail. Animals sicken. The winters feel longer than they used to.
 

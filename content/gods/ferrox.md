@@ -2,6 +2,7 @@
 title: Ferrox
 player_title: The Iron Mouth
 player_type: New god
+banner: assets/banner-ferrox.jpg
 ---
 
 ## Overview

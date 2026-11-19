@@ -1,6 +1,7 @@
 ---
 title: The Pale Front
 player_type: Warfront
+banner: assets/banner-the-pale-front.jpg
 ---
 
 ## Overview

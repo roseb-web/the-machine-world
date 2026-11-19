@@ -1,7 +1,7 @@
 ---
 title: Thornwick
 player_type: Village
-banner: assets/thornwick-banner.jpg
+banner: assets/banner-thornwick.jpg
 player_in: "[[places/the-marrowlands/index|The Marrowlands]]"
 ---
 

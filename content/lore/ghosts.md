@@ -1,10 +1,9 @@
 ---
 title: Ghosts
+banner: assets/banner-ghosts.jpg
 ---
 
-## What we know
-
-### Hauntings
+## Overview
 
 Everyone in Vaharan knows ghosts are real. A woman in white on a bridge. A miner still walking the old shaft. Footsteps in an empty chapel.
 
