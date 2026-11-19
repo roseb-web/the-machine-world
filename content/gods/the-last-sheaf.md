@@ -3,6 +3,9 @@ title: The Last Sheaf
 player_name: The Last Sheaf
 player_type: Old god
 affinity_neri: Noticed
+banner: assets/banner-khetavi.jpg
+player_sigil: assets/god-the-last-sheaf.png
+player_themes: []
 ---
 
 ## Overview

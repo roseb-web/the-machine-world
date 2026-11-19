@@ -4,6 +4,8 @@ player_title: The Iron Mouth
 player_type: New god
 banner: assets/banner-ferrox.jpg
 player_say: FEH-rocks
+player_sigil: assets/god-ferrox.png
+player_themes: []
 ---
 
 ## Overview

@@ -3,6 +3,8 @@ title: The One Who Sleeps
 player_name: The One Who Sleeps
 player_type: Old god
 banner: assets/banner-thamvevai.jpg
+player_sigil: assets/god-the-one-who-sleeps.png
+player_themes: []
 ---
 
 ## Overview

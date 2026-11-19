@@ -5,6 +5,8 @@ player_type: Old god
 player_handouts:
   - assets/lore-card-l31-the-lantern-bearer.png
 banner: assets/banner-lanterns.jpg
+player_sigil: assets/god-the-lantern-bearer.png
+player_themes: []
 mw_handout_names:
   - Lore card L31 - The Lantern-Bearer
 ---
