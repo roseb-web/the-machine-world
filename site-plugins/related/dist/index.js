@@ -485,7 +485,7 @@ function Landing({ slug, root, href, allFiles }) {
     return /* @__PURE__ */ jsx("a", { href: href(String(f.slug)), class: "mw-card internal", children: /* @__PURE__ */ jsxs("div", { class: "mw-card-inner", children: [
       banner ? /* @__PURE__ */ jsx("div", { class: "mw-card-banner", style: `background-image:url('${banner}')${focus ? `;background-position:${focus}` : ""}` }) : /* @__PURE__ */ jsx("div", { class: "mw-card-banner mw-card-blank", children: sigil ? /* @__PURE__ */ jsx("img", { src: sigil, alt: "" }) : /* @__PURE__ */ jsx("span", { children: initial }) }),
       /* @__PURE__ */ jsxs("div", { class: "mw-card-row mw-card-name", children: [
-        /* @__PURE__ */ jsx("span", { class: "mw-card-sigil", children: sigil ? /* @__PURE__ */ jsx("img", { src: sigil, alt: "" }) : initial }),
+        sigil && /* @__PURE__ */ jsx("span", { class: "mw-card-sigil", children: /* @__PURE__ */ jsx("img", { src: sigil, alt: "" }) }),
         /* @__PURE__ */ jsxs("span", { class: "mw-card-title", children: [
           title,
           sub && /* @__PURE__ */ jsx("small", { children: sub })

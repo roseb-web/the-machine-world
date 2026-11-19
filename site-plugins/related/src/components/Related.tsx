@@ -73,7 +73,11 @@ function Landing({ slug, root, href, allFiles }: { slug: string; root: string; h
             </div>
           )}
           <div class="mw-card-row mw-card-name">
-            <span class="mw-card-sigil">{sigil ? <img src={sigil} alt="" /> : initial}</span>
+            {sigil && (
+              <span class="mw-card-sigil">
+                <img src={sigil} alt="" />
+              </span>
+            )}
             <span class="mw-card-title">
               {title}
               {sub && <small>{sub}</small>}
