@@ -152,9 +152,10 @@ export default (() => {
           <section>
             <h2>Related handouts</h2>
             <div class="mw-handouts">
-              {handouts.map((h) => {
+              {handouts.map((h, i) => {
                 const src = `${root}/${h}`
-                const name = (h.split("/").pop() ?? h).replace(/\.[a-z]+$/i, "").replace(/-/g, " ")
+                const names = Array.isArray(fm.mw_handout_names) ? (fm.mw_handout_names as string[]) : []
+                const name = names[i] ?? (h.split("/").pop() ?? h).replace(/\.[a-z]+$/i, "").replace(/-/g, " ")
                 return (
                   <a href={src} class="mw-handout" target="_blank" rel="noopener">
                     <img src={src} alt={name} loading="lazy" />
@@ -190,5 +191,29 @@ export default (() => {
   }
 
   Related.css = style
+  // Handouts page (a Player Page with cssclasses: mw-handouts-page): each image gets its caption
+  // (the text after | in the note) underneath, and opens full size when clicked.
+  Related.afterDOMLoaded = `
+document.addEventListener("nav", () => {
+  for (const img of document.querySelectorAll("article.mw-handouts-page img:not([data-mw-done])")) {
+    img.dataset.mwDone = "1"
+    const fig = document.createElement("figure")
+    fig.className = "mw-handout-fig"
+    const a = document.createElement("a")
+    a.href = img.getAttribute("src")
+    a.target = "_blank"
+    a.rel = "noopener"
+    img.replaceWith(fig)
+    a.appendChild(img)
+    fig.appendChild(a)
+    const text = img.getAttribute("alt")
+    if (text) {
+      const cap = document.createElement("figcaption")
+      cap.textContent = text
+      fig.appendChild(cap)
+    }
+  }
+})
+`
   return Related
 }) satisfies QuartzComponentConstructor

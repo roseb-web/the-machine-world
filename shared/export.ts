@@ -241,12 +241,24 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
     let changed = false;
     const fix = (value: unknown): unknown => {
       if (typeof value !== "string") return value;
-      const link = value.replace(/^!?\[\[|\]\]$/g, "");
+      const link = value.replace(/^!?\[\[|\]\]$/g, "").split("|")[0]; // drop a caption after |
       const resolved = opts.resolveLink(link, fromPath);
       if (!resolved || !IMAGE_EXT.test(resolved)) return null;
       changed = true;
       return imageTarget(resolved);
     };
+    // Handout captions: the image's own name (with its spaces and apostrophes), kept for the page
+    if (Array.isArray(props.player_handouts) || typeof props.player_handouts === "string") {
+      const list = Array.isArray(props.player_handouts) ? props.player_handouts : [props.player_handouts];
+      props.mw_handout_names = list.map((v) => {
+        const link = String(v).replace(/^!?\[\[|\]\]$/g, "");
+        const [target, alias] = link.split("|");
+        const resolved = opts.resolveLink(target, fromPath);
+        if (!resolved || !IMAGE_EXT.test(resolved)) return null; // skipped, like the image itself
+        return alias ?? resolved.split("/").pop()!.replace(/\.[a-z0-9]+$/i, "");
+      }).filter((n) => n !== null);
+      changed = true;
+    }
     for (const key of IMAGE_PROPERTIES) {
       if (!(key in props)) continue;
       const v = props[key];
