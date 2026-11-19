@@ -5,6 +5,7 @@ import { extractPlayerNote, renderPlayerNote, YamlTools } from "./extract";
 import type { GameDate } from "./calendar";
 import { readMap, MapData } from "./maps";
 import { calendarExport, dateCard } from "./events";
+import { boardKey, MoodPin } from "./pinterest";
 
 export interface VaultNote {
   path: string; // vault path, e.g. "4. People/NPCs/Pell.md"
@@ -22,6 +23,8 @@ export interface ExportOptions {
   playerPagesFolder: string; // notes here are published whole
   sectionTitles?: Record<string, string>; // e.g. { people: "People" }, used for the section's own page
   gameDate?: GameDate | null; // today's in-game date, shown on the home page
+  // Pins fetched from Pinterest, by boardKey (see shared/pinterest.ts)
+  moodboards?: Record<string, MoodPin[]>;
   // Calendarium's settings, for the Calendar (and Timeline) pages
   calendar?: {
     data: unknown;
@@ -307,6 +310,14 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
       // The home page gets today's in-game date in its properties.
       const props = (header ? opts.yaml.parse(header.replace(/^---\r?\n|\r?\n---$/g, "")) : {}) as Record<string, unknown>;
       props.game_date = opts.gameDate;
+      header = `---\n${opts.yaml.stringify(props ?? {}).trimEnd()}\n---`;
+    }
+    // Moodboard: pins for the page's `pinterest` link
+    const pinUrl = p.props["pinterest"];
+    const mood = typeof pinUrl === "string" ? opts.moodboards?.[boardKey(pinUrl)] : undefined;
+    if (mood?.length) {
+      const props = (header ? opts.yaml.parse(header.replace(/^---\r?\n|\r?\n---$/g, "")) : {}) as Record<string, unknown>;
+      props.mw_moodboard = mood;
       header = `---\n${opts.yaml.stringify(props ?? {}).trimEnd()}\n---`;
     }
     if (maps.length) {
