@@ -112,7 +112,9 @@ function renderHeader(
     const sigil = photo ? undefined : str("player_sigil")
     const subtitle = str("player_title")
     const seen = str("player_seen")
-    const hasDetails = photo || sigil || subtitle || chips.length > 0 || faction || seen
+    // Date cards: when this page's events happen (added by the export from Calendarium)
+    const dates = Array.isArray(fm.mw_dates) ? (fm.mw_dates as unknown[]).filter((d): d is string => typeof d === "string") : []
+    const hasDetails = photo || sigil || subtitle || chips.length > 0 || faction || seen || dates.length > 0
 
     if (!hasDetails) {
       return <h1 class="article-title">{title}</h1>
@@ -137,6 +139,15 @@ function renderHeader(
             </div>
           )}
           {seen && <p class="mw-seen">Last seen: {renderValue(seen)}</p>}
+          {dates.map((d) => (
+            <p class="mw-datecard">
+              <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                <rect x="1.5" y="2.5" width="13" height="12" rx="1.5" fill="none" stroke="currentColor" />
+                <path d="M1.5 6h13M5 1v3M11 1v3" stroke="currentColor" />
+              </svg>
+              {d}
+            </p>
+          ))}
         </div>
       </header>
     )

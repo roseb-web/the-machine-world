@@ -49,7 +49,7 @@ export function gameDateFrom(data: unknown): GameDate | null {
   const weekday = weekdays[(first + dayOfYear - 1) % weekdays.length].name;
 
   const era = now.year >= 1 ? "YC" : "BL";
-  const year = now.year >= 1 ? now.year : 1 - now.year;
+  const year = Math.abs(now.year); // Calendarium shows year -900 as "900 BL"
   return {
     day: now.day,
     month: months[now.month].name,

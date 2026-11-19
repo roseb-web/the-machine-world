@@ -183,3 +183,21 @@
 .center:has(.mw-header:not(.mw-folder-header)) .page-listing {
   display: none;
 }
+
+/* Date card: when this page's events happen */
+.mw-datecard {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.3rem 0 0;
+  padding: 0.15rem 0.6rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--darkgray);
+}
+
+.mw-datecard svg {
+  color: var(--secondary);
+  flex-shrink: 0;
+}

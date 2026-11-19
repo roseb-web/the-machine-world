@@ -28,6 +28,7 @@ const defaultOptions: SetMenuOptions = {
         { title: "Home", page: "index" },
         { title: "Maps", page: "maps" },
         { title: "Calendar", page: "calendar" },
+        { title: "Timeline", page: "timeline" },
         { title: "Quest log", section: "quests" },
       ],
     },
