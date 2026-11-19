@@ -47,12 +47,12 @@ export function slugify(text: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-function sectionFor(path: string, rules: SectionRule[], fallback: string): string {
+function ruleFor(path: string, rules: SectionRule[]): SectionRule | null {
   let best: SectionRule | null = null;
   for (const r of rules) {
     if (path.startsWith(r.folder + "/") && (!best || r.folder.length > best.folder.length)) best = r;
   }
-  return best ? best.section : fallback;
+  return best;
 }
 
 function baseName(path: string): string {
@@ -65,6 +65,10 @@ interface Prepared {
   to: string; // content path without ".md", e.g. "people/pell"
   title: string;
   markdown: string;
+  section: string; // e.g. "places"; "" for the site root
+  slug: string; // e.g. "the-banked-fire"
+  props: Record<string, unknown>; // the note's own properties (player_in is read from here)
+  folders: string[]; // vault folders between the section's folder and the note
 }
 
 function prepare(note: VaultNote, opts: ExportOptions): Prepared | null {
@@ -72,6 +76,7 @@ function prepare(note: VaultNote, opts: ExportOptions): Prepared | null {
   let markdown: string;
   let title: string;
   let section: string | null = null;
+  let props: Record<string, unknown> = {};
 
   if (wholePage) {
     // Player Pages are published as written, with a title added.
@@ -81,7 +86,7 @@ function prepare(note: VaultNote, opts: ExportOptions): Prepared | null {
       markdown = `---\ntitle: ${JSON.stringify(title)}\n---\n\n${note.text}`;
     } else {
       // Keep the note's own properties, and add a title if it hasn't got one.
-      const props = (opts.yaml.parse(fm[1]) ?? {}) as Record<string, unknown>;
+      props = (opts.yaml.parse(fm[1]) ?? {}) as Record<string, unknown>;
       if (typeof props.title !== "string") props.title = title;
       markdown = `---\n${opts.yaml.stringify(props).trimEnd()}\n---` + note.text.slice(fm[0].length);
     }
@@ -90,16 +95,88 @@ function prepare(note: VaultNote, opts: ExportOptions): Prepared | null {
     const extracted = extractPlayerNote(note.path, note.text, opts.yaml);
     if (!extracted) return null;
     title = extracted.title;
+    props = extracted.properties;
     const override = extracted.properties["wiki_section"];
     if (typeof override === "string") section = override;
     markdown = renderPlayerNote(extracted, opts.yaml);
   }
 
-  if (section === null) section = sectionFor(note.path, opts.sections, opts.defaultSection);
+  const rule = wholePage ? null : ruleFor(note.path, opts.sections);
+  if (section === null) section = rule ? rule.section : opts.defaultSection;
+  const folders = rule ? note.path.slice(rule.folder.length + 1).split("/").slice(0, -1) : [];
   const slug = slugify(title) || slugify(baseName(note.path));
   // A Player Pages note called "Home" becomes the site's front page.
   const to = wholePage && slug === "home" ? "index" : section ? `${section}/${slug}` : slug;
-  return { from: note.path, to, title, markdown };
+  return { from: note.path, to, title, markdown, section, slug, props: wholePage ? {} : props, folders };
+}
+
+const LINK = /^\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|([^\]]*))?\]\]$/;
+
+// Sorts pages into folders, e.g. places/the-marrowlands/thornwick/the-banked-fire.
+// - A note with player_in sits inside that place: "[[Thornwick]]", or plain text like "The Varrow Lands".
+// - Other notes use their vault folders, but only when those folders match a published place.
+//   So a folder name like a secret faction never reaches the site.
+// - A page with pages inside it becomes its folder's own page (".../thornwick/index").
+// Returns the folders that need a page of their own, with their titles.
+function nest(prepared: Prepared[], opts: ExportOptions): Map<string, string> {
+  const byVaultPath = new Map(prepared.map((p) => [p.from, p]));
+  const rel = new Map<Prepared, string>(); // path inside the section, e.g. "the-marrowlands/thornwick"
+  const titles = new Map<string, string>(); // folder path inside a section -> title
+  const visiting = new Set<Prepared>();
+
+  function relOf(p: Prepared): string {
+    const known = rel.get(p);
+    if (known !== undefined) return known;
+    let parentRel = "";
+    const pin = p.props["player_in"];
+    if (typeof pin === "string" && pin.trim() && !visiting.has(p)) {
+      visiting.add(p);
+      const m = pin.trim().match(LINK);
+      const target = m ? opts.resolveLink(m[1], p.from) : null;
+      const parent = target ? byVaultPath.get(target) : undefined;
+      if (parent && parent !== p && parent.to !== "index") {
+        parentRel = relOf(parent);
+        titles.set(parentRel, parent.title);
+      } else {
+        // Not a published page: plain text, like any unpublished link.
+        const text = m ? (m[2] ?? m[1].split("/").pop()!) : pin.trim();
+        parentRel = slugify(text);
+        if (parentRel && !titles.has(parentRel)) titles.set(parentRel, text);
+      }
+      visiting.delete(p);
+    }
+    const r = parentRel ? `${parentRel}/${p.slug}` : p.slug;
+    rel.set(p, r);
+    return r;
+  }
+
+  const nestable = prepared.filter((p) => p.section && p.to !== "index");
+  // Pass 1: player_in
+  for (const p of nestable) if (typeof p.props["player_in"] === "string") relOf(p);
+  for (const [p, r] of rel) if (!titles.has(r)) titles.set(r, p.title);
+  // Pass 2: vault folders, when they match a known place
+  for (const p of nestable) {
+    if (rel.has(p)) continue;
+    const folder = p.folders.map(slugify).join("/");
+    rel.set(p, folder && titles.has(folder) ? `${folder}/${p.slug}` : p.slug);
+  }
+
+  const full = (p: Prepared) => `${p.section}/${rel.get(p)}`;
+  const pagePaths = new Set(nestable.map(full));
+  const hasChildren = (path: string) => [...pagePaths].some((x) => x.startsWith(path + "/"));
+  const folderPages = new Map<string, string>();
+  for (const p of nestable) {
+    const path = full(p);
+    p.to = hasChildren(path) ? `${path}/index` : path;
+    // Every folder above it, inside its section, needs a page (for the menu and breadcrumbs).
+    const parts = rel.get(p)!.split("/").slice(0, -1);
+    for (let i = 1; i <= parts.length; i++) {
+      const sub = parts.slice(0, i).join("/");
+      const folder = `${p.section}/${sub}`;
+      if (!pagePaths.has(folder)) folderPages.set(folder, titles.get(sub) ?? sub.split("/").pop()!.replace(/-/g, " "));
+    }
+  }
+  return folderPages;
 }
 
 // Matches [[target]], [[target|alias]], [[target#heading]], and ![[embeds]].
@@ -109,6 +186,7 @@ const IMAGE_EXT = /\.(png|jpe?g|gif|webp|svg|avif)$/i;
 
 export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResult {
   const prepared = notes.map((n) => prepare(n, opts)).filter((p): p is Prepared => p !== null);
+  const folderPages = nest(prepared, opts);
   const byVaultPath = new Map(prepared.map((p) => [p.from, p]));
   const images = new Map<string, string>(); // vault path -> content path
 
@@ -209,12 +287,16 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
     }
   }
 
-  // Each section with pages gets its own page, so menus and breadcrumbs show "People", not "people".
-  const sections = new Set(prepared.map((p) => p.to.split("/").slice(0, -1).join("/")).filter(Boolean));
+  // Each section and folder gets its own page, so menus and breadcrumbs show "People", not "people".
+  // mw_folder marks these, so the menu treats them as folders, not pages.
+  const folderPage = (path: string, title: string) =>
+    files.push({ path: `${path}/index.md`, text: `---\ntitle: ${JSON.stringify(title)}\nmw_folder: true\n---\n` });
+  const sections = new Set(prepared.map((p) => p.section).filter(Boolean));
   for (const section of sections) {
     const title = opts.sectionTitles?.[section];
-    if (title) files.push({ path: `${section}/index.md`, text: `---\ntitle: ${JSON.stringify(title)}\n---\n` });
+    if (title) folderPage(section, title);
   }
+  for (const [path, title] of folderPages) folderPage(path, title);
 
   return {
     files,

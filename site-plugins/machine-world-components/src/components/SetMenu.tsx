@@ -57,6 +57,15 @@ interface PageInfo {
   title: string
 }
 
+// A folder in a section's submenu, e.g. The Marrowlands > Thornwick.
+interface Folder {
+  path: string // e.g. "places/the-marrowlands"
+  title: string
+  page?: string // its own page, if it has one (e.g. Thornwick's)
+  folders: Folder[]
+  pages: PageInfo[]
+}
+
 function titleOf(file: QuartzComponentProps["allFiles"][number]): string {
   const fm = file.frontmatter as { title?: unknown } | undefined
   if (typeof fm?.title === "string" && fm.title) return fm.title
@@ -69,9 +78,81 @@ export default ((userOpts?: Partial<SetMenuOptions>) => {
 
   const SetMenu: QuartzComponent = ({ fileData, allFiles, displayClass }: QuartzComponentProps) => {
     const current = String(fileData.slug ?? "")
+    const isFolderPage = (f: QuartzComponentProps["allFiles"][number]) =>
+      (f.frontmatter as { mw_folder?: unknown } | undefined)?.mw_folder === true
     const pages: PageInfo[] = allFiles
-      .filter((f) => f.slug && !String(f.slug).endsWith("/index") && !String(f.slug).startsWith("tags/"))
+      .filter((f) => f.slug && String(f.slug) !== "index" && !String(f.slug).startsWith("tags/") && !isFolderPage(f))
+      .filter((f) => !String(f.slug).endsWith("/index") || String(f.slug).split("/").length > 2)
       .map((f) => ({ slug: String(f.slug), title: titleOf(f) }))
+    const folderTitles = new Map(
+      allFiles.filter((f) => String(f.slug).endsWith("/index")).map((f) => [String(f.slug).slice(0, -6), titleOf(f)]),
+    )
+
+    // Builds a section's tree from page paths. A page ending in "/index" is its folder's own page.
+    const buildTree = (section: string, children: PageInfo[]): Folder => {
+      const root: Folder = { path: section, title: section, folders: [], pages: [] }
+      const folderAt = (path: string): Folder => {
+        let node = root
+        const parts = path.slice(section.length + 1).split("/").filter(Boolean)
+        for (let i = 0; i < parts.length; i++) {
+          const sub = `${section}/${parts.slice(0, i + 1).join("/")}`
+          let next = node.folders.find((f) => f.path === sub)
+          if (!next) {
+            next = { path: sub, title: folderTitles.get(sub) ?? parts[i].replace(/-/g, " "), folders: [], pages: [] }
+            node.folders.push(next)
+          }
+          node = next
+        }
+        return node
+      }
+      for (const p of children) {
+        if (p.slug.endsWith("/index")) {
+          const f = folderAt(p.slug.slice(0, -6))
+          f.page = p.slug
+          f.title = p.title
+        } else {
+          folderAt(p.slug.split("/").slice(0, -1).join("/")).pages.push(p)
+        }
+      }
+      const sort = (f: Folder) => {
+        f.folders.sort((a, b) => a.title.localeCompare(b.title))
+        f.pages.sort((a, b) => a.title.localeCompare(b.title))
+        f.folders.forEach(sort)
+      }
+      sort(root)
+      return root
+    }
+
+    const renderFolder = (f: Folder) => (
+      <ul class="mw-menu-sub">
+        {f.folders.map((sub) => {
+          const open = current === sub.page || current.startsWith(sub.path + "/")
+          return (
+            <li>
+              <details open={open}>
+                <summary class={open ? "mw-active-section" : ""}>
+                  {sub.page ? (
+                    <a href={link(sub.page)} class={current === sub.page ? "mw-active" : ""}>
+                      {sub.title}
+                    </a>
+                  ) : (
+                    sub.title
+                  )}
+                </summary>
+                {renderFolder(sub)}
+              </details>
+            </li>
+          )
+        })}
+        {f.pages.map((p) => (
+          <li>
+            <a href={link(p.slug)} class={current === p.slug ? "mw-active" : ""}>
+              {p.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
     const exists = new Set(allFiles.map((f) => String(f.slug)))
     const link = (target: string) => resolveRelative(current as never, target as never)
 
@@ -81,14 +162,12 @@ export default ((userOpts?: Partial<SetMenuOptions>) => {
           .map((item) => {
             if (item.page) {
               if (!exists.has(item.page)) return null
-              return { item, children: [] as PageInfo[], active: current === item.page }
+              return { item, children: [] as PageInfo[], tree: null, active: current === item.page }
             }
             const prefix = `${item.section}/`
-            const children = pages
-              .filter((p) => p.slug.startsWith(prefix))
-              .sort((a, b) => a.title.localeCompare(b.title))
+            const children = pages.filter((p) => p.slug.startsWith(prefix))
             if (children.length === 0) return null
-            return { item, children, active: current.startsWith(prefix) }
+            return { item, children, tree: buildTree(item.section!, children), active: current.startsWith(prefix) }
           })
           .filter((x): x is NonNullable<typeof x> => x !== null)
         return { label: group.label, items }
@@ -105,7 +184,7 @@ export default ((userOpts?: Partial<SetMenuOptions>) => {
             <div class="mw-menu-group">
               <div class="mw-menu-label">{group.label}</div>
               <ul>
-                {group.items.map(({ item, children, active }) =>
+                {group.items.map(({ item, children, tree, active }) =>
                   children.length === 0 ? (
                     <li>
                       <a href={link(item.page!)} class={active ? "mw-active" : ""}>
@@ -116,15 +195,7 @@ export default ((userOpts?: Partial<SetMenuOptions>) => {
                     <li>
                       <details open={active}>
                         <summary class={active ? "mw-active-section" : ""}>{item.title}</summary>
-                        <ul class="mw-menu-sub">
-                          {children.map((p) => (
-                            <li>
-                              <a href={link(p.slug)} class={current === p.slug ? "mw-active" : ""}>
-                                {p.title}
-                              </a>
-                            </li>
-                          ))}
-                        </ul>
+                        {tree && renderFolder(tree)}
                       </details>
                     </li>
                   ),

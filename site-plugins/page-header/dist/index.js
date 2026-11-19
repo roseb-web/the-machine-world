@@ -2,7 +2,192 @@
 import { pathToRoot, resolveRelative } from "@quartz-community/utils";
 
 // src/components/PageHeader.css
-var PageHeader_default = '.mw-header {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr);\n  gap: 1.5rem;\n  align-items: start;\n  margin-top: 0.8rem;\n  padding-bottom: 1.2rem;\n  margin-bottom: 1rem;\n  border-bottom: 1px solid var(--lightgray);\n}\n\n.mw-header.mw-has-photo {\n  grid-template-columns: 170px minmax(0, 1fr);\n}\n\n.mw-header .article-title {\n  border-bottom: none !important;\n  padding-bottom: 0 !important;\n  margin: 0.2rem 0 0.2rem !important;\n}\n\n.mw-portrait {\n  width: 170px;\n  height: auto;\n  max-height: 340px;\n  object-fit: contain;\n  object-position: top left;\n  border-radius: 10px;\n  margin: 0 !important;\n}\n\n.mw-subtitle {\n  margin: 0 0 0.8rem;\n  color: var(--gray);\n  font-size: 1.05rem;\n}\n\n.mw-chips {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0.4rem;\n  margin-bottom: 0.7rem;\n}\n\n.mw-chip {\n  font-family: var(--bodyFont);\n  font-size: 0.8rem;\n  padding: 0.1rem 0.7rem;\n  border-radius: 6px;\n  background: var(--lightgray);\n  color: var(--darkgray);\n}\n\n.mw-chip a {\n  color: inherit;\n}\n\n.mw-header a.internal {\n  background: none;\n  padding: 0;\n  font-weight: inherit;\n  text-decoration: underline;\n  text-decoration-thickness: 1px;\n  text-underline-offset: 3px;\n}\n\n.mw-tone-bad { background: color-mix(in srgb, #a33a2a 18%, transparent); color: #8a2f22; }\n.mw-tone-low { background: color-mix(in srgb, #b8862b 18%, transparent); color: #7a5512; }\n.mw-tone-mid { background: color-mix(in srgb, var(--gray) 22%, transparent); }\n.mw-tone-good { background: color-mix(in srgb, #a46b0a 20%, transparent); color: #6e4706; }\n.mw-tone-best { background: color-mix(in srgb, #5d7a2e 20%, transparent); color: #3f5a18; }\n\n:root[saved-theme="dark"] .mw-tone-bad { color: #e08f80; }\n:root[saved-theme="dark"] .mw-tone-low { color: #e0b46a; }\n:root[saved-theme="dark"] .mw-tone-good { color: #e5bb68; }\n:root[saved-theme="dark"] .mw-tone-best { color: #b5cf86; }\n\n.mw-seen {\n  margin: 0;\n  font-size: 0.9rem;\n  color: var(--gray);\n}\n\n@media (max-width: 800px) {\n  .mw-header.mw-has-photo {\n    grid-template-columns: 110px minmax(0, 1fr);\n    gap: 1rem;\n  }\n  .mw-portrait {\n    width: 110px;\n  }\n}\n\n/* Home page: welcome title with a compact date card beside it */\n.mw-home-header {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  gap: 1.5rem;\n}\n\n.mw-date-card {\n  flex-shrink: 0;\n  display: flex;\n  align-items: center;\n  gap: 0.8rem;\n  padding: 0.4rem 1rem;\n  border: 1px solid var(--lightgray);\n  border-radius: 10px;\n}\n\n.mw-date-day {\n  font-family: "Fondamento", serif;\n  font-size: 2rem;\n  line-height: 1;\n  color: var(--dark);\n}\n\n.mw-date-month {\n  font-size: 0.95rem;\n  font-weight: 500;\n  color: var(--dark);\n  line-height: 1.3;\n}\n\n.mw-date-other {\n  font-size: 0.8rem;\n  color: var(--gray);\n  line-height: 1.3;\n}\n\n@media (max-width: 800px) {\n  .mw-home-header {\n    flex-direction: column;\n    align-items: flex-start;\n  }\n}\n\n/* Banner image across the top of the page */\n.mw-banner {\n  display: block;\n  width: 100%;\n  height: 260px;\n  object-fit: cover;\n  border-radius: 12px;\n  margin: 0.6rem 0 0 !important;\n}\n\n@media (max-width: 800px) {\n  .mw-banner {\n    height: 170px;\n  }\n}\n\n.mw-party-location {\n  margin: 0.2rem 0 0;\n  color: var(--gray);\n}\n\n/* Factions and gods: a round sigil or symbol */\n.mw-header.mw-has-sigil {\n  grid-template-columns: 110px minmax(0, 1fr);\n  align-items: center;\n}\n\n.mw-sigil {\n  width: 110px;\n  height: 110px;\n  object-fit: contain;\n  padding: 14px;\n  box-sizing: border-box;\n  border: 1px solid var(--lightgray);\n  border-radius: 50%;\n  margin: 0 !important;\n}\n\n:root[saved-theme="dark"] .mw-sigil {\n  filter: invert(0.85);\n}\n';
+var PageHeader_default = `.mw-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+  margin-top: 0.8rem;
+  padding-bottom: 1.2rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--lightgray);
+}
+
+.mw-header.mw-has-photo {
+  grid-template-columns: 170px minmax(0, 1fr);
+}
+
+.mw-header .article-title {
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+  margin: 0.2rem 0 0.2rem !important;
+}
+
+.mw-portrait {
+  width: 170px;
+  height: auto;
+  max-height: 340px;
+  object-fit: contain;
+  object-position: top left;
+  border-radius: 10px;
+  margin: 0 !important;
+}
+
+.mw-subtitle {
+  margin: 0 0 0.8rem;
+  color: var(--gray);
+  font-size: 1.05rem;
+}
+
+.mw-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.7rem;
+}
+
+.mw-chip {
+  font-family: var(--bodyFont);
+  font-size: 0.8rem;
+  padding: 0.1rem 0.7rem;
+  border-radius: 6px;
+  background: var(--lightgray);
+  color: var(--darkgray);
+}
+
+.mw-chip a {
+  color: inherit;
+}
+
+.mw-header a.internal {
+  background: none;
+  padding: 0;
+  font-weight: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.mw-tone-bad { background: color-mix(in srgb, #a33a2a 18%, transparent); color: #8a2f22; }
+.mw-tone-low { background: color-mix(in srgb, #b8862b 18%, transparent); color: #7a5512; }
+.mw-tone-mid { background: color-mix(in srgb, var(--gray) 22%, transparent); }
+.mw-tone-good { background: color-mix(in srgb, #a46b0a 20%, transparent); color: #6e4706; }
+.mw-tone-best { background: color-mix(in srgb, #5d7a2e 20%, transparent); color: #3f5a18; }
+
+:root[saved-theme="dark"] .mw-tone-bad { color: #e08f80; }
+:root[saved-theme="dark"] .mw-tone-low { color: #e0b46a; }
+:root[saved-theme="dark"] .mw-tone-good { color: #e5bb68; }
+:root[saved-theme="dark"] .mw-tone-best { color: #b5cf86; }
+
+.mw-seen {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--gray);
+}
+
+@media (max-width: 800px) {
+  .mw-header.mw-has-photo {
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 1rem;
+  }
+  .mw-portrait {
+    width: 110px;
+  }
+}
+
+/* Home page: welcome title with a compact date card beside it */
+.mw-home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.mw-date-card {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 10px;
+}
+
+.mw-date-day {
+  font-family: "Fondamento", serif;
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--dark);
+}
+
+.mw-date-month {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--dark);
+  line-height: 1.3;
+}
+
+.mw-date-other {
+  font-size: 0.8rem;
+  color: var(--gray);
+  line-height: 1.3;
+}
+
+@media (max-width: 800px) {
+  .mw-home-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Banner image across the top of the page */
+.mw-banner {
+  display: block;
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin: 0.6rem 0 0 !important;
+}
+
+@media (max-width: 800px) {
+  .mw-banner {
+    height: 170px;
+  }
+}
+
+.mw-party-location {
+  margin: 0.2rem 0 0;
+  color: var(--gray);
+}
+
+/* Factions and gods: a round sigil or symbol */
+.mw-header.mw-has-sigil {
+  grid-template-columns: 110px minmax(0, 1fr);
+  align-items: center;
+}
+
+.mw-sigil {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  padding: 14px;
+  box-sizing: border-box;
+  border: 1px solid var(--lightgray);
+  border-radius: 50%;
+  margin: 0 !important;
+}
+
+:root[saved-theme="dark"] .mw-sigil {
+  filter: invert(0.85);
+}
+
+/* A place with places inside it (e.g. Thornwick) is also a folder page.
+   Its own "Places" list replaces Quartz's dated list. Folder-only pages keep the list. */
+.center:has(.mw-header:not(.mw-folder-header)) .page-listing {
+  display: none;
+}
+`;
 
 // src/components/PageHeader.tsx
 import { jsx, jsxs } from "preact/jsx-runtime";
@@ -109,22 +294,28 @@ function renderHeader({ fileData }, fm, slug, str) {
     return /* @__PURE__ */ jsx("h1", { class: "article-title", children: title });
   }
   const root = pathToRoot(slug);
-  return /* @__PURE__ */ jsxs("header", { class: `mw-header ${photo ? "mw-has-photo" : sigil ? "mw-has-sigil" : ""}`, children: [
-    photo && /* @__PURE__ */ jsx("img", { class: "mw-portrait", src: `${root}/${photo}`, alt: `Portrait of ${title}` }),
-    sigil && /* @__PURE__ */ jsx("img", { class: "mw-sigil", src: `${root}/${sigil}`, alt: "" }),
-    /* @__PURE__ */ jsxs("div", { class: "mw-header-text", children: [
-      /* @__PURE__ */ jsx("h1", { class: "article-title", children: title }),
-      subtitle && /* @__PURE__ */ jsx("p", { class: "mw-subtitle", children: subtitle }),
-      (chips.length > 0 || faction) && /* @__PURE__ */ jsxs("div", { class: "mw-chips", children: [
-        faction && /* @__PURE__ */ jsx("span", { class: "mw-chip", children: renderValue(faction) }),
-        chips.map((c) => /* @__PURE__ */ jsx("span", { class: `mw-chip ${c.tone ? `mw-tone-${c.tone}` : ""}`, children: c.text }))
-      ] }),
-      seen && /* @__PURE__ */ jsxs("p", { class: "mw-seen", children: [
-        "Last seen: ",
-        renderValue(seen)
-      ] })
-    ] })
-  ] });
+  return /* @__PURE__ */ jsxs(
+    "header",
+    {
+      class: `mw-header ${photo ? "mw-has-photo" : sigil ? "mw-has-sigil" : ""} ${fm.mw_folder === true ? "mw-folder-header" : ""}`,
+      children: [
+        photo && /* @__PURE__ */ jsx("img", { class: "mw-portrait", src: `${root}/${photo}`, alt: `Portrait of ${title}` }),
+        sigil && /* @__PURE__ */ jsx("img", { class: "mw-sigil", src: `${root}/${sigil}`, alt: "" }),
+        /* @__PURE__ */ jsxs("div", { class: "mw-header-text", children: [
+          /* @__PURE__ */ jsx("h1", { class: "article-title", children: title }),
+          subtitle && /* @__PURE__ */ jsx("p", { class: "mw-subtitle", children: subtitle }),
+          (chips.length > 0 || faction) && /* @__PURE__ */ jsxs("div", { class: "mw-chips", children: [
+            faction && /* @__PURE__ */ jsx("span", { class: "mw-chip", children: renderValue(faction) }),
+            chips.map((c) => /* @__PURE__ */ jsx("span", { class: `mw-chip ${c.tone ? `mw-tone-${c.tone}` : ""}`, children: c.text }))
+          ] }),
+          seen && /* @__PURE__ */ jsxs("p", { class: "mw-seen", children: [
+            "Last seen: ",
+            renderValue(seen)
+          ] })
+        ] })
+      ]
+    }
+  );
 }
 export {
   PageHeader_default2 as PageHeader

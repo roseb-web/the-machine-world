@@ -177,3 +177,9 @@
 :root[saved-theme="dark"] .mw-sigil {
   filter: invert(0.85);
 }
+
+/* A place with places inside it (e.g. Thornwick) is also a folder page.
+   Its own "Places" list replaces Quartz's dated list. Folder-only pages keep the list. */
+.center:has(.mw-header:not(.mw-folder-header)) .page-listing {
+  display: none;
+}
