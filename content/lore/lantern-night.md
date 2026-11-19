@@ -1,6 +1,8 @@
 ---
 title: Lantern Night
 player_type: Festival
+mw_dates:
+  - 1 Orrimel, every year · in 298 days
 ---
 
 ## Overview
