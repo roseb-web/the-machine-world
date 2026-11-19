@@ -120,7 +120,9 @@ function renderHeader(
 
     const root = pathToRoot(slug as never)
     return (
-      <header class={`mw-header ${photo ? "mw-has-photo" : sigil ? "mw-has-sigil" : ""}`}>
+      <header
+        class={`mw-header ${photo ? "mw-has-photo" : sigil ? "mw-has-sigil" : ""} ${fm.mw_folder === true ? "mw-folder-header" : ""}`}
+      >
         {photo && <img class="mw-portrait" src={`${root}/${photo}`} alt={`Portrait of ${title}`} />}
         {sigil && <img class="mw-sigil" src={`${root}/${sigil}`} alt="" />}
         <div class="mw-header-text">

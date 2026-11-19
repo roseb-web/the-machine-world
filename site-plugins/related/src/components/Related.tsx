@@ -11,15 +11,16 @@ type Props = Record<string, unknown>
 const props = (f: File) => (f.frontmatter ?? {}) as Props
 const titleOf = (f: File) => String(props(f).title ?? String(f.slug).split("/").pop())
 const linkTarget = (v: unknown) => (typeof v === "string" ? v.match(/^\[\[([^\]|]+)/)?.[1] : undefined)
-const isPage = (f: File) => f.slug && !String(f.slug).endsWith("/index") && String(f.slug) !== "index"
+// Real pages only: not the home page, and not folder pages (sections, or regions without a note)
+const isPage = (f: File) => !!f.slug && String(f.slug) !== "index" && props(f).mw_folder !== true
 
 const TONES: Record<string, string> = { enemy: "bad", shunned: "low", noticed: "good", chosen: "best" }
 
 export default (() => {
   const Related: QuartzComponent = ({ fileData, allFiles }: QuartzComponentProps) => {
     const slug = String(fileData.slug ?? "")
-    if (!slug || slug === "index" || slug.endsWith("/index")) return null
     const fm = (fileData.frontmatter ?? {}) as Props
+    if (!slug || slug === "index" || fm.mw_folder === true) return null
     const root = pathToRoot(slug as never)
     const href = (target: string) => resolveRelative(slug as never, target as never)
     const pages = allFiles.filter(isPage)
@@ -39,9 +40,18 @@ export default (() => {
         (linkTarget(props(f).player_faction) === slug || linkTarget(props(f).player_seen) === slug),
     )
 
-    // Places this page links to (not shown on place pages themselves)
+    // Places: on a place with places inside it, the ones directly inside.
+    // On other pages, the places this page links to.
+    const inside = slug.endsWith("/index") ? slug.slice(0, -"index".length) : null
     const places = slug.startsWith("places/")
-      ? []
+      ? inside
+        ? pages.filter((f) => {
+            const s = String(f.slug)
+            if (s === slug || !s.startsWith(inside)) return false
+            const rest = s.slice(inside.length)
+            return !rest.includes("/") || /^[^/]+\/index$/.test(rest)
+          })
+        : []
       : pages.filter((f) => String(f.slug).startsWith("places/") && ownLinks.has(String(f.slug)))
 
     // Quests that link here

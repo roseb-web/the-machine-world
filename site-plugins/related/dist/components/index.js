@@ -9,13 +9,13 @@ import { jsx, jsxs } from "preact/jsx-runtime";
 var props = (f) => f.frontmatter ?? {};
 var titleOf = (f) => String(props(f).title ?? String(f.slug).split("/").pop());
 var linkTarget = (v) => typeof v === "string" ? v.match(/^\[\[([^\]|]+)/)?.[1] : void 0;
-var isPage = (f) => f.slug && !String(f.slug).endsWith("/index") && String(f.slug) !== "index";
+var isPage = (f) => !!f.slug && String(f.slug) !== "index" && props(f).mw_folder !== true;
 var TONES = { enemy: "bad", shunned: "low", noticed: "good", chosen: "best" };
 var Related_default2 = (() => {
   const Related = ({ fileData, allFiles }) => {
     const slug = String(fileData.slug ?? "");
-    if (!slug || slug === "index" || slug.endsWith("/index")) return null;
     const fm = fileData.frontmatter ?? {};
+    if (!slug || slug === "index" || fm.mw_folder === true) return null;
     const root = pathToRoot(slug);
     const href = (target) => resolveRelative(slug, target);
     const pages = allFiles.filter(isPage);
@@ -24,7 +24,13 @@ var Related_default2 = (() => {
     const npcs = pages.filter(
       (f) => String(f.slug).startsWith("people/") && String(f.slug) !== slug && (linkTarget(props(f).player_faction) === slug || linkTarget(props(f).player_seen) === slug)
     );
-    const places = slug.startsWith("places/") ? [] : pages.filter((f) => String(f.slug).startsWith("places/") && ownLinks.has(String(f.slug)));
+    const inside = slug.endsWith("/index") ? slug.slice(0, -"index".length) : null;
+    const places = slug.startsWith("places/") ? inside ? pages.filter((f) => {
+      const s = String(f.slug);
+      if (s === slug || !s.startsWith(inside)) return false;
+      const rest = s.slice(inside.length);
+      return !rest.includes("/") || /^[^/]+\/index$/.test(rest);
+    }) : [] : pages.filter((f) => String(f.slug).startsWith("places/") && ownLinks.has(String(f.slug)));
     const quests = pages.filter(
       (f) => typeof props(f).quest === "string" && String(f.slug) !== slug && (f.links ?? []).map(String).includes(slug)
     );

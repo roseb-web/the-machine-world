@@ -104,3 +104,19 @@
     display: block;
   }
 }
+
+/* Folders inside a section (e.g. The Marrowlands > Thornwick): same look as pages */
+.mw-menu-sub summary {
+  font-weight: 400;
+  color: var(--darkgray);
+}
+
+/* A folder with its own page: the name is a link, the arrow opens the list */
+.mw-menu summary > a {
+  display: inline;
+  padding: 0;
+}
+
+.mw-menu-sub .mw-active-section > a:not(.mw-active) {
+  color: var(--darkgray);
+}
