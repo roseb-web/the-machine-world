@@ -19,3 +19,7 @@ Big, loud and generous with the drinks. Runs the station for the Concord. Always
 ### Session 1
 
 Took Wil Carder away during the Lantern Night festival.
+
+### Session 5
+
+[[people/the-marrowlands/thornwick/pell|Pell]]'s list of sick workers being taken away is signed "O. B." at the bottom.

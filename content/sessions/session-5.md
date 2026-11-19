@@ -18,4 +18,4 @@ Pell showed his hand, then left town.
 - The party moved their things, and Biscuit, into Luca's family home.
 - Fen visited [[people/the-marrowlands/thornwick/mother-wren|Mother Wren]]. She gave back the race lantern, which she'd found on the chapel roof.
 - Neri and Luca asked [[people/the-marrowlands/thornwick/mrs-agnes-hesk|Mrs Hesk]] about her pendant. Her grandson Danny gave it to her: he found it at work.
-- Pell took the Reeve's lantern. The party followed his route out of town, until he left them at the final bend.
+- Pell took the lantern from the chapel roof. The party followed his route out of town, until he left them at the final bend.

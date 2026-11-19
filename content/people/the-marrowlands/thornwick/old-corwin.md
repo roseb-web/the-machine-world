@@ -19,3 +19,5 @@ The party met him in the graveyard after a hard fight, and promised to come back
 ### Session 4
 
 The party did the grave-digging job, and refused payment.
+
+Digging the grave, they found an old carved stone with Old Hand writing on it. They didn't tell Corwin, and dug the grave two paces over.

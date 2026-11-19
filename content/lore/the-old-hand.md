@@ -21,3 +21,7 @@ A flowing, hooked old writing found on ruins and the oldest graves. Reading it i
 ### Session 3
 
 The shapes thrown by an old brass lantern turned out to be letters of the Old Hand. See [[quests/the-lantern-hunt|The Lantern Hunt]].
+
+### Session 5
+
+With the letters so far, the old stone in the grave reads **KEEP IN**. Wil's note is starting to come through: it begins **KEEP...**

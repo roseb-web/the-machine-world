@@ -22,3 +22,7 @@ Interrupted the Lantern Night festival, and was taken away by Foreman Brede. The
 ### Session 2
 
 The Reeve says he was taken back to the shed.
+
+### Session 5
+
+Wil's name is on [[people/the-marrowlands/thornwick/pell|Pell]]'s list of sick workers who are being taken away. At the bottom: "O. B.", which looks like a signature.

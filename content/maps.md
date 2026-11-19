@@ -28,6 +28,11 @@ mw_maps:
         lng: 640
         title: Fennick's Ford
         page: places/the-marrowlands/fennicks-ford
+      - type: outpost
+        lat: -385
+        lng: 655
+        title: Greyhollow Abbey
+        page: places/the-mire/greyhollow-abbey
   - title: Thornwick
     image: assets/thornwick-map-party.jpg
     minZoom: -2

@@ -46,4 +46,4 @@ The party gave him their Old Hand documents, and he gave them a few letters of t
 
 *"Anyone who tries to control knowledge is only interested in segregation."*
 
-He took the Reeve's lantern, led the party into a tunnel, and left them at its last bend. He said he was shipping out that night.
+He took the lantern from the chapel roof, led the party into a tunnel, and left them at its last bend. He said he was shipping out that night.

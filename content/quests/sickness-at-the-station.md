@@ -33,4 +33,6 @@ The party visited the station. The guards carry Lull guns. In a shed out the bac
 
 ### Session 5
 
-[[people/the-marrowlands/thornwick/pell|Pell]] offered a way into the station, in trade for the Reeve's lantern. He led the party into a tunnel, and left them at its last bend.
+[[people/the-marrowlands/thornwick/pell|Pell]] showed them a list of sick workers who are being taken away, [[people/the-marrowlands/thornwick/wil-carder|Wil Carder]] among them. It's signed "O. B."
+
+Pell offered a way into the station, in trade for the lantern from the chapel roof. He led the party into a tunnel, and left them at its last bend.
