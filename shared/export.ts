@@ -76,7 +76,15 @@ function prepare(note: VaultNote, opts: ExportOptions): Prepared | null {
   if (wholePage) {
     // Player Pages are published as written, with a title added.
     title = baseName(note.path);
-    markdown = note.text.match(/^---\r?\n/) ? note.text : `---\ntitle: ${JSON.stringify(title)}\n---\n\n${note.text}`;
+    const fm = note.text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    if (!fm) {
+      markdown = `---\ntitle: ${JSON.stringify(title)}\n---\n\n${note.text}`;
+    } else {
+      // Keep the note's own properties, and add a title if it hasn't got one.
+      const props = (opts.yaml.parse(fm[1]) ?? {}) as Record<string, unknown>;
+      if (typeof props.title !== "string") props.title = title;
+      markdown = `---\n${opts.yaml.stringify(props).trimEnd()}\n---` + note.text.slice(fm[0].length);
+    }
     section = "";
   } else {
     const extracted = extractPlayerNote(note.path, note.text, opts.yaml);
@@ -184,6 +192,22 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
     files.push({ path: `${p.to}.md`, text: header + body });
   }
   for (const [vaultPath, contentPath] of images) files.push({ path: contentPath, copyFrom: vaultPath });
+
+  // Home page: if it names where the party is, it uses that place's banner.
+  const home = files.find((f) => f.path === "index.md" && f.text);
+  if (home?.text) {
+    const m = home.text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    const props = m ? ((opts.yaml.parse(m[1]) ?? {}) as Record<string, unknown>) : {};
+    const loc = typeof props.party_location === "string" ? props.party_location.match(/^\[\[([^\]|]+)/) : null;
+    const place = loc ? files.find((f) => f.path === `${loc[1]}.md` && f.text) : undefined;
+    const pm = place?.text?.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    const placeProps = pm ? ((opts.yaml.parse(pm[1]) ?? {}) as Record<string, unknown>) : {};
+    if (typeof placeProps.banner === "string") {
+      props.banner = placeProps.banner;
+      if (placeProps.banner_focus) props.banner_focus = placeProps.banner_focus;
+      home.text = `---\n${opts.yaml.stringify(props).trimEnd()}\n---` + home.text.slice(m ? m[0].length : 0);
+    }
+  }
 
   // Each section with pages gets its own page, so menus and breadcrumbs show "People", not "people".
   const sections = new Set(prepared.map((p) => p.to.split("/").slice(0, -1).join("/")).filter(Boolean));

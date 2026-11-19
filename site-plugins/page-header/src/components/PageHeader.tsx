@@ -14,6 +14,11 @@ function parseLink(value: string): { target?: string; text: string } {
   return { target: m[1], text: m[2] ?? m[1].split("/").pop() ?? m[1] }
 }
 
+function renderLink(slug: string, value: string) {
+  const { target, text } = parseLink(value)
+  return target ? <a href={resolveRelative(slug as never, target as never)} class="internal">{text}</a> : text
+}
+
 // Each fixed label gets a tone, from bad to good.
 const TONES: Record<string, string> = {
   hostile: "bad", grudge: "bad", enemy: "bad",
@@ -80,7 +85,12 @@ function renderHeader(
         | undefined
       return (
         <header class="mw-header mw-home-header">
-          <h1 class="article-title">Welcome to Vaharan</h1>
+          <div>
+            <h1 class="article-title">Welcome to Vaharan</h1>
+            {str("party_location") && (
+              <p class="mw-party-location">The party is in {renderLink(slug, str("party_location")!)}</p>
+            )}
+          </div>
           {d && (
             <div class="mw-date-card" title={d.concord}>
               <div class="mw-date-day">{d.day}</div>
