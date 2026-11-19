@@ -2,6 +2,7 @@
 // Pure logic: no Obsidian or GitHub code here, so it can be tested on its own.
 
 import { extractPlayerNote, renderPlayerNote, YamlTools } from "./extract";
+import type { GameDate } from "./calendar";
 
 export interface VaultNote {
   path: string; // vault path, e.g. "4. People/NPCs/Pell.md"
@@ -18,6 +19,7 @@ export interface ExportOptions {
   defaultSection: string;
   playerPagesFolder: string; // notes here are published whole
   sectionTitles?: Record<string, string>; // e.g. { people: "People" }, used for the section's own page
+  gameDate?: GameDate | null; // today's in-game date, shown on the home page
   // Finds the vault path a link points to (Obsidian's own resolver in the plugin).
   resolveLink: (link: string, fromPath: string) => string | null;
   yaml: YamlTools;
@@ -172,7 +174,14 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
     const withProps = rewriteImageProperties(p.markdown, p.from);
     const front = withProps.match(/^---\r?\n[\s\S]*?\r?\n---/)?.[0] ?? "";
     const body = rewriteLinks(withProps.slice(front.length), p.from);
-    files.push({ path: `${p.to}.md`, text: front + body });
+    let header = front;
+    if (p.to === "index" && opts.gameDate) {
+      // The home page gets today's in-game date in its properties.
+      const props = (header ? opts.yaml.parse(header.replace(/^---\r?\n|\r?\n---$/g, "")) : {}) as Record<string, unknown>;
+      props.game_date = opts.gameDate;
+      header = `---\n${opts.yaml.stringify(props ?? {}).trimEnd()}\n---`;
+    }
+    files.push({ path: `${p.to}.md`, text: header + body });
   }
   for (const [vaultPath, contentPath] of images) files.push({ path: contentPath, copyFrom: vaultPath });
 

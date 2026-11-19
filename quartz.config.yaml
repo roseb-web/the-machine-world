@@ -290,6 +290,13 @@ plugins:
     layout:
       position: beforeBody
       priority: 10
+  - source: ./site-plugins/quest-log
+    enabled: true
+    options: {}
+    order: 50
+    layout:
+      position: afterBody
+      priority: 5
 layout:
   groups:
     toolbar:

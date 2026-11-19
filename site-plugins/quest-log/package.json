@@ -1,0 +1,31 @@
+{
+  "name": "quest-log",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Pinned quests on The Machine World's home page.",
+  "exports": {
+    ".": { "import": "./dist/index.js" },
+    "./components": { "import": "./dist/components/index.js" },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "scripts": { "build": "node build.mjs" },
+  "quartz": {
+    "name": "quest-log",
+    "displayName": "Quest log",
+    "category": "component",
+    "version": "1.0.0",
+    "quartzVersion": ">=5.0.0",
+    "dependencies": [],
+    "defaultEnabled": true,
+    "defaultOptions": {},
+    "components": {
+      "QuestLog": {
+        "displayName": "Quest log",
+        "defaultPosition": "afterBody",
+        "defaultPriority": 5
+      }
+    }
+  }
+}

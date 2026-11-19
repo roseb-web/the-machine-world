@@ -90,3 +90,55 @@
     width: 110px;
   }
 }
+
+/* Home page: welcome title with the date card beside it */
+.mw-home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.mw-date-card {
+  flex-shrink: 0;
+  min-width: 170px;
+  text-align: center;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 10px;
+}
+
+.mw-date-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gray);
+}
+
+.mw-date-day {
+  font-family: var(--titleFont, "Fondamento", serif);
+  font-size: 2.4rem;
+  line-height: 1.1;
+  color: var(--dark);
+}
+
+.mw-date-month {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--dark);
+}
+
+.mw-date-other {
+  font-size: 0.8rem;
+  color: var(--gray);
+}
+
+@media (max-width: 800px) {
+  .mw-home-header {
+    flex-direction: column;
+  }
+  .mw-date-card {
+    align-self: stretch;
+  }
+}

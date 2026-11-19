@@ -46,6 +46,31 @@ export default (() => {
       if (v) chips.push({ text: `${label}: ${v.toLowerCase()}`, tone: TONES[v.toLowerCase()] ?? "mid" })
     }
 
+    // The home page: a welcome title and today's in-game date.
+    if (slug === "index") {
+      const d = fm.game_date as
+        | { day: number; month: string; year: number; era: string; weekday: string; concord: string; season: string }
+        | undefined
+      return (
+        <header class="mw-header mw-home-header">
+          <h1 class="article-title">Welcome to Vaharan</h1>
+          {d && (
+            <div class="mw-date-card" title={`${d.concord} · ${d.season}`}>
+              <div class="mw-date-label">Today</div>
+              <div class="mw-date-day">{d.day}</div>
+              <div class="mw-date-month">
+                {d.month}, {d.year} {d.era}
+              </div>
+              <div class="mw-date-other">
+                {d.weekday} · {d.season}
+              </div>
+              <div class="mw-date-other">{d.concord}</div>
+            </div>
+          )}
+        </header>
+      )
+    }
+
     const photo = str("photo")
     const subtitle = str("player_title")
     const seen = str("player_seen")
