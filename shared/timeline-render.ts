@@ -177,6 +177,23 @@ export function renderTimeline(root: HTMLElement, cal: CalendarExport & { events
     return out.filter((t) => X(t.p) > -40 && X(t.p) < W + 40);
   }
 
+  // Height: while you drag or zoom it only grows (so it doesn't jump about);
+  // once you stop, it eases to fit what's in view.
+  let stageH = 0;
+  let holding = false;
+  let settle = 0;
+  const hold = () => {
+    holding = true;
+    win.clearTimeout(settle);
+  };
+  const release = (delay = 300) => {
+    win.clearTimeout(settle);
+    settle = win.setTimeout(() => {
+      holding = false;
+      draw();
+    }, delay);
+  };
+
   function draw() {
     closePop();
     stage.innerHTML = "";
@@ -330,6 +347,10 @@ export function renderTimeline(root: HTMLElement, cal: CalendarExport & { events
     svg.innerHTML = stems;
     below.prepend(svg);
 
+    const need = 26 + barsEl.offsetHeight + 64 + belowH;
+    stageH = holding ? Math.max(stageH, need) : need;
+    stage.style.height = `${stageH}px`;
+
     // Today and the break, from top to bottom
     const tx = X(todayP);
     if (tx >= 0 && tx <= W) {
@@ -394,7 +415,9 @@ export function renderTimeline(root: HTMLElement, cal: CalendarExport & { events
       setView(s0 + (a - s0) * e, s1 + (b - s1) * e);
       draw();
       if (t < 1) anim = requestAnimationFrame(step);
+      else release(150);
     };
+    hold();
     anim = requestAnimationFrame(step);
   }
   const zoomAt = (factor: number, frac = 0.5, smooth = false) => {
@@ -444,12 +467,14 @@ export function renderTimeline(root: HTMLElement, cal: CalendarExport & { events
       const at = pinchFrom.u0 + ((pinchFrom.u1 - pinchFrom.u0) * pinchFrom.mid) / W;
       setView(at - (at - pinchFrom.u0) * f, at + (pinchFrom.u1 - at) * f);
       moved = true;
+      hold();
       draw();
     } else if (dragFrom) {
       const dx = ev.clientX - dragFrom.x;
       if (!moved && Math.abs(dx) < 5) return;
       if (!moved) stage.setPointerCapture(ev.pointerId);
       moved = true;
+      hold();
       stage.classList.add("mw-dragging");
       const du = (-dx / W) * (dragFrom.u1 - dragFrom.u0);
       setView(dragFrom.u0 + du, dragFrom.u1 + du);
@@ -462,6 +487,7 @@ export function renderTimeline(root: HTMLElement, cal: CalendarExport & { events
     if (pts.size === 0) {
       dragFrom = null;
       stage.classList.remove("mw-dragging");
+      if (holding) release();
     }
   };
   stage.addEventListener("pointerup", end);
@@ -483,13 +509,17 @@ export function renderTimeline(root: HTMLElement, cal: CalendarExport & { events
     (ev) => {
       if (ev.ctrlKey || ev.metaKey) {
         ev.preventDefault();
+        hold();
         zoomAt(Math.exp(ev.deltaY * 0.01), Math.max(0, Math.min(1, rel(ev.clientX) / inner())));
+        release();
       } else if (Math.abs(ev.deltaX) > Math.abs(ev.deltaY) || ev.shiftKey) {
         ev.preventDefault();
         const d = ev.shiftKey && !ev.deltaX ? ev.deltaY : ev.deltaX;
         const du = (d / inner()) * (u1 - u0);
         setView(u0 + du, u1 + du);
+        hold();
         draw();
+        release();
       }
     },
     { passive: false },
@@ -503,7 +533,9 @@ export function renderTimeline(root: HTMLElement, cal: CalendarExport & { events
     else if (ev.key === "Escape") return closePop();
     else return;
     ev.preventDefault();
+    hold();
     draw();
+    release(500);
   });
 
   // The strip: click or drag to move the view
@@ -513,6 +545,7 @@ export function renderTimeline(root: HTMLElement, cal: CalendarExport & { events
     const at = uMin + ((clientX - r.left) / r.width) * (uMax - uMin);
     const span = u1 - u0;
     setView(at - span / 2, at + span / 2);
+    hold();
     draw();
   };
   strip.addEventListener("pointerdown", (ev) => {
@@ -521,7 +554,10 @@ export function renderTimeline(root: HTMLElement, cal: CalendarExport & { events
     stripTo(ev.clientX);
   });
   strip.addEventListener("pointermove", (ev) => stripDrag && stripTo(ev.clientX));
-  strip.addEventListener("pointerup", () => (stripDrag = false));
+  strip.addEventListener("pointerup", () => {
+    stripDrag = false;
+    release();
+  });
 
   // ---- The pop-up ----
   function closePop() {
@@ -653,7 +689,9 @@ export const TIMELINE_CSS = `
 .mw-tl2-chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--cat); }
 .mw-tl2-stage {
   position: relative; overflow: hidden; padding: 0; cursor: grab; touch-action: pan-y; outline: none;
+  transition: height 0.35s ease;
 }
+@media (prefers-reduced-motion: reduce) { .mw-tl2-stage { transition: none; } }
 .mw-tl2-stage:focus-visible { box-shadow: inset 0 0 0 2px var(--tl-accent); }
 .mw-tl2-stage.mw-dragging { cursor: grabbing; }
 .mw-tl2-top { height: 26px; position: relative; }
