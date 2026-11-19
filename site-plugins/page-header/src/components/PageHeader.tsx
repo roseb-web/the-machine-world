@@ -111,10 +111,15 @@ function renderHeader(
     const photo = str("photo")
     const sigil = photo ? undefined : str("player_sigil")
     const subtitle = str("player_title")
+    // How to say the name, e.g. "loo-KAS-tra"
+    const say = str("player_say")
+    // Who drew the portrait: plain text, or a markdown link [Name](https://...)
+    const artist = photo ? str("player_artist") : undefined
+    const artistLink = artist?.match(/^\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)$/)
     const seen = str("player_seen")
     // Date cards: when this page's events happen (added by the export from Calendarium)
     const dates = Array.isArray(fm.mw_dates) ? (fm.mw_dates as unknown[]).filter((d): d is string => typeof d === "string") : []
-    const hasDetails = photo || sigil || subtitle || chips.length > 0 || faction || seen || dates.length > 0
+    const hasDetails = photo || sigil || subtitle || say || chips.length > 0 || faction || seen || dates.length > 0
 
     if (!hasDetails) {
       return <h1 class="article-title">{title}</h1>
@@ -125,10 +130,31 @@ function renderHeader(
       <header
         class={`mw-header ${photo ? "mw-has-photo" : sigil ? "mw-has-sigil" : ""} ${fm.mw_folder === true ? "mw-folder-header" : ""}`}
       >
-        {photo && <img class="mw-portrait" src={`${root}/${photo}`} alt={`Portrait of ${title}`} />}
+        {photo && (
+          <figure class="mw-portrait-fig">
+            <img class="mw-portrait" src={`${root}/${photo}`} alt={`Portrait of ${title}`} />
+            {artist && (
+              <figcaption class="mw-artist">
+                Art:{" "}
+                {artistLink ? (
+                  <a href={artistLink[2]} class="external" target="_blank" rel="noopener">
+                    {artistLink[1]}
+                  </a>
+                ) : (
+                  artist
+                )}
+              </figcaption>
+            )}
+          </figure>
+        )}
         {sigil && <img class="mw-sigil" src={`${root}/${sigil}`} alt="" />}
         <div class="mw-header-text">
           <h1 class="article-title">{title}</h1>
+          {say && (
+            <p class="mw-say" title="How to say it">
+              <span class="mw-say-label">Say it</span> {say}
+            </p>
+          )}
           {subtitle && <p class="mw-subtitle">{subtitle}</p>}
           {(chips.length > 0 || faction) && (
             <div class="mw-chips">

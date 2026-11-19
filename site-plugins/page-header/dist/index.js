@@ -205,6 +205,44 @@ var PageHeader_default = `.mw-header {
   color: var(--secondary);
   flex-shrink: 0;
 }
+
+/* Portrait with the artist's credit underneath */
+.mw-portrait-fig {
+  margin: 0;
+}
+
+.mw-artist {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: var(--gray);
+  max-width: 170px;
+}
+
+.mw-artist a.external {
+  color: var(--gray);
+  font-weight: 400;
+  background: none;
+  padding: 0;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+/* How to say the name */
+.mw-say {
+  margin: -0.2rem 0 0.4rem;
+  font-size: 0.95rem;
+  color: var(--darkgray);
+  letter-spacing: 0.02em;
+}
+
+.mw-say-label {
+  font-variant: small-caps;
+  letter-spacing: 0.08em;
+  color: var(--gray);
+  margin-right: 0.3rem;
+}
 `;
 
 // src/components/PageHeader.tsx
@@ -306,9 +344,12 @@ function renderHeader({ fileData }, fm, slug, str) {
   const photo = str("photo");
   const sigil = photo ? void 0 : str("player_sigil");
   const subtitle = str("player_title");
+  const say = str("player_say");
+  const artist = photo ? str("player_artist") : void 0;
+  const artistLink = artist?.match(/^\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)$/);
   const seen = str("player_seen");
   const dates = Array.isArray(fm.mw_dates) ? fm.mw_dates.filter((d) => typeof d === "string") : [];
-  const hasDetails = photo || sigil || subtitle || chips.length > 0 || faction || seen || dates.length > 0;
+  const hasDetails = photo || sigil || subtitle || say || chips.length > 0 || faction || seen || dates.length > 0;
   if (!hasDetails) {
     return /* @__PURE__ */ jsx("h1", { class: "article-title", children: title });
   }
@@ -318,10 +359,22 @@ function renderHeader({ fileData }, fm, slug, str) {
     {
       class: `mw-header ${photo ? "mw-has-photo" : sigil ? "mw-has-sigil" : ""} ${fm.mw_folder === true ? "mw-folder-header" : ""}`,
       children: [
-        photo && /* @__PURE__ */ jsx("img", { class: "mw-portrait", src: `${root}/${photo}`, alt: `Portrait of ${title}` }),
+        photo && /* @__PURE__ */ jsxs("figure", { class: "mw-portrait-fig", children: [
+          /* @__PURE__ */ jsx("img", { class: "mw-portrait", src: `${root}/${photo}`, alt: `Portrait of ${title}` }),
+          artist && /* @__PURE__ */ jsxs("figcaption", { class: "mw-artist", children: [
+            "Art:",
+            " ",
+            artistLink ? /* @__PURE__ */ jsx("a", { href: artistLink[2], class: "external", target: "_blank", rel: "noopener", children: artistLink[1] }) : artist
+          ] })
+        ] }),
         sigil && /* @__PURE__ */ jsx("img", { class: "mw-sigil", src: `${root}/${sigil}`, alt: "" }),
         /* @__PURE__ */ jsxs("div", { class: "mw-header-text", children: [
           /* @__PURE__ */ jsx("h1", { class: "article-title", children: title }),
+          say && /* @__PURE__ */ jsxs("p", { class: "mw-say", title: "How to say it", children: [
+            /* @__PURE__ */ jsx("span", { class: "mw-say-label", children: "Say it" }),
+            " ",
+            say
+          ] }),
           subtitle && /* @__PURE__ */ jsx("p", { class: "mw-subtitle", children: subtitle }),
           (chips.length > 0 || faction) && /* @__PURE__ */ jsxs("div", { class: "mw-chips", children: [
             faction && /* @__PURE__ */ jsx("span", { class: "mw-chip", children: renderValue(faction) }),
