@@ -1,3 +1,147 @@
 @use "./variables.scss" as *;
 
-// put your custom CSS here!
+// The Machine World: styles taken from the vault's Calliope theme and Caelvarn snippets.
+
+
+:root {
+  --mw-sidebar: #f3eee6;
+  --mw-chip: #ede6db;
+  --mw-rule: #d8cdbe;
+  --mw-h3: #6b6a3a;
+  --mw-title-font: "Fondamento", serif;
+}
+
+:root[saved-theme="dark"] {
+  --mw-sidebar: #171513;
+  --mw-chip: #2a2622;
+  --mw-rule: #3e3934;
+  --mw-h3: #b8b67e;
+}
+
+// Paper grain behind everything (from Calliope)
+body {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.14'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+// Warmer sidebars
+.page > #quartz-body .sidebar.left,
+.page > #quartz-body .sidebar.right {
+  background-color: var(--mw-sidebar);
+}
+
+// Site name and page titles in Fondamento (from the caelvarn-headings snippet)
+.page-title,
+.page-title a,
+.article-title,
+article h1 {
+  font-family: var(--mw-title-font);
+  font-weight: normal;
+  letter-spacing: 0.01em;
+  color: var(--dark);
+}
+
+.article-title {
+  padding-bottom: 0.4em;
+  margin-bottom: 0.8em;
+  border-bottom: 1px solid var(--mw-rule);
+}
+
+// Section headings in Fraunces: h2 in the accent, h3 in olive
+article h2 {
+  color: var(--secondary);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+article h3 {
+  color: var(--mw-h3);
+  font-weight: 600;
+}
+
+// Small headings in spaced capitals, like in books
+article :is(h4, h5, h6) {
+  font-family: var(--bodyFont);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gray);
+}
+
+// Links: accent colour with a thin, offset underline
+article a.internal,
+article a.external {
+  background-color: transparent;
+  padding: 0;
+  font-weight: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+// Quotes: italic, muted and a little larger
+blockquote {
+  border-left-color: var(--mw-rule);
+  font-style: italic;
+  color: var(--gray);
+  font-size: 1.08em;
+}
+
+// Horizontal rule becomes a centred ornament
+article hr {
+  background: none;
+  height: auto;
+  text-align: center;
+  margin: 2.5em 0;
+
+  &::after {
+    content: "⁂";
+    color: var(--gray);
+    font-size: 1.2em;
+  }
+}
+
+// Clean tables: horizontal rules only
+article table {
+  border-collapse: collapse;
+
+  th {
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gray);
+  }
+
+  th,
+  td {
+    border-left: none;
+    border-right: none;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+  }
+}
+
+// Code blocks: dashed border (from Calliope)
+article pre {
+  border: 1.5px dashed var(--mw-rule);
+}
+
+// Side panel headings: renamed, and in the small-capitals style
+.backlinks > h3,
+.toc-header > h3 {
+  font-size: 0;
+}
+.backlinks > h3::before,
+.toc-header > h3::before {
+  font-family: var(--bodyFont);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gray);
+}
+.backlinks > h3::before {
+  content: "Linked from";
+}
+.toc-header > h3::before {
+  content: "On this page";
+}
