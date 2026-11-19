@@ -55,16 +55,16 @@ export default (() => {
         <header class="mw-header mw-home-header">
           <h1 class="article-title">Welcome to Vaharan</h1>
           {d && (
-            <div class="mw-date-card" title={`${d.concord} · ${d.season}`}>
-              <div class="mw-date-label">Today</div>
+            <div class="mw-date-card" title={d.concord}>
               <div class="mw-date-day">{d.day}</div>
-              <div class="mw-date-month">
-                {d.month}, {d.year} {d.era}
+              <div class="mw-date-text">
+                <div class="mw-date-month">
+                  {d.month}, {d.year} {d.era}
+                </div>
+                <div class="mw-date-other">
+                  {d.weekday} · {d.season}
+                </div>
               </div>
-              <div class="mw-date-other">
-                {d.weekday} · {d.season}
-              </div>
-              <div class="mw-date-other">{d.concord}</div>
             </div>
           )}
         </header>

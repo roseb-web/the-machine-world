@@ -2,7 +2,7 @@
 import { pathToRoot, resolveRelative } from "@quartz-community/utils";
 
 // src/components/PageHeader.css
-var PageHeader_default = '.mw-header {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr);\n  gap: 1.5rem;\n  align-items: start;\n  margin-top: 0.8rem;\n  padding-bottom: 1.2rem;\n  margin-bottom: 1rem;\n  border-bottom: 1px solid var(--lightgray);\n}\n\n.mw-header.mw-has-photo {\n  grid-template-columns: 170px minmax(0, 1fr);\n}\n\n.mw-header .article-title {\n  border-bottom: none !important;\n  padding-bottom: 0 !important;\n  margin: 0.2rem 0 0.2rem !important;\n}\n\n.mw-portrait {\n  width: 170px;\n  height: auto;\n  max-height: 340px;\n  object-fit: contain;\n  object-position: top left;\n  border-radius: 10px;\n  margin: 0 !important;\n}\n\n.mw-subtitle {\n  margin: 0 0 0.8rem;\n  color: var(--gray);\n  font-size: 1.05rem;\n}\n\n.mw-chips {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0.4rem;\n  margin-bottom: 0.7rem;\n}\n\n.mw-chip {\n  font-family: var(--bodyFont);\n  font-size: 0.8rem;\n  padding: 0.1rem 0.7rem;\n  border-radius: 6px;\n  background: var(--lightgray);\n  color: var(--darkgray);\n}\n\n.mw-chip a {\n  color: inherit;\n}\n\n.mw-header a.internal {\n  background: none;\n  padding: 0;\n  font-weight: inherit;\n  text-decoration: underline;\n  text-decoration-thickness: 1px;\n  text-underline-offset: 3px;\n}\n\n.mw-tone-bad { background: color-mix(in srgb, #a33a2a 18%, transparent); color: #8a2f22; }\n.mw-tone-low { background: color-mix(in srgb, #b8862b 18%, transparent); color: #7a5512; }\n.mw-tone-mid { background: color-mix(in srgb, var(--gray) 22%, transparent); }\n.mw-tone-good { background: color-mix(in srgb, #a46b0a 20%, transparent); color: #6e4706; }\n.mw-tone-best { background: color-mix(in srgb, #5d7a2e 20%, transparent); color: #3f5a18; }\n\n:root[saved-theme="dark"] .mw-tone-bad { color: #e08f80; }\n:root[saved-theme="dark"] .mw-tone-low { color: #e0b46a; }\n:root[saved-theme="dark"] .mw-tone-good { color: #e5bb68; }\n:root[saved-theme="dark"] .mw-tone-best { color: #b5cf86; }\n\n.mw-seen {\n  margin: 0;\n  font-size: 0.9rem;\n  color: var(--gray);\n}\n\n@media (max-width: 800px) {\n  .mw-header.mw-has-photo {\n    grid-template-columns: 110px minmax(0, 1fr);\n    gap: 1rem;\n  }\n  .mw-portrait {\n    width: 110px;\n  }\n}\n\n/* Home page: welcome title with the date card beside it */\n.mw-home-header {\n  display: flex;\n  justify-content: space-between;\n  align-items: flex-start;\n  gap: 1.5rem;\n}\n\n.mw-date-card {\n  flex-shrink: 0;\n  min-width: 170px;\n  text-align: center;\n  padding: 0.8rem 1rem;\n  border: 1px solid var(--lightgray);\n  border-radius: 10px;\n}\n\n.mw-date-label {\n  font-size: 0.7rem;\n  font-weight: 500;\n  text-transform: uppercase;\n  letter-spacing: 0.08em;\n  color: var(--gray);\n}\n\n.mw-date-day {\n  font-family: var(--titleFont, "Fondamento", serif);\n  font-size: 2.4rem;\n  line-height: 1.1;\n  color: var(--dark);\n}\n\n.mw-date-month {\n  font-size: 0.95rem;\n  font-weight: 500;\n  color: var(--dark);\n}\n\n.mw-date-other {\n  font-size: 0.8rem;\n  color: var(--gray);\n}\n\n@media (max-width: 800px) {\n  .mw-home-header {\n    flex-direction: column;\n  }\n  .mw-date-card {\n    align-self: stretch;\n  }\n}\n';
+var PageHeader_default = '.mw-header {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr);\n  gap: 1.5rem;\n  align-items: start;\n  margin-top: 0.8rem;\n  padding-bottom: 1.2rem;\n  margin-bottom: 1rem;\n  border-bottom: 1px solid var(--lightgray);\n}\n\n.mw-header.mw-has-photo {\n  grid-template-columns: 170px minmax(0, 1fr);\n}\n\n.mw-header .article-title {\n  border-bottom: none !important;\n  padding-bottom: 0 !important;\n  margin: 0.2rem 0 0.2rem !important;\n}\n\n.mw-portrait {\n  width: 170px;\n  height: auto;\n  max-height: 340px;\n  object-fit: contain;\n  object-position: top left;\n  border-radius: 10px;\n  margin: 0 !important;\n}\n\n.mw-subtitle {\n  margin: 0 0 0.8rem;\n  color: var(--gray);\n  font-size: 1.05rem;\n}\n\n.mw-chips {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0.4rem;\n  margin-bottom: 0.7rem;\n}\n\n.mw-chip {\n  font-family: var(--bodyFont);\n  font-size: 0.8rem;\n  padding: 0.1rem 0.7rem;\n  border-radius: 6px;\n  background: var(--lightgray);\n  color: var(--darkgray);\n}\n\n.mw-chip a {\n  color: inherit;\n}\n\n.mw-header a.internal {\n  background: none;\n  padding: 0;\n  font-weight: inherit;\n  text-decoration: underline;\n  text-decoration-thickness: 1px;\n  text-underline-offset: 3px;\n}\n\n.mw-tone-bad { background: color-mix(in srgb, #a33a2a 18%, transparent); color: #8a2f22; }\n.mw-tone-low { background: color-mix(in srgb, #b8862b 18%, transparent); color: #7a5512; }\n.mw-tone-mid { background: color-mix(in srgb, var(--gray) 22%, transparent); }\n.mw-tone-good { background: color-mix(in srgb, #a46b0a 20%, transparent); color: #6e4706; }\n.mw-tone-best { background: color-mix(in srgb, #5d7a2e 20%, transparent); color: #3f5a18; }\n\n:root[saved-theme="dark"] .mw-tone-bad { color: #e08f80; }\n:root[saved-theme="dark"] .mw-tone-low { color: #e0b46a; }\n:root[saved-theme="dark"] .mw-tone-good { color: #e5bb68; }\n:root[saved-theme="dark"] .mw-tone-best { color: #b5cf86; }\n\n.mw-seen {\n  margin: 0;\n  font-size: 0.9rem;\n  color: var(--gray);\n}\n\n@media (max-width: 800px) {\n  .mw-header.mw-has-photo {\n    grid-template-columns: 110px minmax(0, 1fr);\n    gap: 1rem;\n  }\n  .mw-portrait {\n    width: 110px;\n  }\n}\n\n/* Home page: welcome title with a compact date card beside it */\n.mw-home-header {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  gap: 1.5rem;\n}\n\n.mw-date-card {\n  flex-shrink: 0;\n  display: flex;\n  align-items: center;\n  gap: 0.8rem;\n  padding: 0.4rem 1rem;\n  border: 1px solid var(--lightgray);\n  border-radius: 10px;\n}\n\n.mw-date-day {\n  font-family: "Fondamento", serif;\n  font-size: 2rem;\n  line-height: 1;\n  color: var(--dark);\n}\n\n.mw-date-month {\n  font-size: 0.95rem;\n  font-weight: 500;\n  color: var(--dark);\n  line-height: 1.3;\n}\n\n.mw-date-other {\n  font-size: 0.8rem;\n  color: var(--gray);\n  line-height: 1.3;\n}\n\n@media (max-width: 800px) {\n  .mw-home-header {\n    flex-direction: column;\n    align-items: flex-start;\n  }\n}\n';
 
 // src/components/PageHeader.tsx
 import { jsx, jsxs } from "preact/jsx-runtime";
@@ -50,22 +50,22 @@ var PageHeader_default2 = (() => {
       const d = fm.game_date;
       return /* @__PURE__ */ jsxs("header", { class: "mw-header mw-home-header", children: [
         /* @__PURE__ */ jsx("h1", { class: "article-title", children: "Welcome to Vaharan" }),
-        d && /* @__PURE__ */ jsxs("div", { class: "mw-date-card", title: `${d.concord} \xB7 ${d.season}`, children: [
-          /* @__PURE__ */ jsx("div", { class: "mw-date-label", children: "Today" }),
+        d && /* @__PURE__ */ jsxs("div", { class: "mw-date-card", title: d.concord, children: [
           /* @__PURE__ */ jsx("div", { class: "mw-date-day", children: d.day }),
-          /* @__PURE__ */ jsxs("div", { class: "mw-date-month", children: [
-            d.month,
-            ", ",
-            d.year,
-            " ",
-            d.era
-          ] }),
-          /* @__PURE__ */ jsxs("div", { class: "mw-date-other", children: [
-            d.weekday,
-            " \xB7 ",
-            d.season
-          ] }),
-          /* @__PURE__ */ jsx("div", { class: "mw-date-other", children: d.concord })
+          /* @__PURE__ */ jsxs("div", { class: "mw-date-text", children: [
+            /* @__PURE__ */ jsxs("div", { class: "mw-date-month", children: [
+              d.month,
+              ", ",
+              d.year,
+              " ",
+              d.era
+            ] }),
+            /* @__PURE__ */ jsxs("div", { class: "mw-date-other", children: [
+              d.weekday,
+              " \xB7 ",
+              d.season
+            ] })
+          ] })
         ] })
       ] });
     }

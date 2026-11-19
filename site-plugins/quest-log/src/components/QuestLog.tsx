@@ -18,26 +18,41 @@ export default (() => {
       .sort((a, b) => ORDER.indexOf(String(a.fm.quest)) - ORDER.indexOf(String(b.fm.quest)))
     if (quests.length === 0) return null
 
+    const link = (f: (typeof allFiles)[number]) => resolveRelative(slug as never, String(f.slug) as never)
+    const titleOf = (f: (typeof allFiles)[number], fm: Record<string, unknown>) => String(fm.title ?? f.slug)
+    const main = quests.filter(({ fm }) => fm.quest === "main")
+    const others = quests.filter(({ fm }) => fm.quest !== "main")
+
     return (
       <section class="mw-quest-log">
         <h2>Active quests</h2>
-        <ul>
-          {quests.map(({ f, fm }) => {
-            const type = String(fm.quest)
-            const summary = typeof f.description === "string" ? f.description.replace(/^Overview\s+/, "") : ""
-            return (
-              <li class="mw-quest">
-                <span class={`mw-quest-type mw-quest-${type}`}>{LABELS[type] ?? type}</span>
-                <div>
-                  <a href={resolveRelative(slug as never, String(f.slug) as never)} class="internal mw-quest-title">
-                    {String(fm.title ?? f.slug)}
+        {/* Main quests: featured, with the start of their Overview */}
+        {main.map(({ f, fm }) => {
+          const summary = typeof f.description === "string" ? f.description.replace(/^Overview\s+/, "") : ""
+          return (
+            <a href={link(f)} class="internal mw-quest-main-card">
+              <span class="mw-quest-type mw-quest-main">Main quest</span>
+              <span class="mw-quest-main-title">{titleOf(f, fm)}</span>
+              {summary && <span class="mw-quest-summary">{summary}</span>}
+            </a>
+          )
+        })}
+        {/* Everything else: one compact line each */}
+        {others.length > 0 && (
+          <ul class="mw-quest-list">
+            {others.map(({ f, fm }) => {
+              const type = String(fm.quest)
+              return (
+                <li>
+                  <span class={`mw-quest-type mw-quest-${type}`}>{LABELS[type] ?? type}</span>
+                  <a href={link(f)} class="internal mw-quest-title">
+                    {titleOf(f, fm)}
                   </a>
-                  {summary && <p class="mw-quest-summary">{summary}</p>}
-                </div>
-              </li>
-            )
-          })}
-        </ul>
+                </li>
+              )
+            })}
+          </ul>
+        )}
       </section>
     )
   }
