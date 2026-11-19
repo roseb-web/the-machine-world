@@ -1,0 +1,33 @@
+{
+  "name": "machine-world-components",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Custom Quartz components for The Machine World wiki.",
+  "exports": {
+    ".": { "import": "./dist/index.js" },
+    "./components": { "import": "./dist/components/index.js" },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "quartz": {
+    "name": "machine-world-components",
+    "displayName": "Machine World components",
+    "category": "component",
+    "version": "1.0.0",
+    "quartzVersion": ">=5.0.0",
+    "dependencies": [],
+    "defaultEnabled": true,
+    "defaultOptions": {},
+    "components": {
+      "SetMenu": {
+        "displayName": "Set menu",
+        "defaultPosition": "left",
+        "defaultPriority": 50
+      }
+    }
+  }
+}
