@@ -43,4 +43,6 @@ export const DEFAULT_SETTINGS: WikiSettings = {
   yearBefore: "BL",
   secondCalendarLabel: "the Concord's calendar",
   secondCalendarMonths: ["Primus", "Secundus", "Tertius", "Quartus", "Quintus", "Sextus", "Septimus", "Octavus", "Nonus", "Decimus"],
+  audiencePasswords: {},
+  audienceSalt: "",
 };

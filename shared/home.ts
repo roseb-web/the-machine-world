@@ -133,7 +133,8 @@ const tracked = (f: File, yaml: YamlTools) => {
 function fingerprint(text: string, yaml: YamlTools): string {
   const props = propsOf(text, yaml);
   for (const k of Object.keys(props)) if (k.startsWith("mw_")) delete props[k];
-  const s = JSON.stringify(props) + "\n" + bodyOf(text).trim();
+  // Markers for locked sections don't count: players would see "changed" with nothing new for them
+  const s = JSON.stringify(props) + "\n" + bodyOf(text).replace(/\n*<div class="mw-lock"[^>]*><\/div>\n*/g, "\n\n").trim();
   let h = 2166136261; // FNV-1a
   for (let i = 0; i < s.length; i++) {
     h ^= s.charCodeAt(i);

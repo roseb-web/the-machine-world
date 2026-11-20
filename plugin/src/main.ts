@@ -16,6 +16,7 @@ import { TIMELINE_VIEW, TimelineView } from "./timeline-view";
 import { PeopleWebView, WEB_VIEW } from "./web-view";
 import { NoteForm } from "./note-form";
 import { readSections, writeSections } from "../../shared/sections";
+import { audienceIndex, fromB64, keyBytes, randomBytes, sealSections, toB64 } from "../../shared/audiences";
 import { PREVIEW_VIEW, WikiPreviewView } from "./wiki-preview";
 import { calendarium } from "./event-modal";
 import { gameDateFrom } from "../../shared/calendar";
@@ -129,8 +130,44 @@ export default class MachineWorldWiki extends Plugin {
     if (on) this.published?.add(f.path);
     else this.published?.delete(f.path);
   }
+  // Audiences with a password: "tam" -> { name: "Tam", password }, "dm" -> { name: "DM", password }
+  audiences(): Map<string, { name: string; password: string }> {
+    const out = new Map<string, { name: string; password: string }>();
+    for (const aud of [...this.partyNames(), "dm"]) {
+      const pw = (this.settings.audiencePasswords[aud] ?? "").trim();
+      if (pw) out.set(aud, { name: aud === "dm" ? "DM" : aud.charAt(0).toUpperCase() + aud.slice(1), password: pw });
+    }
+    return out;
+  }
+
+  // Locks the one-player and DM sections, and adds audiences.json (how signing in knows who you are).
+  // Only locked data is ever added to the files: the readable sections stay here.
+  private async lockSections(result: ExportResult, audiences: Map<string, { name: string; password: string }>) {
+    if (!audiences.size) {
+      result.locked = [];
+      return;
+    }
+    if (!this.settings.audienceSalt) {
+      this.settings.audienceSalt = toB64(randomBytes(16));
+      await this.saveSettings();
+    }
+    const salt = fromB64(this.settings.audienceSalt);
+    const keys = new Map<string, Uint8Array>();
+    for (const [aud, a] of audiences) keys.set(aud, await keyBytes(a.password, salt));
+    for (const { page, sections } of result.locked) {
+      const file = result.files.find((f) => f.path === `${page}.md` && f.text);
+      if (!file) continue;
+      const sealed = await sealSections(sections, keys);
+      if (sealed.length) setProps(file as { path: string; text?: string }, { mw_locked: sealed }, YAML);
+    }
+    const names = new Map([...audiences].map(([aud, a]) => [aud, a.name]));
+    result.files.push({ path: "audiences.json", text: JSON.stringify(await audienceIndex(salt, keys, names)) });
+    // Tidy: the readable sections aren't needed any more, only how many there were
+    result.locked = result.locked.map((l) => ({ page: l.page, sections: l.sections.map((x) => ({ ...x, md: "", title: "" })) }));
+  }
+
   // The party's names, for per-player sections and affinity: first word of the name the party
-  // knows, in lower case ("neri"), from the notes in the "party" menu section
+  // knows, in lower case ("tam"), from the notes in the "party" menu section
   partyNames(): string[] {
     const folders = this.settings.sections.filter((r) => r.section === "party").map((r) => r.folder + "/");
     const names = this.app.vault
@@ -267,7 +304,9 @@ export default class MachineWorldWiki extends Plugin {
       console.warn("Couldn't read Calendarium's settings", e);
     }
     const moodboards = await this.moodboards(fetchPinterest);
-    return exportWiki(notes, {
+    const audiences = this.audiences();
+    const result = exportWiki(notes, {
+      audiences: Object.fromEntries([...audiences].map(([aud, a]) => [aud, a.name])),
       gameDate,
       worldName: this.settings.worldName.trim() || undefined,
       eras: this.eras(),
@@ -283,6 +322,8 @@ export default class MachineWorldWiki extends Plugin {
       resolveLink: (link, from) => this.app.metadataCache.getFirstLinkpathDest(link, from)?.path ?? null,
       yaml: { parse: parseYaml, stringify: stringifyYaml },
     });
+    await this.lockSections(result, audiences);
+    return result;
   }
 
   async publish() {
@@ -342,6 +383,8 @@ class ConfirmModal extends Modal {
     contentEl.createEl("h2", { text: "Publish wiki" });
     const images = this.result.files.filter((f) => f.copyFrom).length;
     contentEl.createEl("p", { text: `${this.result.published.length} pages and ${images} images will be public.` });
+    const locked = this.result.locked.reduce((n, l) => n + l.sections.length, 0);
+    if (locked) contentEl.createEl("p", { cls: "mw-pub-locked", text: `🔒 Plus ${locked} locked section${locked === 1 ? "" : "s"} for audiences (one player, or the DM). Only their passwords open them.` });
 
     // Counts by wiki section: "People 24", "Places 10"...
     const groups = new Map<string, { title: string; to: string }[]>();
@@ -422,6 +465,26 @@ class WikiSettingTab extends PluginSettingTab {
       .setDesc("If another country names the months differently. Its name, then its month names, one per line, in the same order as Calendarium's.")
       .addText((t) => t.setPlaceholder("e.g. the old calendar").setValue(s.secondCalendarLabel).onChange((v) => { s.secondCalendarLabel = v; save(); }))
       .addTextArea((t) => t.setValue(s.secondCalendarMonths.join("\n")).onChange((v) => { s.secondCalendarMonths = v.split("\n").map((x) => x.trim()).filter(Boolean); save(); }));
+    new Setting(containerEl).setName("Audiences").setHeading();
+    containerEl.createEl("p", {
+      cls: "setting-item-description",
+      text: "A password for each player, and one for you. Their sections ([!player-name], [!dm]) are published locked: only that password, or yours, opens them on the wiki. An empty password keeps that audience's sections off the wiki. Passwords stay in Obsidian.",
+    });
+    for (const aud of [...this.plugin.partyNames(), "dm"]) {
+      const name = aud === "dm" ? "DM (you: opens everything)" : aud.charAt(0).toUpperCase() + aud.slice(1);
+      new Setting(containerEl).setName(name).addText((t) => {
+        t.inputEl.type = "password";
+        t.setPlaceholder("No password: not on the wiki")
+          .setValue(s.audiencePasswords[aud] ?? "")
+          .onChange((v) => {
+            s.audiencePasswords = { ...s.audiencePasswords, [aud]: v };
+            save();
+          });
+      }).addExtraButton((b) => b.setIcon("eye").setTooltip("Show or hide").onClick(() => {
+        const input = (b.extraSettingsEl.parentElement?.querySelector("input") as HTMLInputElement | null);
+        if (input) input.type = input.type === "password" ? "text" : "password";
+      }));
+    }
     new Setting(containerEl).setName("Folders").setHeading();
     new Setting(containerEl)
       .setName("Player Pages folder")

@@ -43,4 +43,6 @@ export const DEFAULT_SETTINGS: WikiSettings = {
   yearBefore: "",
   secondCalendarLabel: "",
   secondCalendarMonths: [],
+  audiencePasswords: {},
+  audienceSalt: "",
 };

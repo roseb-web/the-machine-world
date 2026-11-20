@@ -60,10 +60,31 @@ Nothing reaches the wiki by accident. A note is only published if you mark part 
 | Callout | Who it's for |
 |---|---|
 | `> [!player]` | Everyone: on the wiki |
-| `> [!player-neri]` | Only that player (the name the party knows, in lower case) |
-| `> [!dm]` | The DM view |
+| `> [!player-tam]` | Only that player (the name the party knows, in lower case) |
+| `> [!dm]` | Only you (the DM) |
 
-The one-player and DM sections are **not on the wiki yet**. They're for the online DM view, which is coming. They're separate from your own DM callouts (like `> [!danger] DM only`), which are never published anywhere.
+These are separate from your own DM callouts (like `> [!danger] DM only`), which are never published anywhere.
+
+### Audiences: signing in to the wiki
+
+One-player and DM sections go on the wiki **locked**. Only the right password opens them.
+
+1. In the plugin's settings, under **Audiences**, give each player a password, and give yourself one (DM).
+2. Publish. The summary says how many sections were locked, e.g. "🔒 Plus 3 locked sections".
+3. Tell each player their own password.
+
+On the wiki:
+
+- Everyone sees a **🔑 Sign in** button at the top of each page.
+- A player who signs in sees their own sections in place, in a **purple box** tagged "Just for you". Other players' sections don't show at all, not even a gap.
+- When you sign in as DM you see everything: DM sections in a **red box**, and each player's sections tagged with their name.
+- "Remember on this device" keeps you signed in until you press **Sign out**.
+
+Good to know:
+
+- A section is only published if its player (or you) has a password. With no passwords set, nothing locked is published.
+- If you change a password, publish again, and tell the player the new one.
+- For now this works for sections on pages that are already on the wiki. Pages just for one player are coming later.
 
 ### Checking a note: Wiki preview
 
@@ -437,6 +458,7 @@ A group that isn't listed shows in grey. A group called **The party** is always 
 | Public event categories | Calendarium categories that are always published |
 | Publish the timeline | Shows the Timeline page on the wiki |
 | Pinterest token | Optional, for moodboards |
+| Audiences | A password for each player, and one for you (DM). Opens their locked sections on the wiki |
 
 ---
 

@@ -60,3 +60,28 @@ test("group types come from the groups note; the party is marked", () => {
   assert.equal(web.people.find((p) => p.name === "Tam")!.pc, true);
   assert.equal(web.people.find((p) => p.name === "Bran")!.photo, "assets/bran.png");
 });
+
+test("people's own pages never carry their groups and relations, so unpublished names stay out", () => {
+  const bran = r.files.find((f) => f.path.endsWith("bran.md"))!.text!;
+  assert.ok(!bran.includes("player_relations") && !bran.includes("player_groups"));
+  for (const f of r.files.filter((f) => f.path !== "people-web.md")) {
+    assert.ok(!(f.text ?? "").includes("Hidden"), f.path);
+    assert.ok(!(f.text ?? "").includes("Lantern Guild"), f.path);
+  }
+  assert.ok(web.ties.some((t) => t.type === "friend")); // the web itself still has them
+});
+
+test("links inside list properties follow the same rules as everywhere else", () => {
+  const r2 = exportWiki(
+    [
+      { path: "People/Ann.md", text: '---\nplayer_seen: ["[[Mill]]", "[[Secret Cave]]"]\n---\n> [!player] Overview\n> Hi.\n' },
+      { path: "Places/Mill.md", text: "> [!player] Overview\n> A mill.\n" },
+      { path: "Places/Secret Cave.md", text: "# DM only\n" },
+    ],
+    { sections: [{ folder: "People", section: "people" }, { folder: "Places", section: "places" }], defaultSection: "misc", playerPagesFolder: "Player Pages",
+      resolveLink: (l) => ["People/Ann.md", "Places/Mill.md", "Places/Secret Cave.md"].find((p) => p.endsWith(`/${l}.md`)) ?? null, yaml: { parse, stringify } },
+  );
+  const ann = r2.files.find((f) => f.path.endsWith("ann.md"))!.text!;
+  assert.ok(!ann.includes("[[Secret Cave]]"));
+  assert.ok(ann.includes("places/mill"));
+});

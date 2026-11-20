@@ -1,0 +1,23 @@
+.mw-aud { display: flex; justify-content: flex-end; gap: 0.5rem; align-items: center; min-height: 1.6rem; margin-bottom: 0.2rem; font-family: var(--bodyFont); }
+.mw-aud button { font: inherit; cursor: pointer; }
+.mw-aud-btn { font-size: 0.8rem; padding: 0.15rem 0.8rem; border: 1px solid var(--lightgray); border-radius: 999px; background: var(--light); color: var(--dark); }
+.mw-aud-btn:hover { border-color: var(--secondary); }
+.mw-aud-who { font-size: 0.8rem; padding: 0.15rem 0.8rem; border-radius: 999px; background: color-mix(in srgb, #8a5cb5 15%, var(--light)); color: #6b3f93; }
+.mw-aud-who.mw-dm { background: color-mix(in srgb, #b0402f 14%, var(--light)); color: #9b3b2e; }
+
+/* Unlocked sections */
+.mw-aud-sec { margin: 1rem 0; padding: 0.4rem 1rem 0.6rem; border: 1px solid color-mix(in srgb, #8a5cb5 35%, transparent); border-left: 4px solid #8a5cb5; border-radius: 8px; background: color-mix(in srgb, #8a5cb5 6%, var(--light)); }
+.mw-aud-sec.mw-dm { border-color: color-mix(in srgb, #b0402f 35%, transparent); border-left-color: #b0402f; background: color-mix(in srgb, #b0402f 5%, var(--light)); }
+.mw-aud-sec > h2, .mw-aud-sec > h3 { margin-top: 0.4rem; }
+.mw-aud-tag { display: inline-block; margin-left: 0.5rem; vertical-align: middle; font-family: var(--bodyFont); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.05rem 0.5rem; border-radius: 999px; color: #fff; background: #8a5cb5; }
+.mw-dm .mw-aud-tag { background: #b0402f; }
+
+/* Sign in */
+.mw-aud-modal { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.4); }
+.mw-aud-box { width: min(340px, 90vw); padding: 1.2rem 1.4rem; border-radius: 12px; background: var(--light); color: var(--darkgray); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); }
+.mw-aud-box h3 { margin: 0 0 0.3rem; color: var(--dark); font-weight: 400; }
+.mw-aud-box p { margin: 0 0 0.8rem; font-size: 0.85rem; color: var(--gray); line-height: 1.4; }
+.mw-aud-box input[type="password"] { width: 100%; box-sizing: border-box; padding: 0.45rem 0.6rem; border: 1px solid var(--lightgray); border-radius: 7px; background: var(--light); color: var(--darkgray); font: inherit; }
+.mw-aud-row { display: flex; justify-content: space-between; align-items: center; margin-top: 0.8rem; font-size: 0.85rem; color: var(--gray); }
+.mw-aud-go { padding: 0.35rem 1rem; border: 0; border-radius: 7px; background: var(--secondary); color: var(--light); }
+.mw-aud-error { min-height: 1.1em; margin-top: 0.4rem; font-size: 0.8rem; color: #b0402f; }

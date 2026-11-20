@@ -2,7 +2,7 @@
 //
 // A wiki section is a callout of one of these types:
 //   > [!player]- Session 4            everyone (published)
-//   > [!player-neri]- Session 5       one player (not published yet: for the online DM view)
+//   > [!player-tam]- Session 5       one player (published locked: see audiences.ts)
 //   > [!dm]- The truth                the DM view only (not published yet)
 // Its kind:
 //   title "Overview"                  the Overview
@@ -19,7 +19,7 @@ export interface WikiSection {
   kind: Kind;
   title: string; // the heading (not used for the Overview)
   text: string;
-  vis: string; // "everyone", "dm", or a player's name in lower case ("neri")
+  vis: string; // "everyone", "dm", or a player's name in lower case ("tam")
   simple: boolean; // false: another callout is inside it, so it's shown but not editable
 }
 
@@ -67,7 +67,7 @@ export function readSections(note: string): WikiSection[] {
   return find(note.replace(/\r\n/g, "\n").split("\n")).map(({ start: _s, end: _e, ...s }) => s);
 }
 
-// "> [!player-neri|content]- The letter" and its lines
+// "> [!player-tam|content]- The letter" and its lines
 export function sectionLines(s: WikiSection): string[] {
   const type = s.vis === "everyone" ? "player" : s.vis === "dm" ? "dm" : `player-${s.vis}`;
   const head = `> [!${type}${s.kind === "content" ? "|content" : ""}]-${s.kind === "overview" ? " Overview" : s.title.trim() ? ` ${s.title.trim()}` : ""}`;
@@ -92,4 +92,21 @@ export function writeSections(note: string, sections: WikiSection[]): string {
   const blocks = sections.filter((s) => s.text.trim() || s.title.trim()).map((s) => sectionLines(s).join("\n"));
   const out = lines.join("\n") + (blocks.length ? `${lines.length ? "\n\n" : ""}${blocks.join("\n\n")}` : "") + "\n";
   return crlf ? out.replace(/\n/g, "\r\n") : out;
+}
+
+// A section's text without any other callout inside it (publishing leaves those out)
+export function withoutNested(text: string): string {
+  const out: string[] = [];
+  let skipping = false;
+  for (const line of text.split("\n")) {
+    const nested = line.match(/^>\s*\[!(\w[\w-]*)/i);
+    if (nested) {
+      skipping = nested[1].toLowerCase() !== "player";
+      continue;
+    }
+    if (skipping && line.startsWith(">")) continue;
+    skipping = false;
+    out.push(line);
+  }
+  return out.join("\n");
 }
