@@ -34,7 +34,11 @@ mw_coming_up:
     days: 68
 mw_changes:
   since:
-  items: []
+  items:
+    - to: gallery
+      title: Gallery
+      kind: new
+      section: Gallery
 ---
 Vaharan is a cold, old land of forest, marsh and mountain. Lately, something is wrong with it. Harvests fail. Animals sicken. The winters feel longer than they used to.
 
