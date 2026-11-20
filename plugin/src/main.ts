@@ -6,6 +6,9 @@ import { App, Modal, Notice, parseYaml, Plugin, PluginSettingTab, requestUrl, Se
 import { boardKey, fetchMoodboards, MoodPin, PinterestAuthError } from "../../shared/pinterest";
 import { exportWiki, ExportOptions, ExportResult, SectionRule } from "../../shared/export";
 import { pushWiki } from "./github";
+import { setProps, trackChanges } from "../../shared/home";
+
+const YAML = { parse: parseYaml, stringify: stringifyYaml };
 import { TIMELINE_VIEW, TimelineView } from "./timeline-view";
 import { gameDateFrom } from "../../shared/calendar";
 
@@ -195,7 +198,22 @@ export default class MachineWorldWiki extends Plugin {
           }),
         );
         const message = `Publish wiki: ${result.published.length} pages`;
-        const pushed = await pushWiki(this.settings, out, message);
+        // "New since Session N" on the home page: compare with the last Publish
+        const today = new Date().toISOString().slice(0, 10);
+        const pushed = await pushWiki(this.settings, out, message, {
+          path: "wiki-changes.json",
+          update: (previous, files) => {
+            const text = files.filter((f): f is { path: string; data: string } => typeof f.data === "string");
+            const r = trackChanges(text.map((f) => ({ path: f.path, text: f.data })), previous, today, YAML);
+            const home = text.find((f) => f.path === "index.md");
+            if (home) {
+              const h = { path: home.path, text: home.data };
+              setProps(h, { mw_changes: { since: r.since, items: r.items } }, YAML);
+              home.data = h.text!;
+            }
+            return { files, state: r.state };
+          },
+        });
         notice.hide();
         new Notice(pushed.changed ? "Wiki published. The site updates in a minute or two." : "Nothing has changed since the last publish.");
       } catch (e) {
