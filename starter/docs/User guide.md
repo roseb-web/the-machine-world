@@ -218,11 +218,55 @@ One note per picture, in the **Player art folder**. **Everything in these notes 
 | **Home** | The **Home** note in Player Pages. It also shows **Previously on…** (the newest session), the pinned quests, **Coming up** (the next festivals), and **New since Session N** (pages added or changed since that session). |
 | **Calendar** | Calendarium. Today's date, festivals and sessions. Hover over a day for its other names. |
 | **Timeline** | Calendarium. History the party knows. Hidden until **Publish the timeline** is on in the settings. |
-| **Maps** | A note called **Maps** in Player Pages that embeds map notes (Leaflet). Each embedded map becomes a sheet. |
+| **Maps** | A note called **Maps** in Player Pages that embeds your map notes. See **Maps** below. |
 | **Handouts** | A note called **Handouts** in Player Pages. Embed one image per handout. |
 | **Gallery** | The notes in the Player art folder |
 | **People web** | People's `player_groups` and `player_relations` (see section 7) |
 | **Section pages** | Made for you: cards for every page in that section |
+
+### Maps
+
+Maps use the **Leaflet** community plugin for Obsidian (by Javalent). Each map lives in its own note, as a `leaflet` code block:
+
+````
+```leaflet
+id: world-map
+image: [[World map.jpg]]
+height: 600px
+minZoom: -2
+maxZoom: 2
+defaultZoom: 0
+marker: town, 120, 340, [[Millbrook]]
+marker: building, 80, 200, [[The Crooked Mug]], The only inn for a day's ride
+marker: secret, 50, 60, [[The Hidden Vault]]
+```
+````
+
+- `image` is the map picture. `minZoom`, `maxZoom` and `defaultZoom` are used on the wiki too.
+- Each `marker:` line is one pin: **type, then two numbers (where it is), then a link, then a description** (optional).
+- **The wiki only reads pins written in the code block.** Pins you add by clicking on the map in Obsidian are saved by Leaflet somewhere else. To move one into the code block, right-click it and choose **Convert to code block**.
+
+**Putting maps on the wiki.** Make a note called **Maps** in your Player Pages folder and embed each map note in it, one per line:
+
+```
+![[World map|The North]]
+![[Millbrook - Party map|Millbrook]]
+```
+
+Each one becomes a sheet on the wiki's Maps page. The name after `|` is the sheet's name. Map notes are never published as pages themselves.
+
+**Two kinds of map.** The wiki treats them differently, to keep secrets safe:
+
+| | Your own map (anywhere in the vault) | A party map (`party_map: true`, or in Player Pages) |
+|---|---|---|
+| Which pins show | Only pins that link to a **published** note | Every pin |
+| Descriptions | Never shown (they might be DM notes) | Shown |
+| `secret` pins | Never shown | Never shown |
+| Pins without a note | Not shown | Shown, using the text as the name: `marker: building, 30, 40, Chapel, The old chapel` |
+
+So you can use your own DM map as the wiki's map. Pins appear on it as the party learns about each place. Make a separate party map when you want pins and descriptions written for the players.
+
+**On the wiki:** hover over a pin for its name, and click it for a card with a link to its page. The place in `party_location` (on the home page) gets a gold pin, and the list under the map finds each pin.
 
 ---
 
