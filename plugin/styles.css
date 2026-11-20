@@ -210,3 +210,11 @@ textarea.mw-nf-input { resize: vertical; font-family: inherit; }
 .mw-wp-hidden.mw-wp-one { border-color: color-mix(in srgb, #8a5cb5 55%, transparent); background: color-mix(in srgb, #8a5cb5 6%, transparent); }
 .mw-wp-hidden.mw-wp-one .mw-wp-hidden-label { color: #8a5cb5; }
 @media (max-width: 700px) { .mw-wp-split { flex-direction: column; } .mw-wp-write { border-right: 0; border-bottom: 1px solid var(--background-modifier-border); } }
+
+/* Wiki preview: View as */
+.mw-wp-label { font-size: 0.78em; color: var(--text-muted); }
+.mw-wp-sec.mw-one { border-left: 3px solid #8a5cb5; padding-left: 0.8rem; }
+.mw-wp-sec.mw-dm { border-left: 3px solid #b0402f; padding-left: 0.8rem; }
+.mw-wp-tag { margin-left: 0.5rem; vertical-align: middle; font-size: 0.6rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 0.05rem 0.45rem; border-radius: 999px; color: #fff; }
+.mw-wp-tag.mw-one { background: #8a5cb5; }
+.mw-wp-tag.mw-dm { background: #b0402f; }

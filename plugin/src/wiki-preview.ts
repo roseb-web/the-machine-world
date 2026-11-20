@@ -2,29 +2,29 @@
 // The globe button at the top of a note switches the same tab here; "Back to the note" switches back.
 //
 // - Player view: the page the way the wiki shows it, using the same rules as publishing.
-// - Show hidden: the whole note in order, with what stays private in red boxes, and why.
+// - View as: Everyone (what's on the wiki), one player, or the DM. Only the note's wiki sections
+//   are ever shown: the rest of the note (your own notes and callouts) never goes on the wiki.
 // - Edit: the note's wiki sections as cards (Overview, Content, What we know), each with who can
 //   see it (everyone, one player, or the DM). Saves as you type, as folded callouts at the bottom
 //   of the note. Your own callouts (like [!danger] DM only) are never touched.
 // Warnings: links that turn into plain text, and names the party doesn't know.
 
 import { App, Component, ItemView, MarkdownRenderer, parseYaml, stringifyYaml, TFile, ViewStateResult, WorkspaceLeaf } from "obsidian";
-import { extractPlayerNote, isAllowedProperty } from "../../shared/extract";
-import { noteParts, secretNames } from "../../shared/preview";
+import { extractPlayerNote } from "../../shared/extract";
+import { secretNames } from "../../shared/preview";
 import { Kind, readSections, WikiSection, writeSections } from "../../shared/sections";
 import { renderHeaderCard } from "./header-card";
 import type MachineWorldWiki from "./main";
 
 export const PREVIEW_VIEW = "machine-world-wiki-preview";
 const YAML = { parse: parseYaml, stringify: stringifyYaml };
-type Mode = "player" | "hidden" | "edit";
-const CALLOUT_NAMES: Record<string, string> = { danger: "DM callout", note: "Note callout", info: "Info callout", tip: "Tip callout", quote: "Quote" };
+type Mode = string; // "everyone", a player's name ("neri"), "dm", or "edit"
 const KINDS: [Kind, string][] = [["overview", "Overview"], ["content", "Content"], ["known", "What we know"]];
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export class WikiPreviewView extends ItemView {
   file: TFile | null = null;
-  private view: Mode = "player";
+  private view: Mode = "everyone";
   private mode = "source"; // the note's own mode, to go back to
   private timer = 0;
   private saveTimer = 0;
@@ -48,8 +48,7 @@ export class WikiPreviewView extends ItemView {
   async setState(state: { file?: string; view?: Mode; hidden?: boolean; mode?: string }, result: ViewStateResult) {
     const f = state.file ? this.app.vault.getAbstractFileByPath(state.file) : null;
     this.file = f instanceof TFile ? f : null;
-    if (state.view) this.view = state.view;
-    else if (state.hidden) this.view = "hidden";
+    if (state.view) this.view = state.view === "player" || state.view === "hidden" ? "everyone" : state.view;
     if (state.mode) this.mode = state.mode;
     await this.render();
     return super.setState(state, result);
@@ -102,9 +101,15 @@ export class WikiPreviewView extends ItemView {
 
     // ---- The bar ----
     const bar = root.createDiv({ cls: "mw-wp-bar" });
+    // View as: everyone, each player, or the DM. Then Edit.
+    const pcs = this.plugin.partyNames();
+    if (this.view !== "edit" && this.view !== "everyone" && this.view !== "dm" && !pcs.includes(this.view)) this.view = "everyone";
+    bar.createSpan({ cls: "mw-wp-label", text: "View as" });
     const seg = bar.createDiv({ cls: "mw-wp-seg" });
-    for (const [label, v] of [["Player view", "player"], ["Show hidden", "hidden"], ["Edit", "edit"]] as const) {
-      const b = seg.createEl("button", { text: label, cls: this.view === v ? "mw-on" : "" });
+    const modes: [string, string][] = [["Everyone", "everyone"], ...pcs.map((p): [string, string] => [cap(p), p]), ["DM", "dm"]];
+    const editSeg = bar.createDiv({ cls: "mw-wp-seg" });
+    for (const [label, v] of [...modes, ["Edit", "edit"] as [string, string]]) {
+      const b = (v === "edit" ? editSeg : seg).createEl("button", { text: label, cls: this.view === v ? "mw-on" : "" });
       b.addEventListener("click", async () => {
         await this.flush();
         this.view = v;
@@ -152,71 +157,47 @@ export class WikiPreviewView extends ItemView {
       });
       await MarkdownRenderer.render(this.app, fixed, el, file.path, this.renderers!);
     };
-    const hidden = async (label: string, md: string, why: string, cls = "") => {
-      const box = page.createDiv({ cls: `mw-wp-hidden ${cls}` });
-      const head = box.createDiv({ cls: "mw-wp-hidden-label", text: `🔒 ${label}` });
-      head.createSpan({ cls: "mw-wp-hidden-why", text: ` · ${why}` });
-      if (md) await MarkdownRenderer.render(this.app, md, box.createDiv(), file.path, this.renderers!);
-    };
-
-    if (this.view === "hidden") {
-      const secretProps = Object.keys(fm).filter((k) => !isAllowedProperty(k) && k !== "position");
-      if (secretProps.length) {
-        const box = page.createDiv({ cls: "mw-wp-hidden" });
-        box.createDiv({ cls: "mw-wp-hidden-label", text: "🔒 Properties, never published" });
-        box.createDiv({ text: secretProps.join(" · ") });
-      }
-    }
-
-    // ---- The header ----
+    // ---- The header (the same for everyone) ----
     const props = wholePage ? fm : (player?.properties ?? {});
     const title = wholePage ? (typeof fm.title === "string" ? fm.title : file.basename) : (player?.title ?? file.basename);
-    if (onWiki || this.view === "hidden") renderHeaderCard(page, this.app, file.path, props, title);
+    renderHeaderCard(page, this.app, file.path, props, title);
     if (typeof props.spotify === "string" && props.spotify) page.createDiv({ cls: "mw-nf-song", text: "▶  Theme song: Spotify's player, under the header" });
 
-    // ---- The page ----
+    // ---- The page: only the wiki sections this person can see ----
     if (wholePage) {
       await playerText(text.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, ""), page.createDiv({ cls: "mw-wp-md" }));
-    } else if (this.view === "player") {
-      if (!player) {
-        page.createDiv({ cls: "mw-wp-empty", text: "This note isn't on the wiki. Click Edit and add an Overview for everyone to put it there." });
-      } else {
-        if (player.overview) {
-          page.createEl("h2", { text: "Overview" });
-          await playerText(player.overview, page.createDiv({ cls: "mw-wp-md" }));
-        }
-        for (const c of player.content) {
-          if (c.label) page.createEl("h2", { text: c.label });
-          await playerText(c.body, page.createDiv({ cls: "mw-wp-md" }));
-        }
-        if (player.entries.length) {
-          page.createEl("h2", { text: "What we know" });
-          for (const e of player.entries) {
-            if (e.label) page.createEl("h3", { text: e.label });
-            await playerText(e.body, page.createDiv({ cls: "mw-wp-md" }));
-          }
-        }
-      }
     } else {
-      // In the note's own order, with the private parts shown
-      for (const part of noteParts(text)) {
-        if (part.kind === "player") {
-          const where = part.content ? `as the page's text${part.title ? ` under "${part.title}"` : ""}` : part.title.toLowerCase() === "overview" ? "Overview" : `under "What we know"${part.title ? ` as "${part.title}"` : ""}`;
-          const lbl = page.createDiv({ cls: "mw-wp-pub-label", text: `✓ Published · ${where}` });
-          if (part.hasHidden) lbl.createSpan({ cls: "mw-wp-hidden-why", text: " · a callout inside it is left out" });
-          await playerText(withoutNested(part.text), page.createDiv({ cls: "mw-wp-md" }));
-        } else if (part.kind === "callout" && part.type === "dm") {
-          await hidden(`DM section${part.title ? `: ${part.title}` : ""}`, part.text, "for the DM view online (not on the wiki yet)", "mw-wp-dm");
-        } else if (part.kind === "callout" && part.type.startsWith("player-")) {
-          await hidden(`${cap(part.type.slice(7))} only${part.title ? `: ${part.title}` : ""}`, part.text, "for one player online (not on the wiki yet)", "mw-wp-one");
-        } else if (part.kind === "callout") {
-          await hidden(`${CALLOUT_NAMES[part.type] ?? `"${part.type}" callout`}${part.title ? `: ${part.title}` : ""}`, part.text, "only [!player] callouts are published");
-        } else if (part.kind === "comment") {
-          await hidden("Comment", part.text, "%% comments %% are never published");
-        } else {
-          await hidden("Normal text", part.text, "text outside player callouts is never published");
-        }
+      const viewer = this.view;
+      const sees = (vis: string) => vis === "everyone" || viewer === "dm" || vis === viewer;
+      const shown = readSections(text).filter((x) => sees(x.vis));
+      if (!shown.length) {
+        page.createDiv({
+          cls: "mw-wp-empty",
+          text: viewer === "everyone" ? "This note isn't on the wiki. Click Edit and add an Overview for Everyone to put it there." : "Nothing on the wiki for them in this note.",
+        });
       }
+      // Like the wiki: the Overview, then Content, then "What we know". Sections not for everyone get a tag.
+      const tag = (el: HTMLElement, vis: string) => {
+        if (vis === "everyone") return;
+        el.createSpan({ cls: `mw-wp-tag ${vis === "dm" ? "mw-dm" : "mw-one"}`, text: vis === "dm" ? "DM" : `${cap(vis)} only` });
+      };
+      const block = async (sec: WikiSection, heading: string, level: "h2" | "h3") => {
+        const wrap = page.createDiv({ cls: `mw-wp-sec ${sec.vis === "everyone" ? "" : sec.vis === "dm" ? "mw-dm" : "mw-one"}` });
+        if (heading || sec.vis !== "everyone") {
+          const h = wrap.createEl(level, { text: heading });
+          tag(h, sec.vis);
+        }
+        await playerText(withoutNested(sec.text), wrap.createDiv({ cls: "mw-wp-md" }));
+      };
+      for (const sec of shown.filter((x) => x.kind === "overview")) await block(sec, "Overview", "h2");
+      for (const sec of shown.filter((x) => x.kind === "content")) await block(sec, sec.title, "h2");
+      const known = shown.filter((x) => x.kind === "known");
+      if (known.length) {
+        page.createEl("h2", { text: "What we know" });
+        for (const sec of known) await block(sec, sec.title, "h3");
+      }
+      if (viewer !== "everyone")
+        page.createDiv({ cls: "mw-wp-hint", text: "One-player and DM sections show here now, and on the wiki once the online DM view is built." });
     }
 
     if (warnings.length) {

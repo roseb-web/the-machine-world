@@ -69,13 +69,17 @@ The one-player and DM sections are **not on the wiki yet**. They're for the onli
 
 Click the **🌐 globe** at the top right of a note (or Ctrl+P, "Wiki preview") to see it the way the wiki will show it, in the same tab. Click **Back to the note** to return.
 
-- **Player view:** exactly what the players will see.
-- **Show hidden:** the whole note in order, with everything private in red dashed boxes, each with the reason. For example "normal text", "DM callout", "comment", or "properties, never published".
-- **Warnings** underneath: links that will turn into plain text (because their note isn't on the wiki), and names the party doesn't know. For example, if a note has `player_name: The Grey Lady`, writing "Rowan" in a player callout gets flagged.
+- **View as:** see the page the way one person will:
+  - **Everyone** is what's on the wiki now.
+  - **Each player** shows everyone's sections plus their own, tagged "… only".
+  - **DM** shows every wiki section, each tagged with who it's for.
+
+  Only the note's wiki sections ever show here. The rest of the note (your own notes and callouts) never goes on the wiki.
+- **Warnings** underneath: links that will turn into plain text (because their note isn't on the wiki), and names the party doesn't know. For example, if a note has `player_name: The Grey Lady`, writing "Rowan" in a wiki section gets flagged.
 
 It updates as you type, so you can keep it open in a second tab beside the note.
 
-**Edit** (the third button) is the easiest way to write for the wiki:
+**Edit** is the easiest way to write for the wiki:
 
 - Each section is a card: its **kind** (Overview, Content or What we know), its **heading**, and **who can see it**: Everyone, one player, or DM. A purple stripe means one player, and red means DM.
 - You type on the left and see it formatted on the right. Type `[[` to pick a note to link, then use the arrow keys and Enter, or click.
