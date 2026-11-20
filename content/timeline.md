@@ -292,4 +292,4 @@ mw_calendar:
 mw_timeline: true
 ---
 
-What the party knows of Vaharan's history, in years. Long events are bars down the side. Click a category to hide or show it.
+What the party knows of Vaharan's history. Drag to move along it, and zoom in to see more. Click an event for more.
