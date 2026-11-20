@@ -217,7 +217,7 @@ export default (() => {
     const ownLinks = new Set((fileData.links ?? []).map(String))
 
     // Affinity (gods): only the characters that have one set
-    // The name shown is the part after "affinity_", e.g. affinity_neri -> Neri
+    // The name shown is the part after "affinity_", e.g. affinity_tam -> Tam
     const affinity = Object.keys(fm)
       .filter((key) => key.startsWith("affinity_") && typeof fm[key] === "string" && fm[key])
       .map((key): [string, string] => [key, key.slice(9).charAt(0).toUpperCase() + key.slice(10)])
