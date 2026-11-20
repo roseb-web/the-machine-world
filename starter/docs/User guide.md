@@ -104,7 +104,7 @@ The menu's headings and items are in `quartz.config.yaml`, under `machine-world-
 ## 3. Publishing
 
 1. Click the **Publish wiki** icon in the left ribbon (or Ctrl+P, "Publish wiki").
-2. A list shows every page that will be public. **Read it.** If something is there that shouldn't be, cancel.
+2. A summary shows how many pages will be public in each section. Click **See files** for the full list. **Check it.** If something is there that shouldn't be, cancel.
 3. Click **Publish**.
 4. Wait a minute or two, then refresh the wiki.
 
@@ -116,7 +116,20 @@ On GitHub, the **Actions** tab shows the site being built. A green tick means it
 
 ## 4. Properties
 
-Properties go at the top of a note, in Obsidian's Properties panel. **All of them are optional.** Each part of a page only shows when its property is filled in.
+Properties go at the top of a note. **All of them are optional.** Each part of a page only shows when its property is filled in.
+
+### The easy way: ✎ Edit wiki details
+
+Every note has a **✎ button** at the top right (or use Ctrl+P, "Edit wiki details"). It opens a form with:
+
+- **Overview:** what the party knows. This is the note's `> [!player] Overview` callout. Writing one puts the note on the wiki. Emptying it removes the callout.
+- **Only the fields for that kind of note.** People get species, faction and favour. Places get "Inside". Quests get type, status and "On the home page". Session recaps get a date picker. The kind comes from the note's menu section. Less common fields are under **More**.
+- **Buttons for fixed values** (favour, standing, affinity…), and a picker for notes and images.
+- **A preview** of how the top of the page will look on the wiki, and what else changes (like "Listed under the guild's Key NPCs").
+
+It only saves the wiki's own properties and the Overview. Your other properties and the rest of the note aren't touched, and Obsidian can stay open.
+
+The tables below list every property, if you'd rather type them yourself.
 
 > **Safety:** the wiki only reads properties that start with `player_`, plus the special ones listed here. Your own properties (like `status` or `location`) are never published, so they can hold secrets.
 
@@ -136,6 +149,7 @@ Properties go at the top of a note, in Obsidian's Properties panel. **All of the
 | `player_themes` | Short words shown on the page's card in its section | `[light, harvest]` |
 | `player_handouts` | Images shown under **Related handouts** | `["[[Map scrap.png]]"]` |
 | `pinterest` | A Pinterest board (or section) link, shown as a moodboard | a board link |
+| `spotify` | A theme song: Spotify's small player under the header. In Spotify: **Share → Copy song link**. Album and playlist links work too. | a Spotify link |
 | `wiki_section` | Puts the page in a different menu section | `factions` |
 
 ### People
