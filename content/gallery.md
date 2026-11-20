@@ -10,6 +10,13 @@ mw_gallery:
     characters:
       - name: Fen
       - name: Biscuit
+  - img: assets/fen-full-art.webp
+    description: Veiled Fen
+    artist: Antler
+    date: 2026-11-20
+    sessions: []
+    characters:
+      - name: Fen
 ---
 
 Art by the party. Click a picture to see it full size.
