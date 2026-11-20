@@ -19,5 +19,7 @@
 .mw-aud-box p { margin: 0 0 0.8rem; font-size: 0.85rem; color: var(--gray); line-height: 1.4; }
 .mw-aud-box input[type="password"] { width: 100%; box-sizing: border-box; padding: 0.45rem 0.6rem; border: 1px solid var(--lightgray); border-radius: 7px; background: var(--light); color: var(--darkgray); font: inherit; }
 .mw-aud-row { display: flex; justify-content: space-between; align-items: center; margin-top: 0.8rem; font-size: 0.85rem; color: var(--gray); }
-.mw-aud-go { padding: 0.35rem 1rem; border: 0; border-radius: 7px; background: var(--secondary); color: var(--light); }
+.mw-aud-row label { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; line-height: 1; }
+.mw-aud-row input[type="checkbox"] { margin: 0; width: 1rem; height: 1rem; }
+.mw-aud-go { font: inherit; cursor: pointer; padding: 0.35rem 1rem; border: 0; border-radius: 7px; background: var(--secondary); color: var(--light); }
 .mw-aud-error { min-height: 1.1em; margin-top: 0.4rem; font-size: 0.8rem; color: #b0402f; }
