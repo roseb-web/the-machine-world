@@ -46,19 +46,27 @@ export default class MachineWorldWiki extends Plugin {
         return true;
       },
     });
+    // Tabs that haven't been looked at yet aren't loaded (no buttons to add to): they get
+    // theirs when they open, through "layout-change". A problem here never stops the plugin.
     const addButtons = () => {
       for (const leaf of this.app.workspace.getLeavesOfType("markdown")) {
-        const view = leaf.view as MarkdownView & { _mwEdit?: HTMLElement };
-        if (view._mwEdit) continue;
-        view._mwEdit = view.addAction("pencil", "Edit wiki details", () => view.file && this.editDetails(view.file));
-        this.register(() => {
-          view._mwEdit?.remove();
-          delete view._mwEdit;
-        });
+        try {
+          if (!(leaf.view instanceof MarkdownView)) continue;
+          const view = leaf.view as MarkdownView & { _mwEdit?: HTMLElement };
+          if (view._mwEdit) continue;
+          view._mwEdit = view.addAction("pencil", "Edit wiki details", () => view.file && this.editDetails(view.file));
+          this.register(() => {
+            view._mwEdit?.remove();
+            delete view._mwEdit;
+          });
+        } catch (e) {
+          console.warn("Machine World Wiki: couldn't add the edit button", e);
+        }
       }
     };
     this.app.workspace.onLayoutReady(addButtons);
     this.registerEvent(this.app.workspace.on("layout-change", addButtons));
+    this.registerEvent(this.app.workspace.on("active-leaf-change", addButtons));
   }
 
   editDetails(file: TFile) {
