@@ -241,53 +241,70 @@ export class WikiPreviewView extends ItemView {
     details.addEventListener("click", () => this.plugin.editDetails(file));
 
     const list = page.createDiv({ cls: "mw-wp-cards" });
+    const lockedEl = page.createDiv();
+    const footer = page.createDiv();
     const pcs = this.plugin.partyNames();
-    const draw = () => {
-      // Rebuilding the cards would jump the page back to the top: keep its height and scroll position
+
+    // Moving or deleting rebuilds the cards. The page keeps its height and scroll position until
+    // everything (including the formatted side, which draws a moment later) is back.
+    const rebuild = () => {
       const scroller = this.contentEl;
       const top = scroller.scrollTop;
       list.style.minHeight = `${list.offsetHeight}px`;
       list.empty();
-      this.sections.forEach((s, i) => this.card(list, s, i, pcs, draw));
-      for (const s of locked) {
-        const c = list.createDiv({ cls: "mw-wp-card mw-locked" });
-        c.createDiv({ cls: "mw-wp-hidden-label", text: `🔒 ${s.kind === "overview" ? "Overview" : s.title || "Section"} · has another callout inside it, so edit it in the note itself` });
-        MarkdownRenderer.render(this.app, s.text, c.createDiv({ cls: "mw-wp-md" }), file.path, this.renderers!);
-      }
-      const add = list.createEl("button", { cls: "mw-wp-add", text: "+ Add section" });
-      add.addEventListener("click", () => {
-        this.sections.push({ kind: this.sections.some((x) => x.kind === "overview") ? "known" : "overview", title: "", text: "", vis: "everyone", simple: true });
-        draw();
-        const cards = list.querySelectorAll(".mw-wp-card:not(.mw-locked)");
-        (cards[cards.length - 1]?.querySelector("textarea") as HTMLTextAreaElement | null)?.focus();
-      });
-      list.createDiv({
-        cls: "mw-wp-hint",
-        text: "Saved as you type, as folded callouts at the bottom of the note. Your other callouts (like DM only) aren't touched. Only \"Everyone\" sections go on the wiki for now.",
-      });
-      list.style.minHeight = "";
+      for (const sec of this.sections) this.card(list, sec, pcs, rebuild);
       scroller.scrollTop = top;
+      window.setTimeout(() => {
+        list.style.minHeight = "";
+        scroller.scrollTop = top;
+      }, 400);
     };
-    draw();
+    for (const sec of this.sections) this.card(list, sec, pcs, rebuild);
+
+    for (const sec of locked) {
+      const c = lockedEl.createDiv({ cls: "mw-wp-card mw-locked" });
+      c.createDiv({ cls: "mw-wp-hidden-label", text: `🔒 ${sec.kind === "overview" ? "Overview" : sec.title || "Section"} · has another callout inside it, so edit it in the note itself` });
+      MarkdownRenderer.render(this.app, sec.text, c.createDiv({ cls: "mw-wp-md" }), file.path, this.renderers!);
+    }
+    const add = footer.createEl("button", { cls: "mw-wp-add", text: "+ Add section" });
+    add.addEventListener("click", () => {
+      const sec: WikiSection = { kind: this.sections.some((x) => x.kind === "overview") ? "known" : "overview", title: "", text: "", vis: "everyone", simple: true };
+      this.sections.push(sec);
+      const c = this.card(list, sec, pcs, rebuild);
+      c.querySelector("textarea")?.focus({ preventScroll: true });
+      c.scrollIntoView({ block: "nearest" });
+    });
+    footer.createDiv({
+      cls: "mw-wp-hint",
+      text: "Saved as you type, as folded callouts at the bottom of the note. Your other callouts (like DM only) aren't touched. Only \"Everyone\" sections go on the wiki for now.",
+    });
   }
 
-  private card(list: HTMLElement, s: WikiSection, i: number, pcs: string[], redraw: () => void) {
-    const vis = s.vis === "everyone" ? "" : s.vis === "dm" ? "mw-dm" : "mw-one";
-    const c = list.createDiv({ cls: `mw-wp-card ${vis}` });
+  // One section's card. Changes to it update the card itself; only moving and deleting rebuild.
+  private card(list: HTMLElement, s: WikiSection, pcs: string[], rebuild: () => void): HTMLElement {
+    const c = list.createDiv({ cls: "mw-wp-card" });
+    const style = () => {
+      c.toggleClass("mw-one", s.vis !== "everyone" && s.vis !== "dm");
+      c.toggleClass("mw-dm", s.vis === "dm");
+    };
+    style();
     const head = c.createDiv({ cls: "mw-wp-card-head" });
 
     const kind = head.createEl("select", { cls: "dropdown mw-wp-kind" });
     for (const [k, label] of KINDS) kind.createEl("option", { text: label, value: k });
     kind.value = s.kind;
+    const title = head.createEl("input", { type: "text", cls: "mw-wp-title" });
+    const titleState = () => {
+      title.placeholder = s.kind === "overview" ? "(the Overview has no heading)" : s.kind === "content" ? "Heading (optional)" : "Heading, e.g. Session 4";
+      title.disabled = s.kind === "overview";
+      title.value = s.kind === "overview" ? "" : s.title;
+    };
+    titleState();
     kind.addEventListener("change", () => {
       s.kind = kind.value as Kind;
+      titleState();
       this.save();
-      redraw();
     });
-    const title = head.createEl("input", { type: "text", cls: "mw-wp-title" });
-    title.placeholder = s.kind === "overview" ? "(the Overview has no heading)" : s.kind === "content" ? "Heading (optional)" : "Heading, e.g. Session 4";
-    title.value = s.kind === "overview" ? "" : s.title;
-    title.disabled = s.kind === "overview";
     title.addEventListener("input", () => {
       s.title = title.value;
       this.save();
@@ -296,30 +313,45 @@ export class WikiPreviewView extends ItemView {
     const seg = head.createDiv({ cls: "mw-wp-vis" });
     const choices = ["everyone", ...pcs, "dm"];
     if (!choices.includes(s.vis)) choices.splice(choices.length - 1, 0, s.vis); // a name no longer in the party isn't lost
+    const buttons: [string, HTMLButtonElement][] = [];
+    const visState = () => {
+      for (const [v, b] of buttons) {
+        b.toggleClass("mw-on", s.vis === v);
+        b.toggleClass("mw-one", v !== "everyone" && v !== "dm");
+        b.toggleClass("mw-dm", v === "dm");
+      }
+      style();
+    };
     for (const v of choices) {
-      const b = seg.createEl("button", { text: v === "everyone" ? "Everyone" : v === "dm" ? "DM" : cap(v), cls: s.vis === v ? `mw-on ${v === "everyone" ? "" : v === "dm" ? "mw-dm" : "mw-one"}` : "" });
+      const b = seg.createEl("button", { text: v === "everyone" ? "Everyone" : v === "dm" ? "DM" : cap(v) });
       b.title = v === "everyone" ? "On the wiki for everyone" : v === "dm" ? "Only in the DM view" : `Only ${cap(v)} (and the DM)`;
       b.addEventListener("click", () => {
         s.vis = v;
+        visState();
         this.save();
-        redraw();
       });
+      buttons.push([v, b]);
     }
+    visState();
 
     const tools = head.createDiv({ cls: "mw-wp-tools" });
-    const tool = (icon: string, label: string, go: () => void, off = false) => {
+    const tool = (icon: string, label: string, go: (i: number) => boolean) => {
       const b = tools.createEl("button", { text: icon });
       b.title = label;
-      b.disabled = off;
       b.addEventListener("click", () => {
-        go();
+        if (!go(this.sections.indexOf(s))) return;
         this.save();
-        redraw();
+        rebuild();
       });
     };
-    tool("↑", "Move up", () => this.sections.splice(i - 1, 0, this.sections.splice(i, 1)[0]), i === 0);
-    tool("↓", "Move down", () => this.sections.splice(i + 1, 0, this.sections.splice(i, 1)[0]), i === this.sections.length - 1);
-    tool("✕", "Delete this section", () => this.sections.splice(i, 1));
+    const move = (i: number, to: number) => {
+      if (to < 0 || to >= this.sections.length) return false;
+      this.sections.splice(to, 0, this.sections.splice(i, 1)[0]);
+      return true;
+    };
+    tool("↑", "Move up", (i) => move(i, i - 1));
+    tool("↓", "Move down", (i) => move(i, i + 1));
+    tool("✕", "Delete this section", (i) => (this.sections.splice(i, 1), true));
 
     const split = c.createDiv({ cls: "mw-wp-split" });
     const box = split.createDiv({ cls: "mw-wp-write" });
@@ -332,12 +364,17 @@ export class WikiPreviewView extends ItemView {
       ta.style.height = `${Math.max(70, ta.scrollHeight + 2)}px`;
     };
     let t = 0;
-    const show = () => {
+    const show = (now = false) => {
       window.clearTimeout(t);
-      t = window.setTimeout(() => {
-        shown.empty();
-        MarkdownRenderer.render(this.app, s.text || "*Nothing yet*", shown, this.file!.path, this.renderers!);
-      }, 150);
+      const draw = () => {
+        // Draw the new version off to the side, then swap, so the card doesn't shrink in between
+        const next = createDiv();
+        MarkdownRenderer.render(this.app, s.text || "*Nothing yet*", next, this.file!.path, this.renderers!).then(() => {
+          shown.replaceChildren(...Array.from(next.childNodes));
+        });
+      };
+      if (now) draw();
+      else t = window.setTimeout(draw, 150);
     };
     ta.addEventListener("input", () => {
       s.text = ta.value;
@@ -346,8 +383,9 @@ export class WikiPreviewView extends ItemView {
       this.save();
     });
     new LinkSuggest(this.app, ta, box);
-    window.setTimeout(fit, 0);
-    show();
+    fit();
+    show(true);
+    return c;
   }
 
   // Saves a moment after typing stops
