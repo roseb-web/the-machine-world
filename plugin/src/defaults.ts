@@ -45,4 +45,5 @@ export const DEFAULT_SETTINGS: WikiSettings = {
   secondCalendarMonths: ["Primus", "Secundus", "Tertius", "Quartus", "Quintus", "Sextus", "Septimus", "Octavus", "Nonus", "Decimus"],
   audiencePasswords: {},
   audienceSalt: "",
+  lockSecret: "",
 };

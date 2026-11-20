@@ -92,7 +92,7 @@ test("publishing puts markers where locked sections go, and no locked text in an
   const s2 = page.indexOf("### Session 2");
   const tam = page.indexOf('data-mw-lock="0"');
   assert.ok(truth > 0 && truth < known && s2 < tam, page);
-  assert.ok(!r.files.some((f) => f.path.includes("only-tam")), "a note with nothing for everyone isn't a page yet");
+  assert.ok(!r.files.some((f) => f.path.includes("only-tam")), "a note with nothing for everyone never gets a page under its own name");
 });
 
 test("locked sections: links point at wiki pages; unpublished ones become plain text; no-password audiences are left out", () => {

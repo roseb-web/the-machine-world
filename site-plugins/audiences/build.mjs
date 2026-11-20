@@ -9,6 +9,9 @@ const client = await build({
   target: "es2020",
   minify: true,
   write: false,
+  // The page header's look (shared with the page-header plugin) is drawn with preact
+  jsx: "automatic",
+  jsxImportSource: "preact",
 });
 
 const shared = {

@@ -25,4 +25,5 @@ export interface WikiSettings {
   secondCalendarMonths: string[]; // its month names, in the same order as Calendarium's months
   audiencePasswords: Record<string, string>; // "tam" -> password, "dm" -> password. Never published.
   audienceSalt: string; // random, made once (base64): part of turning passwords into keys
+  lockSecret: string; // random, made once, never published: gives locked pages addresses that don't show their names
 }
