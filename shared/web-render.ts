@@ -20,6 +20,7 @@ export interface WebOptions {
   storage?: { get: (key: string) => unknown; set: (key: string, value: unknown) => void };
   styles?: Record<string, TieStyle>;
   playerToggle?: { on: boolean; set: (on: boolean) => void };
+  onEdit?: (person: WebPerson) => void; // Obsidian only: the Edit button
 }
 
 type View = "groups" | "relationships";
@@ -546,6 +547,10 @@ export function renderWeb(root: HTMLElement, data: WebData, opts: WebOptions = {
       }
     }
     openLink(p.open, () => opts.onOpen?.({ kind: "person", person: p }));
+    if (opts.onEdit) {
+      panel.appendChild(el("br"));
+      panel.appendChild(button("mw-web-open", "✎ Edit groups and ties", () => opts.onEdit!(p)));
+    }
   }
 
   function selectGroup(gid: string) {

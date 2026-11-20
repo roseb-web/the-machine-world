@@ -12,6 +12,7 @@ const notes = [
   { path: "People/Ivy.md", text: "---\nplayer_groups: [Millbrook residents]\n---\n> [!player] Overview\n> A weaver.\n" },
   { path: "People/Hidden.md", text: "---\nplayer_groups: [Millbrook residents]\n---\n# DM only\n" },
   { path: "People/Quiet.md", text: "---\ngroups: [Millbrook residents]\n---\n> [!player] Overview\n> Published, but not in the web yet.\n" },
+  { path: "People/Loner.md", text: '---\nplayer_relations: ["[[Hidden]]"]\n---\n> [!player] Overview\n> Only tied to someone unpublished.\n' },
   { path: "Player Pages/Tam.md", text: "---\nplayer_groups: [The party]\nplayer_relations: [\"[[Bran]]\"]\n---\nTam's page.\n" },
   { path: "Factions/The Lantern Guild.md", text: "# DM only\n" },
   { path: "Wiki/People web groups.md", text: "---\nlocation: [Millbrook residents]\ncollective: [\"[[The Lantern Guild]]\"]\n---\n" },
@@ -31,6 +32,10 @@ const web = (parse(page.text!.split("---")[1]) as { mw_web: W }).mw_web;
 
 test("only published people with player groups or ties are in the web", () => {
   assert.deepEqual(web.people.map((p) => p.name).sort(), ["Bran", "Ivy", "Tam"]);
+});
+
+test("someone with nothing shown is left out", () => {
+  assert.ok(!web.people.some((p) => p.name === "Loner"));
 });
 
 test("the DM's own groups and relations never leak", () => {

@@ -7,7 +7,7 @@ import { readMap, MapData } from "./maps";
 import { calendarExport, dateCard } from "./events";
 import { boardKey, MoodPin } from "./pinterest";
 import { comingUp, latestSession, setProps } from "./home";
-import { cleanTies, GROUP_TYPES, groupId, groupName, parseRelation, WebData, WebGroup, WebPerson, WebTie } from "./web";
+import { cleanTies, dropLoners, GROUP_TYPES, groupId, groupName, parseRelation, WebData, WebGroup, WebPerson, WebTie } from "./web";
 
 export interface VaultNote {
   path: string; // vault path, e.g. "4. People/NPCs/Pell.md"
@@ -594,5 +594,5 @@ function peopleWeb(
     const page = resolved ? byVaultPath.get(resolved) : undefined;
     if (page) ties.push({ a: from.to, b: page.to, type: r.type, ...(r.strength ? { strength: r.strength } : {}) });
   }
-  return { people, groups: [...groups.values()], ties: cleanTies(ties, people) };
+  return dropLoners({ people, groups: [...groups.values()], ties: cleanTies(ties, people) });
 }
