@@ -44,6 +44,7 @@ const run = (publishTimeline: boolean) =>
     resolveLink,
     yaml: { parse, stringify },
     calendar: { data: raw, publicCategories: ["fest", "party"], publishTimeline },
+    eras: { after: "YC", before: "BL" },
   });
 const r = run(false);
 const front = (path: string) => parse(r.files.find((f) => f.path === path)!.text!.match(/^---\n([\s\S]*?)\n---/)![1]);
@@ -110,4 +111,12 @@ test("the edit form's description: switch on publishes, switch off keeps the par
   assert.equal(playerName(off), "The bridge falls");
   assert.equal(dmText(off), "my notes");
   assert.equal(composeDescription("", true, "", ""), "#player");
+});
+
+test("years are written with the campaign's own names, or plainly if it has none", async () => {
+  const { yearText } = await import("../shared/eras");
+  assert.equal(yearText(100, { after: "DR", before: "" }), "100 DR");
+  assert.equal(yearText(-40, { after: "DR", before: "" }), "-40");
+  assert.equal(yearText(-40, { after: "AE", before: "BE" }), "40 BE");
+  assert.equal(yearText(12), "12");
 });

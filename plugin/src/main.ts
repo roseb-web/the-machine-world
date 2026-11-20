@@ -9,65 +9,12 @@ import { pushWiki } from "./github";
 import { setProps, trackChanges } from "../../shared/home";
 
 const YAML = { parse: parseYaml, stringify: stringifyYaml };
+import { WikiSettings } from "./settings";
+import { DEFAULT_SETTINGS } from "./defaults";
+import type { Eras, SecondCalendar } from "../../shared/eras";
 import { TIMELINE_VIEW, TimelineView } from "./timeline-view";
 import { PeopleWebView, WEB_VIEW } from "./web-view";
 import { gameDateFrom } from "../../shared/calendar";
-
-interface WikiSettings {
-  token: string;
-  owner: string;
-  repo: string;
-  branch: string;
-  contentPath: string;
-  playerPagesFolder: string;
-  galleryFolder: string; // one note per picture of player art
-  groupTypesNote: string; // the people web's group types
-  defaultSection: string;
-  sections: SectionRule[];
-  sectionTitles: Record<string, string>;
-  publicCategories: string[]; // Calendarium category names whose events are always public
-  publishTimeline: boolean;
-  pinterestToken: string; // read-only token from the Pinterest developer portal
-  moodboardCache: Record<string, MoodPin[]>; // last good pins, used if Pinterest can't be reached
-}
-
-const DEFAULT_SETTINGS: WikiSettings = {
-  token: "",
-  owner: "roseb-web",
-  repo: "the-machine-world",
-  branch: "main",
-  contentPath: "content",
-  playerPagesFolder: "5. Wiki/Player Pages",
-  galleryFolder: "5. Wiki/Player Art",
-  groupTypesNote: "5. Wiki/People web groups.md",
-  defaultSection: "misc",
-  sections: [
-    { folder: "4. People/NPCs", section: "people" },
-    { folder: "4. People/PCs", section: "party" },
-    { folder: "4. People/Factions", section: "factions" },
-    { folder: "2. World & Lore/Gods", section: "gods" },
-    { folder: "2. World & Lore", section: "lore" },
-    { folder: "3. Vaharan", section: "places" },
-    { folder: "1. Campaign/Session Notes", section: "sessions" },
-    { folder: "1. Campaign", section: "quests" },
-    { folder: "Items", section: "items" },
-  ],
-  sectionTitles: {
-    people: "People",
-    party: "The party",
-    factions: "Factions",
-    gods: "Gods",
-    lore: "Lore",
-    places: "Places",
-    sessions: "Session recaps",
-    quests: "Quest log",
-    items: "Items",
-  },
-  publicCategories: ["Festivals", "Star signs", "The party"],
-  publishTimeline: false,
-  pinterestToken: "",
-  moodboardCache: {},
-};
 
 export default class MachineWorldWiki extends Plugin {
   settings: WikiSettings = DEFAULT_SETTINGS;
@@ -156,6 +103,14 @@ export default class MachineWorldWiki extends Plugin {
     return Object.fromEntries(Object.entries(this.settings.moodboardCache).filter(([k]) => wanted.has(k)));
   }
 
+  eras(): Eras {
+    return { after: this.settings.yearAfter.trim(), before: this.settings.yearBefore.trim() };
+  }
+  secondCalendar(): SecondCalendar | undefined {
+    const months = this.settings.secondCalendarMonths.map((m) => m.trim()).filter(Boolean);
+    return this.settings.secondCalendarLabel.trim() && months.length ? { label: this.settings.secondCalendarLabel.trim(), months } : undefined;
+  }
+
   async buildExport(fetchPinterest = false): Promise<ExportResult> {
     const files = this.app.vault.getMarkdownFiles();
     const notes = await Promise.all(
@@ -168,7 +123,7 @@ export default class MachineWorldWiki extends Plugin {
       const calPath = `${this.app.vault.configDir}/plugins/calendarium/data.json`;
       if (await this.app.vault.adapter.exists(calPath)) {
         const data = JSON.parse(await this.app.vault.adapter.read(calPath));
-        gameDate = gameDateFrom(data);
+        gameDate = gameDateFrom(data, this.eras(), this.secondCalendar());
         // Public categories are set by name in the settings; Calendarium stores ids.
         const wanted = new Set(this.settings.publicCategories.map((n) => n.trim().toLowerCase()));
         const cats: { id: string; name: string }[] = data?.calendars?.[0]?.categories ?? [];
@@ -184,6 +139,9 @@ export default class MachineWorldWiki extends Plugin {
     const moodboards = await this.moodboards(fetchPinterest);
     return exportWiki(notes, {
       gameDate,
+      worldName: this.settings.worldName.trim() || undefined,
+      eras: this.eras(),
+      secondCalendar: this.secondCalendar(),
       calendar,
       moodboards,
       sections: this.settings.sections,
@@ -295,6 +253,22 @@ class WikiSettingTab extends PluginSettingTab {
     new Setting(containerEl).setName("GitHub user").addText((t) => t.setValue(s.owner).onChange((v) => { s.owner = v.trim(); save(); }));
     new Setting(containerEl).setName("Repo").addText((t) => t.setValue(s.repo).onChange((v) => { s.repo = v.trim(); save(); }));
     new Setting(containerEl).setName("Branch").addText((t) => t.setValue(s.branch).onChange((v) => { s.branch = v.trim(); save(); }));
+    new Setting(containerEl).setName("Your campaign").setHeading();
+    new Setting(containerEl)
+      .setName("World name")
+      .setDesc('The home page says "Welcome to …". Leave empty for just "Welcome".')
+      .addText((t) => t.setValue(s.worldName).onChange((v) => { s.worldName = v; save(); }));
+    new Setting(containerEl)
+      .setName("Year names")
+      .setDesc('How years are written: year 1 onwards (e.g. "YC" for "100 YC"), and years before 1 (e.g. "BL"). Either can be empty.')
+      .addText((t) => t.setPlaceholder("After, e.g. YC").setValue(s.yearAfter).onChange((v) => { s.yearAfter = v; save(); }))
+      .addText((t) => t.setPlaceholder("Before, e.g. BL").setValue(s.yearBefore).onChange((v) => { s.yearBefore = v; save(); }));
+    new Setting(containerEl)
+      .setName("Second calendar (optional)")
+      .setDesc("If another country names the months differently. Its name, then its month names, one per line, in the same order as Calendarium's.")
+      .addText((t) => t.setPlaceholder("e.g. the old calendar").setValue(s.secondCalendarLabel).onChange((v) => { s.secondCalendarLabel = v; save(); }))
+      .addTextArea((t) => t.setValue(s.secondCalendarMonths.join("\n")).onChange((v) => { s.secondCalendarMonths = v.split("\n").map((x) => x.trim()).filter(Boolean); save(); }));
+    new Setting(containerEl).setName("Folders").setHeading();
     new Setting(containerEl)
       .setName("Player Pages folder")
       .setDesc("Notes in here are published whole. Never put secrets in it.")

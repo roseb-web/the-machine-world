@@ -8,6 +8,7 @@
 // If Calendarium has changed and those pieces aren't there, the form says so and changes nothing.
 
 import { AbstractInputSuggest, App, Modal, Notice, Setting, TFile } from "obsidian";
+import type { Eras } from "../../shared/eras";
 import { composeDescription, dmText, isMarked, playerInfo, playerName } from "../../shared/events";
 
 interface Day {
@@ -93,6 +94,7 @@ export class EventModal extends Modal {
     private existing: CalEvent | null, // null: a new event
     private publicCategories: string[],
     private onDone: () => void,
+    private eras: Eras = { after: "", before: "" },
   ) {
     super(app);
   }
@@ -162,21 +164,25 @@ export class EventModal extends Modal {
       if (optional) monthIn.createEl("option", { text: "Month", value: "" });
       months.forEach((m, i) => monthIn.createEl("option", { text: m.name, value: String(i) }));
       const yearIn = s.controlEl.createEl("input", { type: "number", cls: "mw-ev-year" });
-      yearIn.min = "0";
       yearIn.placeholder = "Year";
+      // With a name for earlier years (e.g. "BL"), years are typed as positive numbers and the
+      // era is picked. Without one, earlier years are typed with a minus sign.
+      const named = !!this.eras.before;
+      if (named) yearIn.min = "0";
       const eraIn = s.controlEl.createEl("select", { cls: "dropdown" });
-      eraIn.createEl("option", { text: "YC", value: "YC" });
-      eraIn.createEl("option", { text: "BL", value: "BL" });
+      eraIn.createEl("option", { text: this.eras.after || "after", value: "after" });
+      eraIn.createEl("option", { text: this.eras.before, value: "before" });
+      if (!named) eraIn.hide();
       if (d0) {
         dayIn.value = String(d0.day);
         monthIn.value = String(d0.month);
-        yearIn.value = String(Math.abs(d0.year));
-        eraIn.value = d0.year >= 1 ? "YC" : "BL";
+        yearIn.value = String(named ? Math.abs(d0.year) : d0.year);
+        eraIn.value = d0.year >= 1 ? "after" : "before";
       }
       const read = () => {
         if (optional && !dayIn.value && !monthIn.value && !yearIn.value) return set(null);
         const y = Number(yearIn.value || 0);
-        set({ day: Number(dayIn.value || 1), month: Number(monthIn.value || 0), year: eraIn.value === "BL" ? -y : y });
+        set({ day: Number(dayIn.value || 1), month: Number(monthIn.value || 0), year: named && eraIn.value === "before" ? -y : y });
       };
       for (const el of [dayIn, monthIn, yearIn, eraIn]) el.addEventListener("change", read);
     };

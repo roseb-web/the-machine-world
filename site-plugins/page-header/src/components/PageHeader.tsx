@@ -86,17 +86,17 @@ function renderHeader(
       return (
         <header class="mw-header mw-home-header">
           <div>
-            <h1 class="article-title">Welcome to Vaharan</h1>
+            <h1 class="article-title">{str("mw_welcome") ?? "Welcome"}</h1>
             {str("party_location") && (
               <p class="mw-party-location">The party is in {renderLink(slug, str("party_location")!)}</p>
             )}
           </div>
           {d && (
-            <div class="mw-date-card" title={d.concord}>
+            <div class="mw-date-card" title={d.concord || undefined}>
               <div class="mw-date-day">{d.day}</div>
               <div class="mw-date-text">
                 <div class="mw-date-month">
-                  {d.month}, {d.year} {d.era}
+                  {d.month}, {`${d.year} ${d.era}`.trim()}
                 </div>
                 <div class="mw-date-other">
                   {d.weekday} · {d.season}

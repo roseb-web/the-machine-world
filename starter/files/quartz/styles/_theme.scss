@@ -1,0 +1,34 @@
+// The look of your wiki. This starts plain, so you can make it your own.
+//
+// - Colours and fonts are in quartz.config.yaml (theme > colors and typography).
+// - Add your own CSS below. The examples in the user guide are a good place to start.
+// - _layout.scss holds layout the features need. Usually best left alone.
+@use "./variables.scss" as *;
+
+:root {
+  --mw-sidebar: var(--light); // the menu and side panel background
+  --mw-chip: var(--lightgray); // small tags and chips
+  --mw-rule: var(--lightgray); // lines and borders
+  --mw-h3: var(--darkgray); // h3 headings
+  --mw-title-font: var(--headerFont); // the site name and page titles
+}
+
+// Side panel headings in plain words
+.backlinks > h3,
+.toc-header > h3 {
+  font-size: 0;
+}
+.backlinks > h3::before,
+.toc-header > h3::before {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gray);
+}
+.backlinks > h3::before {
+  content: "Linked from";
+}
+.toc-header > h3::before {
+  content: "On this page";
+}

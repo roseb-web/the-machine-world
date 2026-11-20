@@ -1,0 +1,138 @@
+// Layout the wiki's features rely on: the menu, phones, and full-width Timeline and People web pages.
+// Usually best left alone; change the look in _theme.scss instead.
+@use "./variables.scss" as *;
+
+// Menu: one font and size, so folders and pages read as one list
+button.desktop-explorer h2,
+button.mobile-explorer h2 {
+  font-family: var(--bodyFont);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gray);
+}
+
+.folder-container div > a,
+.folder-container div > button,
+.folder-container div > button span {
+  font-family: var(--bodyFont);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--dark);
+}
+
+.explorer-content ul li > a {
+  font-size: 0.95rem;
+  font-weight: 400;
+}
+
+// Phones: a tidy header, and the menu as a full-width panel underneath it.
+//   Row 1: title, then the Menu button on the right
+//   Row 2: search across the width, then dark mode and reader mode
+//   Row 3: the menu, when it's open
+@media all and (max-width: 800px) {
+  .page > #quartz-body .sidebar.left {
+    flex-wrap: wrap;
+    align-items: center;
+    row-gap: 0.75rem;
+    column-gap: 0.75rem;
+    padding: 1.25rem 1rem 1rem;
+
+    & > .page-title {
+      order: 1;
+      flex: 1 1 auto;
+      margin: 0;
+      font-size: 1.55rem;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    & > .mobile-only {
+      display: none;
+    }
+
+    // The menu's button and panel take their own places in the header
+    & > .mw-menu {
+      display: contents;
+    }
+
+    & .mw-menu-toggle {
+      order: 2;
+      flex: 0 0 auto;
+    }
+
+    & > .flex-component {
+      order: 3;
+      flex: 1 1 100%;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      & > :first-child {
+        flex: 1 1 auto;
+        min-width: 0;
+
+        // The search box fills the row
+        & .search,
+        & .search > button,
+        & .search-button {
+          width: 100%;
+          max-width: none;
+        }
+      }
+    }
+
+    & .mw-menu-body {
+      order: 4;
+      flex: 1 1 100%;
+      border-top: 1px solid var(--lightgray);
+      padding-top: 0.75rem;
+    }
+
+    // Nested folders: smaller steps in, so long names have room
+    & .mw-menu-sub {
+      margin-left: 0.15rem !important;
+      padding-left: 0.7rem !important;
+    }
+  }
+}
+
+// People web page: the web runs the full width, like the timeline.
+body:has(.mw-web-page) {
+  @media all and (min-width: 1200px) {
+    .page > #quartz-body {
+      grid-template-columns: 320px minmax(0, 1fr) 0;
+    }
+  }
+  .page > #quartz-body .sidebar.right {
+    display: none;
+  }
+  .page > #quartz-body .center > *:not(.page-footer),
+  .page > #quartz-body .center > .page-footer > *:not(.mw-web-page) {
+    max-width: 750px;
+  }
+  .page > #quartz-body .center > hr {
+    display: none;
+  }
+}
+
+// Timeline page: the timeline runs the full width, from the menu to the edge of the screen.
+// The right sidebar is hidden; the title and intro keep their normal reading width.
+body:has(.mw-tl2) {
+  @media all and (min-width: 1200px) {
+    .page > #quartz-body {
+      grid-template-columns: 320px minmax(0, 1fr) 0;
+    }
+  }
+  .page > #quartz-body .sidebar.right {
+    display: none;
+  }
+  .page > #quartz-body .center > *:not(.page-footer),
+  .page > #quartz-body .center > .page-footer > *:not(.mw-cal-timeline) {
+    max-width: 750px;
+  }
+  .page > #quartz-body .center > hr {
+    display: none;
+  }
+}
