@@ -475,8 +475,13 @@ export function renderWeb(root: HTMLElement, data: WebData, opts: WebOptions = {
     for (const [nid, g] of nodeEls) g.classList.toggle("mw-on", !!near?.has(nid));
     for (const { link, el: e } of linkEls) e.classList.toggle("mw-on", !!id && ((link.source as Node).id === id || (link.target as Node).id === id));
   }
+  // Leaving someone waits a moment, so moving between people doesn't flash everything back
+  let hoverTimer = 0;
   function hover(id: string | null) {
-    light(id ?? (selected ? "p:" + selected : null));
+    win.clearTimeout(hoverTimer);
+    const go = () => light(id ?? (selected ? "p:" + selected : null));
+    if (id) go();
+    else hoverTimer = win.setTimeout(go, 120);
   }
 
   function panelStart() {
@@ -787,9 +792,10 @@ export const WEB_CSS = `
 .mw-web-pill { fill: var(--w-bg); stroke-width: 2; }
 .mw-web-pill-text { font-size: 12.5px; font-weight: 600; }
 .mw-web-node:hover .mw-web-ring, .mw-web-node:focus-visible .mw-web-ring { stroke: var(--w-accent); stroke-width: 2.5; }
-.mw-web-focus .mw-web-node:not(.mw-on) { opacity: 0.15; }
+.mw-web-node, .mw-web-member, .mw-web-tie { transition: opacity 0.35s ease; }
+.mw-web-focus .mw-web-node:not(.mw-on) { opacity: 0.3; }
 .mw-web-focus .mw-web-node.mw-on { opacity: 1; }
-.mw-web-focus .mw-web-member:not(.mw-on), .mw-web-focus .mw-web-tie:not(.mw-on) { opacity: 0.06; }
+.mw-web-focus .mw-web-member:not(.mw-on), .mw-web-focus .mw-web-tie:not(.mw-on) { opacity: 0.14; }
 .mw-web-focus .mw-web-member.mw-on, .mw-web-focus .mw-web-tie.mw-on { opacity: 1; }
 .mw-web-far .mw-web-name, .mw-web-far .mw-web-tie-label { display: none; }
 .mw-web-far .mw-web-node:hover .mw-web-name, .mw-web-far .mw-web-node.mw-on .mw-web-name { display: inline; }
