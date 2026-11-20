@@ -316,21 +316,19 @@ function renderHeader({ fileData }, fm, slug, str) {
     const d = fm.game_date;
     return /* @__PURE__ */ jsxs("header", { class: "mw-header mw-home-header", children: [
       /* @__PURE__ */ jsxs("div", { children: [
-        /* @__PURE__ */ jsx("h1", { class: "article-title", children: "Welcome to Vaharan" }),
+        /* @__PURE__ */ jsx("h1", { class: "article-title", children: str("mw_welcome") ?? "Welcome" }),
         str("party_location") && /* @__PURE__ */ jsxs("p", { class: "mw-party-location", children: [
           "The party is in ",
           renderLink(slug, str("party_location"))
         ] })
       ] }),
-      d && /* @__PURE__ */ jsxs("div", { class: "mw-date-card", title: d.concord, children: [
+      d && /* @__PURE__ */ jsxs("div", { class: "mw-date-card", title: d.concord || void 0, children: [
         /* @__PURE__ */ jsx("div", { class: "mw-date-day", children: d.day }),
         /* @__PURE__ */ jsxs("div", { class: "mw-date-text", children: [
           /* @__PURE__ */ jsxs("div", { class: "mw-date-month", children: [
             d.month,
             ", ",
-            d.year,
-            " ",
-            d.era
+            `${d.year} ${d.era}`.trim()
           ] }),
           /* @__PURE__ */ jsxs("div", { class: "mw-date-other", children: [
             d.weekday,

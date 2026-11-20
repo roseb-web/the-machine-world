@@ -1,0 +1,46 @@
+// The settings a new install starts with. Anything changed in the settings screen is saved
+// in the vault and wins over these.
+import type { WikiSettings } from "./settings";
+
+export const DEFAULT_SETTINGS: WikiSettings = {
+  token: "",
+  owner: "roseb-web",
+  repo: "the-machine-world",
+  branch: "main",
+  contentPath: "content",
+  playerPagesFolder: "5. Wiki/Player Pages",
+  galleryFolder: "5. Wiki/Player Art",
+  groupTypesNote: "5. Wiki/People web groups.md",
+  defaultSection: "misc",
+  sections: [
+    { folder: "4. People/NPCs", section: "people" },
+    { folder: "4. People/PCs", section: "party" },
+    { folder: "4. People/Factions", section: "factions" },
+    { folder: "2. World & Lore/Gods", section: "gods" },
+    { folder: "2. World & Lore", section: "lore" },
+    { folder: "3. Vaharan", section: "places" },
+    { folder: "1. Campaign/Session Notes", section: "sessions" },
+    { folder: "1. Campaign", section: "quests" },
+    { folder: "Items", section: "items" },
+  ],
+  sectionTitles: {
+    people: "People",
+    party: "The party",
+    factions: "Factions",
+    gods: "Gods",
+    lore: "Lore",
+    places: "Places",
+    sessions: "Session recaps",
+    quests: "Quest log",
+    items: "Items",
+  },
+  publicCategories: ["Festivals", "Star signs", "The party"],
+  publishTimeline: false,
+  pinterestToken: "",
+  moodboardCache: {},
+  worldName: "Vaharan",
+  yearAfter: "YC",
+  yearBefore: "BL",
+  secondCalendarLabel: "the Concord's calendar",
+  secondCalendarMonths: ["Primus", "Secundus", "Tertius", "Quartus", "Quintus", "Sextus", "Septimus", "Octavus", "Nonus", "Decimus"],
+};

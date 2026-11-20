@@ -11,6 +11,8 @@
 // - A linked note that is published gives the event a link and the page a date card.
 // - Nothing dated after today (no spoilers). A long event still going loses its end date.
 
+import { Eras, NO_ERAS, SecondCalendar, yearText } from "./eras";
+
 export interface Day {
   year: number;
   month: number; // 0-based
@@ -30,7 +32,8 @@ export interface WikiEvent {
 export interface CalendarExport {
   months: string[];
   monthLengths: number[];
-  concordMonths: string[];
+  eras: Eras;
+  second?: SecondCalendar; // another set of month names, if the campaign has one
   weekdays: string[];
   firstWeekDay: number;
   seasons: string[];
@@ -40,7 +43,6 @@ export interface CalendarExport {
   events: WikiEvent[];
 }
 
-export const CONCORD_MONTHS = ["Primus", "Secundus", "Tertius", "Quartus", "Quintus", "Sextus", "Septimus", "Octavus", "Nonus", "Decimus"];
 export const SEASONS = ["Spring", "Summer", "Autumn", "Winter"];
 
 interface RawEvent {
@@ -66,6 +68,8 @@ interface RawCalendar {
 }
 
 export interface EventOptions {
+  eras?: Eras; // how years are written
+  second?: SecondCalendar; // another set of month names (optional)
   publicCategories: string[]; // category ids, e.g. ["festival", "stars", "party"]
   published: (vaultPath: string) => { to: string; title: string } | undefined;
   noteEvents: { vaultPath: string; fcDate: string; fcEnd?: string; category?: string }[]; // notes with fc-date
@@ -139,7 +143,8 @@ export function calendarExport(raw: unknown, opts: EventOptions): CalendarExport
   return {
     months: st.months.map((m) => m.name),
     monthLengths: st.months.map((m) => m.length),
-    concordMonths: CONCORD_MONTHS,
+    eras: opts.eras ?? NO_ERAS,
+    ...(opts.second?.months.length ? { second: opts.second } : {}),
     weekdays: st.weekdays.map((w) => w.name),
     firstWeekDay: st.firstWeekDay ?? 0,
     seasons: SEASONS,
@@ -150,9 +155,9 @@ export function calendarExport(raw: unknown, opts: EventOptions): CalendarExport
   };
 }
 
-// "540 BL", "100 YC"
-export function yearLabel(year: number): string {
-  return year >= 1 ? `${year} YC` : `${Math.abs(year)} BL`;
+// "540 BL", "100 YC" (with the campaign's own era names)
+export function yearLabel(year: number, eras: Eras = NO_ERAS): string {
+  return yearText(year, eras);
 }
 
 // What a page's date card says, e.g. "1 Orrimel, every year · in 28 days" or "540 BL – ongoing"
@@ -168,9 +173,9 @@ export function dateCard(e: WikiEvent, cal: CalendarExport): string {
     return next === 0 ? `${base} · today` : `${base} · in ${next} day${next === 1 ? "" : "s"}`;
   }
   const d = e.date as Day;
-  const start = d.month === 0 && d.day === 1 ? yearLabel(d.year) : `${d.day} ${cal.months[d.month]}, ${yearLabel(d.year)}`;
+  const start = d.month === 0 && d.day === 1 ? yearLabel(d.year, cal.eras) : `${d.day} ${cal.months[d.month]}, ${yearLabel(d.year, cal.eras)}`;
   if (e.ongoing) return `${start} – ongoing`;
-  if (e.end) return `${start} – ${e.end.month === 0 && e.end.day === 1 ? yearLabel(e.end.year) : `${e.end.day} ${cal.months[e.end.month]}, ${yearLabel(e.end.year)}`}`;
+  if (e.end) return `${start} – ${e.end.month === 0 && e.end.day === 1 ? yearLabel(e.end.year, cal.eras) : `${e.end.day} ${cal.months[e.end.month]}, ${yearLabel(e.end.year, cal.eras)}`}`;
   return start;
 }
 

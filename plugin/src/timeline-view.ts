@@ -104,7 +104,7 @@ export class TimelineView extends ItemView {
     }
 
     const shown = this.playerView ? all.filter((e) => !e.private) : all;
-    const base = calendarExport(data, { publicCategories: [], published: () => undefined, noteEvents: [] });
+    const base = calendarExport(data, { publicCategories: [], published: () => undefined, noteEvents: [], eras: this.plugin.eras() });
     if (!base) return;
     const used = new Set(shown.map((e) => e.category));
     renderTimeline(
@@ -137,6 +137,6 @@ export class TimelineView extends ItemView {
     if (id && cal && !ev) return; // gone since the timeline was drawn
     const wanted = new Set(this.plugin.settings.publicCategories.map((n) => n.trim().toLowerCase()));
     const pub = (cal?.calendar.categories ?? []).filter((c) => wanted.has(c.name.toLowerCase()) || wanted.has(c.id.toLowerCase())).map((c) => c.id);
-    new EventModal(this.app, ev ? (JSON.parse(JSON.stringify(ev)) as CalEvent) : null, pub, () => this.draw()).open();
+    new EventModal(this.app, ev ? (JSON.parse(JSON.stringify(ev)) as CalEvent) : null, pub, () => this.draw(), this.plugin.eras()).open();
   }
 }

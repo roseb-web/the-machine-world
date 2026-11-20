@@ -74,7 +74,7 @@ async function gitBlobSha(bytes: Uint8Array): Promise<string> {
 async function ensureFirstCommit(s: RepoSettings): Promise<void> {
   await api(s, "PUT", "/contents/README.md", {
     message: "Start the wiki",
-    content: toBase64(toBytes("# The Machine World\n\nThe player wiki for the campaign.\n")),
+    content: toBase64(toBytes("# Player wiki\n\nThe player wiki for the campaign.\n")),
     branch: s.branch,
   });
 }

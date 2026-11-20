@@ -4,12 +4,13 @@
 // - Long events (with an end, or ongoing) are bars above the line, stacked in lanes.
 // - Other events sit below the line as cards. Events too close to read merge into a numbered
 //   cluster; clicking it zooms in. Events on the same date share one card.
-// - Before 1 YC (BL) is squeezed into about 30% of the width, so recent history has room.
+// - Before year 1 (e.g. "BL") is squeezed into about 30% of the width, so recent history has room.
 //   A break mark shows where the scale changes. Each side on its own is evenly spaced.
 // - A strip along the bottom shows the whole of history, with a box for what's in view.
 // - Clicking an event shows a pop-up first; the pop-up links to the page.
 
 import type { CalendarExport, Day, WikiEvent } from "./events";
+import { NO_ERAS, yearText } from "./eras";
 
 export interface TimelineEvent extends WikiEvent {
   href?: string; // link to its page (wiki)
@@ -33,13 +34,13 @@ const VIEWS = new Map<string, [number, number]>();
 
 type Ev = TimelineEvent & { date: Day; p: number; pEnd?: number };
 
-const BREAK = 1; // 1 YC: the first lamp
+const BREAK = 1; // year 1: where the scale changes
 const BL_SHARE = 0.3; // share of the width for BL when the view covers all of history
 const MIN_SPAN = 0.4; // closest zoom, in years
 const LANE_H = 26;
 const LANE_GAP = 5;
 
-export const yearLabel = (y: number) => (y >= 1 ? `${y} YC` : `${Math.abs(y)} BL`);
+
 
 export function renderTimeline(root: HTMLElement, cal: CalendarExport & { events: TimelineEvent[] }, opts: TimelineOptions = {}) {
   const host = root as HTMLElement & { _mwTlCleanup?: () => void; _mwTlView?: [number, number] };
@@ -48,6 +49,8 @@ export function renderTimeline(root: HTMLElement, cal: CalendarExport & { events
   const doc = root.ownerDocument;
   const win = doc.defaultView ?? window;
   injectStyle(doc);
+  const eras = cal.eras ?? NO_ERAS;
+  const yearLabel = (y: number) => yearText(y, eras);
 
   const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: string) => {
     const n = doc.createElement(tag);
@@ -275,7 +278,7 @@ export function renderTimeline(root: HTMLElement, cal: CalendarExport & { events
     if (warped && X(BREAK) > 0 && X(BREAK) < W) {
       const br = el("span", "mw-tl2-break");
       br.style.left = `${X(BREAK)}px`;
-      br.title = "The scale changes here: before 1 YC is squeezed";
+      br.title = `The scale changes here: before ${yearLabel(1)} is squeezed`;
       axis.appendChild(br);
     }
 
@@ -387,7 +390,7 @@ export function renderTimeline(root: HTMLElement, cal: CalendarExport & { events
     if (warped && X(BREAK) > 0 && X(BREAK) < W) {
       const line = el("div", "mw-tl2-breakline");
       line.style.left = `${X(BREAK)}px`;
-      line.appendChild(el("span", "", "BL │ YC"));
+      line.appendChild(el("span", "", eras.before || eras.after ? `${eras.before} │ ${eras.after}`.trim() : "│ year 1"));
       line.lastElementChild!.appendChild(el("em", "", " · the scale changes here"));
       stage.appendChild(line);
     }

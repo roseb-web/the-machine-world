@@ -1,13 +1,14 @@
 // Browser code for the Calendar and Timeline pages. Runs on every page change (Quartz "nav" event).
 import { renderTimeline, TimelineEvent } from "../../../shared/timeline-render";
 import type { CalendarExport } from "../../../shared/events";
+import { NO_ERAS, yearText } from "../../../shared/eras";
 
 type Cal = CalendarExport & { events: (TimelineEvent & { href?: string })[] };
 
-const yearLabel = (y: number) => (y >= 1 ? `${y} YC` : `${Math.abs(y)} BL`);
 
 function setup(root: HTMLElement) {
   const cal: Cal = JSON.parse(root.dataset.cal || "{}");
+  const yearLabel = (y: number) => yearText(y, cal.eras ?? NO_ERAS);
   if (root.dataset.mode === "timeline") {
     // Sessions crowd the timeline, so they start switched off (the calendar shows them)
     renderTimeline(root, cal, { linkClass: "internal", startHidden: ["the party"] });
@@ -80,7 +81,7 @@ function setup(root: HTMLElement) {
     sub.className = "mw-cal-sub";
     const isNow = year === t.year && month === t.month;
     const sign = signOn(month, isNow ? t.day : 1);
-    sub.textContent = [`${cal.concordMonths[month] ?? ""} in the Concord's calendar`, seasonOf(month, 1).split(" ")[0], sign ? `Under the sign of ${sign.replace(/^.*\((.*)\).*$/, "$1")}` : ""]
+    sub.textContent = [cal.second?.months[month] ? `${cal.second.months[month]} in ${cal.second.label}` : "", seasonOf(month, 1).split(" ")[0], sign ? `Under the sign of ${sign.replace(/^.*\((.*)\).*$/, "$1")}` : ""]
       .filter(Boolean)
       .join(" · ");
     const nav = document.createElement("div");
@@ -130,7 +131,7 @@ function setup(root: HTMLElement) {
       const cell = document.createElement("div");
       cell.className = "mw-cal-day" + (no === todayNo ? " mw-cal-today" : "") + (no < todayNo ? " mw-cal-past" : "");
       const moon = moonOf(year, month, d);
-      cell.dataset.tip = `${weekdayOf(month, d)}, ${d} ${cal.months[month]} · ${d} ${cal.concordMonths[month]} · ${seasonOf(month, d)}${moon ? ` · ${moon}` : ""}`;
+      cell.dataset.tip = `${weekdayOf(month, d)}, ${d} ${cal.months[month]}${cal.second?.months[month] ? ` · ${d} ${cal.second.months[month]}` : ""} · ${seasonOf(month, d)}${moon ? ` · ${moon}` : ""}`;
       cell.tabIndex = 0;
       const num = document.createElement("div");
       num.className = "mw-cal-num";

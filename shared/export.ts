@@ -5,6 +5,7 @@ import { extractPlayerNote, renderPlayerNote, YamlTools } from "./extract";
 import type { GameDate } from "./calendar";
 import { readMap, MapData } from "./maps";
 import { calendarExport, dateCard } from "./events";
+import { Eras, NO_ERAS, SecondCalendar, yearText } from "./eras";
 import { boardKey, MoodPin } from "./pinterest";
 import { comingUp, latestSession, setProps } from "./home";
 import { cleanTies, dropLoners, GROUP_TYPES, groupId, groupName, parseRelation, WebData, WebGroup, WebPerson, WebTie } from "./web";
@@ -27,6 +28,9 @@ export interface ExportOptions {
   groupTypesNote?: string; // vault path of the note listing each group under its type (people web colours)
   sectionTitles?: Record<string, string>; // e.g. { people: "People" }, used for the section's own page
   gameDate?: GameDate | null; // today's in-game date, shown on the home page
+  worldName?: string; // e.g. "Vaharan": the home page says "Welcome to Vaharan"
+  eras?: Eras; // how years are written, e.g. "100 YC" and "540 BL"
+  secondCalendar?: SecondCalendar; // another set of month names (optional)
   // Pins fetched from Pinterest, by boardKey (see shared/pinterest.ts)
   moodboards?: Record<string, MoodPin[]>;
   // Calendarium's settings, for the Calendar (and Timeline) pages
@@ -335,10 +339,11 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
     const front = withProps.match(/^---\r?\n[\s\S]*?\r?\n---/)?.[0] ?? "";
     const body = rewriteLinks(withProps.slice(front.length), p.from);
     let header = front;
-    if (p.to === "index" && opts.gameDate) {
-      // The home page gets today's in-game date in its properties.
+    if (p.to === "index") {
+      // The home page gets its welcome heading and today's in-game date in its properties.
       const props = (header ? opts.yaml.parse(header.replace(/^---\r?\n|\r?\n---$/g, "")) : {}) as Record<string, unknown>;
-      props.game_date = opts.gameDate;
+      props.mw_welcome = opts.worldName ? `Welcome to ${opts.worldName}` : "Welcome";
+      if (opts.gameDate) props.game_date = opts.gameDate;
       header = `---\n${opts.yaml.stringify(props ?? {}).trimEnd()}\n---`;
     }
     // Moodboard: pins for the page's `pinterest` link
@@ -397,6 +402,8 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
   if (opts.calendar) {
     const cal = calendarExport(opts.calendar.data, {
       publicCategories: opts.calendar.publicCategories,
+      eras: opts.eras,
+      second: opts.secondCalendar,
       published: (vp) => byVaultPath.get(vp),
       noteEvents: prepared
         .filter((p) => typeof p.props["fc-date"] === "string")
@@ -413,11 +420,11 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
         files.push({ path: `${slug}.md`, text: `---\n${opts.yaml.stringify({ title, ...extra }).trimEnd()}\n---\n\n${body}\n` });
       };
       const t = cal.today;
-      const year = t.year >= 1 ? `${t.year} YC` : `${Math.abs(t.year)} BL`;
+      const year = yearText(t.year, opts.eras ?? NO_ERAS);
       upcoming = comingUp(cal);
       page("calendar", "Calendar", { mw_calendar: cal }, `Today is **${t.day} ${cal.months[t.month]}, ${year}**. Hover over a day to see its other names.`);
       if (opts.calendar.publishTimeline)
-        page("timeline", "Timeline", { mw_calendar: cal, mw_timeline: true }, "What the party knows of Vaharan's history. Drag to move along it, and zoom in to see more. Click an event for more.");
+        page("timeline", "Timeline", { mw_calendar: cal, mw_timeline: true }, `What the party knows of ${opts.worldName ? `${opts.worldName}'s` : "the world's"} history. Drag to move along it, and zoom in to see more. Click an event for more.`);
 
       // Date cards: a page that an event links to shows when it happens
       for (const e of cal.events) {
