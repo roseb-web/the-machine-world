@@ -12,8 +12,6 @@ player_handouts:
   - assets/pells-room-letter.png
   - assets/pells-room-circus-ticket.png
 player_artist: Wes Talbott
-player_groups:
-  - Thornwick residents
 spotify: https://open.spotify.com/track/5vkKKKq4s2KvtLSez9n7Ev?si=5fe7d62196a94079
 mw_handout_names:
   - Pell's room - Travel papers
@@ -21,11 +19,18 @@ mw_handout_names:
   - Pell's room - The miller's three daughters
   - Pell's room - Letter
   - Pell's room - Circus ticket
+mw_locked:
+  - id: 0
+    data: R4wMCXgOQU0uh5T45Uo1WxAIOBuB1ocYau+nT8hEEDjL152BAzlFynD3cnP2LVRuOg+EPUPsXqtAMxR0sJRJB8UwdLUKqFV1KRT+01DuWnG3gn+nkQQ+LK3mjR6dEplUDxu4Tq18E7zBEUUyi4zzOQuYipEd+Gc5CvBO3RLpA7/caZFbG1cyEZYZFOojgMtG5GDIJbol5s8=
+    wraps:
+      - CEp03/ryK2fFmKjVldYVn2aLvin+/uKiERQNqZnzS4z7Z4Va5xbtALvIaeE9EndPv7HcJUyAfZbHuA8h
 ---
 
 ## Overview
 
 A fast-talking tiefling with ink-stained hands. He stayed at [[places/the-marrowlands/thornwick/the-banked-fire|The Banked Fire]] as "Mr Penn". He's after Old Hand writing, and can read some of it himself.
+
+<div class="mw-lock" data-mw-lock="0"></div>
 
 ## What we know
 

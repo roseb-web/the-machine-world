@@ -4,11 +4,6 @@ photo: assets/old-corwin.png
 player_title: Gravedigger
 player_seen: "[[places/the-marrowlands/thornwick/index|Thornwick]]"
 player_artist: Vincenzo Pratticò
-player_groups:
-  - Thornwick residents
-player_relations:
-  - "[[Old Maudie]]"
-  - "[[Mother Wren]]"
 ---
 
 ## Overview

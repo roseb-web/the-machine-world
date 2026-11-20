@@ -5,12 +5,6 @@ player_title: Thornwick's chapel
 player_seen: "[[places/the-marrowlands/thornwick/index|Thornwick]]"
 player_faction: "[[factions/dolvenya|Dolvenya]]"
 player_artist: "@ToiVarg"
-player_groups:
-  - Thornwick residents
-  - "[[Dolvenya]]"
-player_relations:
-  - "[[Reeve Tomas Ashdown]]"
-  - "[[Old Corwin]]"
 ---
 
 ## Overview

@@ -36,44 +36,16 @@ mw_coming_up:
 mw_changes:
   since:
   items:
-    - to: places/the-varrow-lands/index
-      title: The Varrow Lands
-      kind: new
-      section: Places
-    - to: places/the-ostrand-reach
-      title: The Ostrand Reach
-      kind: new
-      section: Places
-    - to: places/the-mire/index
-      title: The Mire
-      kind: new
-      section: Places
-    - to: places/the-varrow-lands/varrow
-      title: Varrow
-      kind: updated
-      section: Places
-    - to: places/the-marrowlands/index
-      title: The Marrowlands
-      kind: updated
-      section: Places
-    - to: lore/calendar-and-sky
-      title: Calendar and Sky
-      kind: updated
-      section: Lore
-    - to: people/the-marrowlands/thornwick/pell
-      title: Pell
-      kind: updated
-      section: People
-    - to: people-web
-      title: People web
-      kind: new
-      section: People-web
     - to: people/the-marrowlands/thornwick/wil-carder
       title: Wil Carder
       kind: updated
       section: People
     - to: people/the-marrowlands/thornwick/reeve-tomas-ashdown
       title: Reeve Tomas Ashdown
+      kind: updated
+      section: People
+    - to: people/the-marrowlands/thornwick/pell
+      title: Pell
       kind: updated
       section: People
     - to: people/the-marrowlands/thornwick/old-corwin
@@ -108,6 +80,34 @@ mw_changes:
       title: Dunny Pratt
       kind: updated
       section: People
+    - to: places/the-varrow-lands/index
+      title: The Varrow Lands
+      kind: new
+      section: Places
+    - to: places/the-ostrand-reach
+      title: The Ostrand Reach
+      kind: new
+      section: Places
+    - to: places/the-mire/index
+      title: The Mire
+      kind: new
+      section: Places
+    - to: places/the-varrow-lands/varrow
+      title: Varrow
+      kind: updated
+      section: Places
+    - to: places/the-marrowlands/index
+      title: The Marrowlands
+      kind: updated
+      section: Places
+    - to: lore/calendar-and-sky
+      title: Calendar and Sky
+      kind: updated
+      section: Lore
+    - to: people-web
+      title: People web
+      kind: new
+      section: People-web
     - to: gallery
       title: Gallery
       kind: new
