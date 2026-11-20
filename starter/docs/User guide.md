@@ -50,8 +50,44 @@ Nothing reaches the wiki by accident. A note is only published if you mark part 
 ```
 
 - A callout titled **Overview** goes at the top of the page.
+- A **Content** callout, written `> [!player|content] The stars`, is the page's own text. It goes after the Overview, with its title as a heading, and it can hold its own headings and tables. Use it for pages that are more than "what we learned when".
 - Every other player callout goes under **What we know**. Its title becomes the label, so the session number works well.
 - When the party learns something new, add a new callout. You don't need to rewrite the old ones.
+- A `-` after the type, as in `> [!player]- Session 4`, folds the callout in Obsidian, so your notes stay tidy. It makes no difference on the wiki.
+
+### Sections for one player, or for the DM view
+
+| Callout | Who it's for |
+|---|---|
+| `> [!player]` | Everyone: on the wiki |
+| `> [!player-neri]` | Only that player (the name the party knows, in lower case) |
+| `> [!dm]` | The DM view |
+
+The one-player and DM sections are **not on the wiki yet**. They're for the online DM view, which is coming. They're separate from your own DM callouts (like `> [!danger] DM only`), which are never published anywhere.
+
+### Checking a note: Wiki preview
+
+Click the **🌐 globe** at the top right of a note (or Ctrl+P, "Wiki preview") to see it the way the wiki will show it, in the same tab. Click **Back to the note** to return.
+
+- **View as:** see the page the way one person will:
+  - **Everyone** is what's on the wiki now.
+  - **Each player** shows everyone's sections plus their own, tagged "… only".
+  - **DM** shows every wiki section, each tagged with who it's for.
+
+  Only the note's wiki sections ever show here. The rest of the note (your own notes and callouts) never goes on the wiki.
+- **Warnings** underneath: links that will turn into plain text (because their note isn't on the wiki), and names the party doesn't know. For example, if a note has `player_name: The Grey Lady`, writing "Rowan" in a wiki section gets flagged.
+
+It updates as you type, so you can keep it open in a second tab beside the note.
+
+**Edit** is the easiest way to write for the wiki:
+
+- Each section is a card: its **kind** (Overview, Content or What we know), its **heading**, and **who can see it**: Everyone, one player, or DM. A purple stripe means one player, and red means DM.
+- You type on the left and see it formatted on the right. Type `[[` to pick a note to link, then use the arrow keys and Enter, or click.
+- ↑ ↓ move a section, and ✕ deletes it. **+ Add section** adds one.
+- It saves as you type. The sections are kept **at the bottom of the note, folded**, so they're out of the way of your own notes.
+- Your other callouts (like DM only) are never touched. A player callout with another callout inside it can't be edited safely here, so it's shown locked and stays where it is.
+
+To tidy a note without editing it, use Ctrl+P, **"Tidy wiki sections"**. It moves the note's wiki sections to the bottom, folded, and changes nothing else.
 
 ### Write from the party's point of view
 

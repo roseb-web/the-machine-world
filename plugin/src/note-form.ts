@@ -6,8 +6,10 @@
 // Saves through Obsidian (processFrontMatter and vault.process), so Obsidian can stay open.
 
 import { AbstractInputSuggest, App, Modal, Notice, TFile, ToggleComponent } from "obsidian";
-import { findOverview, playerCallouts, setOverview } from "../../shared/overview";
+import { findOverview, playerCallouts } from "../../shared/overview";
+import { readSections, writeSections } from "../../shared/sections";
 import type { SectionRule } from "../../shared/export";
+import { renderHeaderCard } from "./header-card";
 
 type Kind = "person" | "place" | "faction" | "god" | "quest" | "session" | "page" | "other";
 type FieldType = "text" | "link" | "image" | "images" | "list" | "choice" | "toggle" | "url" | "section" | "date";
@@ -388,29 +390,7 @@ export class NoteForm extends Modal {
       const x = this.values[k];
       return typeof x === "string" && x.trim() ? x.trim() : undefined;
     };
-    const card = p.createDiv({ cls: "mw-nf-card" });
-    const banner = this.resolve(v("banner") ?? "", true);
-    if (banner) {
-      const b = card.createDiv({ cls: "mw-nf-banner" });
-      b.style.backgroundImage = `url("${this.app.vault.getResourcePath(banner)}")`;
-      b.style.backgroundPosition = `center ${v("banner_focus") ?? "center"}`;
-    }
-    const body = card.createDiv({ cls: "mw-nf-card-body" });
-    const photo = this.resolve(v("photo") ?? "", true);
-    const sigil = photo ? null : this.resolve(v("player_sigil") ?? "", true);
-    if (photo) body.createEl("img", { cls: "mw-nf-portrait", attr: { src: this.app.vault.getResourcePath(photo) } });
-    else if (sigil) body.createEl("img", { cls: "mw-nf-sigil", attr: { src: this.app.vault.getResourcePath(sigil) } });
-    const t = body.createDiv({ cls: "mw-nf-card-text" });
-    t.createDiv({ cls: "mw-nf-card-title", text: v("player_name") ?? this.ctx.file.basename });
-    if (v("player_say")) t.createDiv({ cls: "mw-nf-card-say", text: `Say it: ${v("player_say")}` });
-    if (v("player_title")) t.createDiv({ cls: "mw-nf-card-sub", text: v("player_title")! });
-    const chips = t.createDiv({ cls: "mw-nf-chips" });
-    const chip = (text: string, tone?: string) => chips.createSpan({ cls: `mw-nf-chip ${tone ? `mw-tone-${tone}` : ""}`, text });
-    if (v("player_faction")) chip(unlink(v("player_faction")));
-    for (const k of ["player_type", "player_species", "player_status"]) if (v(k)) chip(v(k)!);
-    for (const [k, label] of [["player_favour", "Favour"], ["player_standing", "Standing"]]) if (v(k)) chip(`${label}: ${v(k)!.toLowerCase()}`, TONE[v(k)!.toLowerCase()] ?? "mid");
-    if (v("player_seen")) t.createDiv({ cls: "mw-nf-card-seen", text: `Last seen: ${unlink(v("player_seen"))}` });
-    if (photo && v("player_artist")) t.createDiv({ cls: "mw-nf-card-sub", text: `Art: ${v("player_artist")!.replace(/^\[([^\]]+)\]\(.*\)$/, "$1")}` });
+    renderHeaderCard(p, this.app, this.ctx.file.path, this.values, v("player_name") ?? this.ctx.file.basename);
     if (this.overview.trim()) p.createDiv({ cls: "mw-nf-card-overview", text: this.overview.trim() });
     if (v("spotify")) {
       const ok = /^https:\/\/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(track|album|playlist|episode)\//.test(v("spotify")!);
@@ -473,7 +453,16 @@ export class NoteForm extends Modal {
         }
       });
     if (this.kind !== "page" && this.overview.trim() !== this.overviewOriginal.trim())
-      await app.vault.process(file, (text) => setOverview(text, this.overview));
+      // Like the Wiki preview's Edit: wiki sections are kept at the bottom of the note, folded
+      await app.vault.process(file, (text) => {
+        const sections = readSections(text).filter((x) => x.simple);
+        const ov = sections.find((x) => x.kind === "overview" && x.vis === "everyone");
+        const want = this.overview.trim();
+        if (ov && want) ov.text = want;
+        else if (ov) sections.splice(sections.indexOf(ov), 1);
+        else if (want) sections.unshift({ kind: "overview", title: "", text: want, vis: "everyone", simple: true });
+        return writeSections(text, sections);
+      });
   }
 
   onClose() {

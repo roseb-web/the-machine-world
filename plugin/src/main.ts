@@ -15,6 +15,8 @@ import type { Eras, SecondCalendar } from "../../shared/eras";
 import { TIMELINE_VIEW, TimelineView } from "./timeline-view";
 import { PeopleWebView, WEB_VIEW } from "./web-view";
 import { NoteForm } from "./note-form";
+import { readSections, writeSections } from "../../shared/sections";
+import { PREVIEW_VIEW, WikiPreviewView } from "./wiki-preview";
 import { calendarium } from "./event-modal";
 import { gameDateFrom } from "../../shared/calendar";
 
@@ -35,7 +37,42 @@ export default class MachineWorldWiki extends Plugin {
     this.addRibbonIcon("waypoints", "Open people web", () => this.openView(WEB_VIEW));
     this.addCommand({ id: "open-people-web", name: "Open people web", callback: () => this.openView(WEB_VIEW) });
 
-    // "Edit wiki details": a ✎ button at the top of every note, and a command
+    // "Wiki preview": the same tab, showing the note the way the wiki will
+    this.registerView(PREVIEW_VIEW, (leaf) => new WikiPreviewView(leaf, this));
+    this.addCommand({
+      id: "toggle-wiki-preview",
+      name: "Wiki preview (switch on or off)",
+      checkCallback: (checking) => {
+        const leaf = this.app.workspace.getMostRecentLeaf();
+        const view = leaf?.view;
+        if (view instanceof WikiPreviewView) {
+          if (!checking) view.back();
+          return true;
+        }
+        if (!(view instanceof MarkdownView) || !view.file) return false;
+        if (!checking) this.openPreview(view);
+        return true;
+      },
+    });
+    // Notes changing can change what's published, for the preview's link checks
+    this.registerEvent(this.app.vault.on("modify", (f) => this.published && f instanceof TFile && this.markPublished(f)));
+    this.registerEvent(this.app.vault.on("delete", (f) => this.published?.delete(f.path)));
+    this.registerEvent(this.app.vault.on("rename", () => (this.published = null)));
+
+    // Tidies a note: its wiki sections move to the bottom, folded. Nothing else changes.
+    this.addCommand({
+      id: "tidy-wiki-sections",
+      name: "Tidy wiki sections (move them to the bottom, folded)",
+      checkCallback: (checking) => {
+        const file = this.app.workspace.getActiveFile();
+        if (!file || file.extension !== "md") return false;
+        if (!checking)
+          this.app.vault.process(file, (text) => writeSections(text, readSections(text).filter((x) => x.simple))).then(() => new Notice("Wiki sections tidied"));
+        return true;
+      },
+    });
+
+    // "Edit wiki details": a scroll button at the top of every note, and a command
     this.addCommand({
       id: "edit-wiki-details",
       name: "Edit wiki details",
@@ -54,7 +91,8 @@ export default class MachineWorldWiki extends Plugin {
           if (!(leaf.view instanceof MarkdownView)) continue;
           const view = leaf.view as MarkdownView & { _mwEdit?: HTMLElement };
           if (view._mwEdit) continue;
-          view._mwEdit = view.addAction("pencil", "Edit wiki details", () => view.file && this.editDetails(view.file));
+          view._mwEdit = view.addAction("scroll-text", "Edit wiki details", () => view.file && this.editDetails(view.file));
+          view.addAction("globe", "Wiki preview", () => this.openPreview(view));
           this.register(() => {
             view._mwEdit?.remove();
             delete view._mwEdit;
@@ -67,6 +105,52 @@ export default class MachineWorldWiki extends Plugin {
     this.app.workspace.onLayoutReady(addButtons);
     this.registerEvent(this.app.workspace.on("layout-change", addButtons));
     this.registerEvent(this.app.workspace.on("active-leaf-change", addButtons));
+  }
+
+  openPreview(view: MarkdownView) {
+    if (!view.file) return;
+    view.leaf.setViewState({ type: PREVIEW_VIEW, state: { file: view.file.path, mode: view.getMode() } });
+  }
+
+  // Which notes are on the wiki (a player callout, or in Player Pages). Kept up to date as notes change.
+  published: Set<string> | null = null;
+  async publishedNotes(): Promise<Set<string>> {
+    if (!this.published) {
+      const set = new Set<string>();
+      for (const f of this.app.vault.getMarkdownFiles())
+        if (f.path.startsWith(this.settings.playerPagesFolder + "/") || /^>\s*\[!player\]/im.test(await this.app.vault.cachedRead(f))) set.add(f.path);
+      this.published = set;
+    }
+    return this.published;
+  }
+  private async markPublished(f: TFile) {
+    if (f.extension !== "md") return;
+    const on = f.path.startsWith(this.settings.playerPagesFolder + "/") || /^>\s*\[!player\]/im.test(await this.app.vault.cachedRead(f));
+    if (on) this.published?.add(f.path);
+    else this.published?.delete(f.path);
+  }
+  // The party's names, for per-player sections and affinity: first word of the name the party
+  // knows, in lower case ("neri"), from the notes in the "party" menu section
+  partyNames(): string[] {
+    const folders = this.settings.sections.filter((r) => r.section === "party").map((r) => r.folder + "/");
+    const names = this.app.vault
+      .getMarkdownFiles()
+      .filter((f) => folders.some((p) => f.path.startsWith(p)))
+      .map((f) => {
+        const n = this.app.metadataCache.getFileCache(f)?.frontmatter?.player_name;
+        return String(typeof n === "string" && n.trim() ? n : f.basename).split(/\s+/)[0].toLowerCase();
+      });
+    return [...new Set(names)].filter(Boolean).sort();
+  }
+
+  // Notes the party knows by another name: their own name -> player_name
+  secretNames(): Map<string, string> {
+    const out = new Map<string, string>();
+    for (const f of this.app.vault.getMarkdownFiles()) {
+      const n = this.app.metadataCache.getFileCache(f)?.frontmatter?.player_name;
+      if (typeof n === "string" && n.trim()) out.set(f.basename, n.trim());
+    }
+    return out;
   }
 
   editDetails(file: TFile) {
