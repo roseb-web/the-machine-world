@@ -114,7 +114,7 @@ var PageHeader_default = `.mw-header {
 }
 
 .mw-date-day {
-  font-family: "Fondamento", serif;
+  font-family: var(--mw-title-font, var(--headerFont));
   font-size: 2rem;
   line-height: 1;
   color: var(--dark);

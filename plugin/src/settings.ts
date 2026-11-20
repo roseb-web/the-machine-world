@@ -18,7 +18,7 @@ export interface WikiSettings {
   publishTimeline: boolean;
   pinterestToken: string; // read-only token from the Pinterest developer portal
   moodboardCache: Record<string, MoodPin[]>; // last good pins, used if Pinterest can't be reached
-  worldName: string; // e.g. "Vaharan": "Welcome to Vaharan" on the home page
+  worldName: string; // e.g. "Eldmoor": "Welcome to Eldmoor" on the home page
   yearAfter: string; // name for year 1 and after, e.g. "YC" (may be empty)
   yearBefore: string; // name for years before 1, e.g. "BL" (may be empty)
   secondCalendarLabel: string; // e.g. "the Concord's calendar" (empty: no second calendar)

@@ -266,7 +266,7 @@ class WikiSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Second calendar (optional)")
       .setDesc("If another country names the months differently. Its name, then its month names, one per line, in the same order as Calendarium's.")
-      .addText((t) => t.setPlaceholder("e.g. the Concord's calendar").setValue(s.secondCalendarLabel).onChange((v) => { s.secondCalendarLabel = v; save(); }))
+      .addText((t) => t.setPlaceholder("e.g. the old calendar").setValue(s.secondCalendarLabel).onChange((v) => { s.secondCalendarLabel = v; save(); }))
       .addTextArea((t) => t.setValue(s.secondCalendarMonths.join("\n")).onChange((v) => { s.secondCalendarMonths = v.split("\n").map((x) => x.trim()).filter(Boolean); save(); }));
     new Setting(containerEl).setName("Folders").setHeading();
     new Setting(containerEl)

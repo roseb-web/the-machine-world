@@ -14,10 +14,10 @@ export type Getter = (url: string) => Promise<{ status: number; json: unknown }>
 
 const API = "https://api.pinterest.com/v5";
 
-// Loose match for names and URL slugs: "The Machine World" ~ "the-machine-world"
+// Loose match for names and URL slugs: "My Campaign" ~ "my-campaign"
 const norm = (s: string) => decodeURIComponent(s).toLowerCase().replace(/[^a-z0-9]+/g, "");
 
-// https://www.pinterest.co.uk/rose/the-machine-world/ordo-calathis/ -> { user, board, section }
+// https://www.pinterest.co.uk/someone/my-campaign/the-old-order/ -> { user, board, section }
 export function parseBoardUrl(url: string): { user: string; board: string; section?: string } | null {
   const m = String(url)
     .trim()

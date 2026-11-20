@@ -1,0 +1,9 @@
+{
+  "id": "campaign-wiki",
+  "name": "Campaign Wiki",
+  "version": "1.0.0",
+  "minAppVersion": "1.5.0",
+  "description": "Publishes a player wiki from your campaign notes: only what the players should see.",
+  "author": "Rose",
+  "isDesktopOnly": true
+}

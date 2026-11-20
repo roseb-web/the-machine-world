@@ -278,7 +278,46 @@ plugins:
     order: 50
   - source: ./site-plugins/machine-world-components
     enabled: true
-    options: {}
+    options:
+      groups:
+        - label: Explore
+          items:
+            - title: Home
+              page: index
+            - title: Maps
+              page: maps
+            - title: Calendar
+              page: calendar
+            - title: Timeline
+              page: timeline
+            - title: Quest log
+              section: quests
+        - label: The world
+          items:
+            - title: Places
+              section: places
+            - title: People
+              section: people
+            - title: People web
+              page: people-web
+            - title: Factions
+              section: factions
+            - title: Lore
+              section: lore
+            - title: Gods
+              section: gods
+            - title: Items
+              section: items
+        - label: The party
+          items:
+            - title: The party
+              section: party
+            - title: Handouts
+              page: handouts
+            - title: Gallery
+              page: gallery
+            - title: Session recaps
+              section: sessions
     order: 50
     layout:
       position: left

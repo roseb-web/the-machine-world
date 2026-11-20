@@ -28,7 +28,7 @@ export interface ExportOptions {
   groupTypesNote?: string; // vault path of the note listing each group under its type (people web colours)
   sectionTitles?: Record<string, string>; // e.g. { people: "People" }, used for the section's own page
   gameDate?: GameDate | null; // today's in-game date, shown on the home page
-  worldName?: string; // e.g. "Vaharan": the home page says "Welcome to Vaharan"
+  worldName?: string; // e.g. "Eldmoor": the home page says "Welcome to Eldmoor"
   eras?: Eras; // how years are written, e.g. "100 YC" and "540 BL"
   secondCalendar?: SecondCalendar; // another set of month names (optional)
   // Pins fetched from Pinterest, by boardKey (see shared/pinterest.ts)
@@ -300,7 +300,7 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
 
   const notesByPath = new Map(notes.map((n) => [n.path, n]));
 
-  // Player Pages can embed map notes: ![[Vaharan - Places|Vaharan]].
+  // Player Pages can embed map notes: ![[World map - Places|World map]].
   // The embed is replaced by safe map data in the page's properties (mw_maps).
   function extractMaps(markdown: string, fromPath: string): { markdown: string; maps: MapData[] } {
     const maps: MapData[] = [];

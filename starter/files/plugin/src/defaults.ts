@@ -1,0 +1,46 @@
+// The settings a new install starts with. Anything changed in the settings screen is saved
+// in the vault and wins over these.
+import type { WikiSettings } from "./settings";
+
+export const DEFAULT_SETTINGS: WikiSettings = {
+  token: "",
+  owner: "",
+  repo: "",
+  branch: "main",
+  contentPath: "content",
+  playerPagesFolder: "Wiki/Player Pages",
+  galleryFolder: "Wiki/Player Art",
+  groupTypesNote: "Wiki/People web groups.md",
+  defaultSection: "misc",
+  sections: [
+    { folder: "People/NPCs", section: "people" },
+    { folder: "People/PCs", section: "party" },
+    { folder: "People/Factions", section: "factions" },
+    { folder: "Lore/Gods", section: "gods" },
+    { folder: "Lore", section: "lore" },
+    { folder: "Places", section: "places" },
+    { folder: "Sessions", section: "sessions" },
+    { folder: "Quests", section: "quests" },
+    { folder: "Items", section: "items" },
+  ],
+  sectionTitles: {
+    people: "People",
+    party: "The party",
+    factions: "Factions",
+    gods: "Gods",
+    lore: "Lore",
+    places: "Places",
+    sessions: "Session recaps",
+    quests: "Quest log",
+    items: "Items",
+  },
+  publicCategories: ["Festivals", "The party"],
+  publishTimeline: false,
+  pinterestToken: "",
+  moodboardCache: {},
+  worldName: "",
+  yearAfter: "",
+  yearBefore: "",
+  secondCalendarLabel: "",
+  secondCalendarMonths: [],
+};

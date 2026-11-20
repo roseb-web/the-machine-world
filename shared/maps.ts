@@ -1,5 +1,5 @@
 // Maps: turns Leaflet blocks into safe map data for the wiki.
-// A Player Pages note embeds map notes (![[Vaharan - Places|Vaharan]]).
+// A Player Pages note embeds map notes (![[World map - Places|World map]]).
 // - A party map (property party_map: true, or a note inside Player Pages) is the party's own:
 //   every pin is kept, with its description. Its descriptions must be player facing.
 // - A map note anywhere else is the DM's: only pins whose note is published are kept,
@@ -16,7 +16,7 @@ export interface MapPin {
 
 export interface MapData {
   title: string;
-  image: string; // content path, e.g. "assets/vaharan-map-final.jpg"
+  image: string; // content path, e.g. "assets/world-map.jpg"
   minZoom?: number;
   maxZoom?: number;
   defaultZoom?: number;
