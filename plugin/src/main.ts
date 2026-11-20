@@ -10,6 +10,7 @@ import { setProps, trackChanges } from "../../shared/home";
 
 const YAML = { parse: parseYaml, stringify: stringifyYaml };
 import { TIMELINE_VIEW, TimelineView } from "./timeline-view";
+import { PeopleWebView, WEB_VIEW } from "./web-view";
 import { gameDateFrom } from "../../shared/calendar";
 
 interface WikiSettings {
@@ -79,6 +80,16 @@ export default class MachineWorldWiki extends Plugin {
     this.registerView(TIMELINE_VIEW, (leaf) => new TimelineView(leaf, this));
     this.addRibbonIcon("calendar-range", "Open timeline", () => this.openTimeline());
     this.addCommand({ id: "open-timeline", name: "Open timeline", callback: () => this.openTimeline() });
+    this.registerView(WEB_VIEW, (leaf) => new PeopleWebView(leaf, this));
+    this.addRibbonIcon("waypoints", "Open people web", () => this.openView(WEB_VIEW));
+    this.addCommand({ id: "open-people-web", name: "Open people web", callback: () => this.openView(WEB_VIEW) });
+  }
+
+  async openView(type: string) {
+    const existing = this.app.workspace.getLeavesOfType(type)[0];
+    const leaf = existing ?? this.app.workspace.getLeaf("tab");
+    if (!existing) await leaf.setViewState({ type, active: true });
+    this.app.workspace.revealLeaf(leaf);
   }
 
   async openTimeline() {

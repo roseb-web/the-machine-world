@@ -61,3 +61,8 @@
 .mw-ev-buttons { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.6rem; }
 .mw-ev-spacer { flex: 1; }
 .mw-ev-suggest-path { font-size: 0.8em; color: var(--text-muted); }
+
+/* The people web view: the web fills the pane */
+.mw-web-view { padding: 0 !important; }
+.mw-web-holder { height: 100%; }
+.mw-web-holder .mw-web { border: 0; border-radius: 0; }
