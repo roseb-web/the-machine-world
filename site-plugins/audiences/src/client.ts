@@ -116,7 +116,7 @@ function openSignIn(idx: AudienceIndex) {
   const remember = el("input") as HTMLInputElement;
   remember.type = "checkbox";
   remember.checked = true;
-  label.append(remember, document.createTextNode(" Remember on this device"));
+  label.append(remember, document.createTextNode("Remember on this device"));
   const go = el("button", "mw-aud-go", "Unlock") as HTMLButtonElement;
   go.type = "submit";
   row.append(label, go);
