@@ -243,6 +243,10 @@ export class WikiPreviewView extends ItemView {
     const list = page.createDiv({ cls: "mw-wp-cards" });
     const pcs = this.plugin.partyNames();
     const draw = () => {
+      // Rebuilding the cards would jump the page back to the top: keep its height and scroll position
+      const scroller = this.contentEl;
+      const top = scroller.scrollTop;
+      list.style.minHeight = `${list.offsetHeight}px`;
       list.empty();
       this.sections.forEach((s, i) => this.card(list, s, i, pcs, draw));
       for (const s of locked) {
@@ -261,6 +265,8 @@ export class WikiPreviewView extends ItemView {
         cls: "mw-wp-hint",
         text: "Saved as you type, as folded callouts at the bottom of the note. Your other callouts (like DM only) aren't touched. Only \"Everyone\" sections go on the wiki for now.",
       });
+      list.style.minHeight = "";
+      scroller.scrollTop = top;
     };
     draw();
   }
