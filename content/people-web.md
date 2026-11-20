@@ -30,6 +30,13 @@ mw_web:
       groups:
         - thornwick residents
       open: people/the-marrowlands/thornwick/old-corwin
+    - id: people/the-marrowlands/thornwick/mrs-agnes-hesk
+      name: Mrs Agnes Hesk
+      title: Odds and Needs, the general store
+      photo: assets/pasted-image-20261022210439.png
+      groups:
+        - thornwick residents
+      open: people/the-marrowlands/thornwick/mrs-agnes-hesk
     - id: people/the-marrowlands/thornwick/mother-wren
       name: Mother Wren
       title: Thornwick's chapel
@@ -38,13 +45,6 @@ mw_web:
         - thornwick residents
         - dolvenya
       open: people/the-marrowlands/thornwick/mother-wren
-    - id: people/the-marrowlands/thornwick/mrs-agnes-hesk
-      name: Mrs Agnes Hesk
-      title: Odds and Needs, the general store
-      photo: assets/pasted-image-20261022210439.png
-      groups:
-        - thornwick residents
-      open: people/the-marrowlands/thornwick/mrs-agnes-hesk
     - id: people/the-marrowlands/thornwick/jory-banks
       name: Jory Banks
       title: Innkeeper of the Banked Fire

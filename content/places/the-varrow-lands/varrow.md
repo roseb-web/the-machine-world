@@ -1,7 +1,7 @@
 ---
 title: Varrow
 player_type: City
-player_in: The Varrow Lands
+player_in: "[[places/the-varrow-lands/index|The Varrow Lands]]"
 banner: assets/banner-varrow.jpg
 ---
 

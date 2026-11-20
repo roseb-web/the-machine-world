@@ -29,8 +29,8 @@ Twelve constellations: **old gods, heroes of legend, and great beasts long dead.
 
 | Sign        | Say it     | Means                   | Season dates | Seen best from                            | Born under it, you are...            |
 | ----------- | ---------- | ----------------------- | ------------ | ----------------------------------------- | ------------------------------------ |
-| **Servene** | ser-VEEN   | the White Stag          | Spring 1–25  | The Ostrand Reach forests             | Proud, quick, hard to catch          |
-| **Anguel**  | ANG-well   | the Great Eel           | Spring 26–50 | The Mire                              | Patient, slippery, deep              |
+| **Servene** | ser-VEEN   | the White Stag          | Spring 1–25  | [[places/the-ostrand-reach\|The Ostrand Reach]] forests             | Proud, quick, hard to catch          |
+| **Anguel**  | ANG-well   | the Great Eel           | Spring 26–50 | [[places/the-mire/index\|The Mire]]                              | Patient, slippery, deep              |
 | **Somnara** | som-NAR-a  | the Dreamer             | Spring 51–75 | Faint. Only on very dark nights, anywhere | A wanderer. Strange dreams           |
 | **Lucerna** | loo-SER-na | the Lamp                | Summer 1–25  | The coast and harbours                    | Steady. Keeps going when others stop |
 | **Balaena** | ba-LAY-na  | the Leviathan           | Summer 26–50 | Out at sea                                | Big-hearted. Big-tempered            |

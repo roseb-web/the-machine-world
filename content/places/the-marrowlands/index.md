@@ -1,6 +1,7 @@
 ---
 title: The Marrowlands
 player_type: Region
+banner: assets/banner-marrowlands.jpg
 ---
 
 ## Overview
