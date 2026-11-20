@@ -30,7 +30,7 @@ const ALLOWED_EXACT = new Set([
 ]);
 const ALLOWED_PREFIXES = ["player_", "affinity_"];
 
-function isAllowedProperty(key: string): boolean {
+export function isAllowedProperty(key: string): boolean {
   return ALLOWED_EXACT.has(key) || ALLOWED_PREFIXES.some((p) => key.startsWith(p));
 }
 

@@ -53,6 +53,16 @@ Nothing reaches the wiki by accident. A note is only published if you mark part 
 - Every other player callout goes under **What we know**. Its title becomes the label, so the session number works well.
 - When the party learns something new, add a new callout. You don't need to rewrite the old ones.
 
+### Checking a note: Wiki preview
+
+Click the **🌐 globe** at the top right of a note (or Ctrl+P, "Wiki preview") to see it the way the wiki will show it, in the same tab. Click **Back to the note** to return.
+
+- **Player view:** exactly what the players will see.
+- **Show hidden:** the whole note in order, with everything private in red dashed boxes, each with the reason. For example "normal text", "DM callout", "comment", or "properties, never published".
+- **Warnings** underneath: links that will turn into plain text (because their note isn't on the wiki), and names the party doesn't know. For example, if a note has `player_name: The Grey Lady`, writing "Rowan" in a player callout gets flagged.
+
+It updates as you type, so you can keep it open in a second tab beside the note.
+
 ### Write from the party's point of view
 
 - Use the names the party knows, and their version of events, even if it's wrong.
