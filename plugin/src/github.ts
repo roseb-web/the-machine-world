@@ -79,7 +79,14 @@ async function ensureFirstCommit(s: RepoSettings): Promise<void> {
   });
 }
 
-export async function pushWiki(s: RepoSettings, files: OutFile[], message: string): Promise<PushResult> {
+// Optional: a small file kept beside the content folder (e.g. the "New since" log).
+// `update` gets its last version (or null) and returns the new one, plus the files to publish.
+export interface Tracker {
+  path: string; // e.g. "wiki-changes.json", relative to the repo root
+  update: (previous: string | null, files: OutFile[]) => { files: OutFile[]; state: string };
+}
+
+export async function pushWiki(s: RepoSettings, files: OutFile[], message: string, tracker?: Tracker): Promise<PushResult> {
   let ref: { object: { sha: string } };
   try {
     ref = await api(s, "GET", `/git/ref/heads/${s.branch}`);
@@ -99,8 +106,24 @@ export async function pushWiki(s: RepoSettings, files: OutFile[], message: strin
 
   // Keep everything outside the content folder exactly as it is.
   const entries: TreeEntry[] = oldTree.tree
-    .filter((e) => e.type === "blob" && !e.path.startsWith(prefix))
+    .filter((e) => e.type === "blob" && !e.path.startsWith(prefix) && e.path !== tracker?.path)
     .map((e) => ({ path: e.path, mode: e.mode, type: "blob", sha: e.sha }));
+
+  if (tracker) {
+    const old = existing.get(tracker.path);
+    let previous: string | null = null;
+    if (old) {
+      const blob = await api<{ content: string }>(s, "GET", `/git/blobs/${old}`);
+      const bin = atob(blob.content.replace(/\s/g, ""));
+      previous = new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+    }
+    const result = tracker.update(previous, files);
+    files = result.files;
+    const bytes = toBytes(result.state);
+    let sha = await gitBlobSha(bytes);
+    if (old !== sha) sha = (await api<{ sha: string }>(s, "POST", "/git/blobs", { content: toBase64(bytes), encoding: "base64" })).sha;
+    entries.push({ path: tracker.path, mode: "100644", type: "blob", sha });
+  }
 
   for (const f of files) {
     const fullPath = prefix + f.path;

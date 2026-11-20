@@ -6,6 +6,7 @@ import type { GameDate } from "./calendar";
 import { readMap, MapData } from "./maps";
 import { calendarExport, dateCard } from "./events";
 import { boardKey, MoodPin } from "./pinterest";
+import { comingUp, latestSession, setProps } from "./home";
 
 export interface VaultNote {
   path: string; // vault path, e.g. "4. People/NPCs/Pell.md"
@@ -371,6 +372,7 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
   }
 
   // Calendar and Timeline: built from Calendarium, plus published notes with fc-date
+  let upcoming: ReturnType<typeof comingUp> = [];
   if (opts.calendar) {
     const cal = calendarExport(opts.calendar.data, {
       publicCategories: opts.calendar.publicCategories,
@@ -391,9 +393,10 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
       };
       const t = cal.today;
       const year = t.year >= 1 ? `${t.year} YC` : `${Math.abs(t.year)} BL`;
+      upcoming = comingUp(cal);
       page("calendar", "Calendar", { mw_calendar: cal }, `Today is **${t.day} ${cal.months[t.month]}, ${year}**. Hover over a day to see its other names.`);
       if (opts.calendar.publishTimeline)
-        page("timeline", "Timeline", { mw_calendar: cal, mw_timeline: true }, "What the party knows of Vaharan's history, in years. Long events are bars down the side. Click a category to hide or show it.");
+        page("timeline", "Timeline", { mw_calendar: cal, mw_timeline: true }, "What the party knows of Vaharan's history. Drag to move along it, and zoom in to see more. Click an event for more.");
 
       // Date cards: a page that an event links to shows when it happens
       for (const e of cal.events) {
@@ -421,6 +424,13 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
     if (title) folderPage(section, title);
   }
   for (const [path, title] of folderPages) folderPage(path, title);
+
+  // Home page: the newest session recap, and what's coming up in the calendar
+  const homePage = files.find((f) => f.path === "index.md" && f.text);
+  if (homePage) {
+    const last = latestSession(files, opts.yaml);
+    setProps(homePage, { ...(last ? { mw_last_session: last } : {}), ...(upcoming.length ? { mw_coming_up: upcoming } : {}) }, opts.yaml);
+  }
 
   return {
     files,
