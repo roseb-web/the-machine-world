@@ -19,6 +19,7 @@ interface WikiSettings {
   branch: string;
   contentPath: string;
   playerPagesFolder: string;
+  galleryFolder: string; // one note per picture of player art
   defaultSection: string;
   sections: SectionRule[];
   sectionTitles: Record<string, string>;
@@ -35,6 +36,7 @@ const DEFAULT_SETTINGS: WikiSettings = {
   branch: "main",
   contentPath: "content",
   playerPagesFolder: "5. Wiki/Player Pages",
+  galleryFolder: "5. Wiki/Player Art",
   defaultSection: "misc",
   sections: [
     { folder: "4. People/NPCs", section: "people" },
@@ -174,6 +176,7 @@ export default class MachineWorldWiki extends Plugin {
       sections: this.settings.sections,
       defaultSection: this.settings.defaultSection,
       playerPagesFolder: this.settings.playerPagesFolder,
+      galleryFolder: this.settings.galleryFolder || undefined,
       sectionTitles: { ...DEFAULT_SETTINGS.sectionTitles, ...this.settings.sectionTitles },
       resolveLink: (link, from) => this.app.metadataCache.getFirstLinkpathDest(link, from)?.path ?? null,
       yaml: { parse: parseYaml, stringify: stringifyYaml },
@@ -282,6 +285,10 @@ class WikiSettingTab extends PluginSettingTab {
       .setName("Player Pages folder")
       .setDesc("Notes in here are published whole. Never put secrets in it.")
       .addText((t) => t.setValue(s.playerPagesFolder).onChange((v) => { s.playerPagesFolder = v.trim(); save(); }));
+    new Setting(containerEl)
+      .setName("Player art folder")
+      .setDesc("One note per picture, for the Gallery page. Everything in these notes is published.")
+      .addText((t) => t.setValue(s.galleryFolder).onChange((v) => { s.galleryFolder = v.trim(); save(); }));
     new Setting(containerEl)
       .setName("Menu sections")
       .setDesc("One per line: vault folder = wiki section. The longest matching folder wins.")

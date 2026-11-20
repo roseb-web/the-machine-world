@@ -22,6 +22,7 @@ export interface ExportOptions {
   sections: SectionRule[];
   defaultSection: string;
   playerPagesFolder: string; // notes here are published whole
+  galleryFolder?: string; // one note per picture of player art; becomes the Gallery page
   sectionTitles?: Record<string, string>; // e.g. { people: "People" }, used for the section's own page
   gameDate?: GameDate | null; // today's in-game date, shown on the home page
   // Pins fetched from Pinterest, by boardKey (see shared/pinterest.ts)
@@ -353,6 +354,16 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
     }
     files.push({ path: `${p.to}.md`, text: header + body });
   }
+  // Gallery: one note per picture in the gallery folder. Their properties are published as they are.
+  if (opts.galleryFolder) {
+    const items = gallery(notes, opts, byVaultPath, imageTarget);
+    if (items.length && !files.some((f) => f.path === "gallery.md"))
+      files.push({
+        path: "gallery.md",
+        text: `---\n${opts.yaml.stringify({ title: "Gallery", mw_gallery: items }).trimEnd()}\n---\n\nArt by the party. Click a picture to see it full size.\n`,
+      });
+  }
+
   for (const [vaultPath, contentPath] of images) files.push({ path: contentPath, copyFrom: vaultPath });
 
   // Home page: if it names where the party is, it uses that place's banner.
@@ -436,4 +447,62 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
     files,
     published: prepared.map((p) => ({ from: p.from, to: p.to, title: p.title })),
   };
+}
+
+// ---- Gallery ----
+export interface GalleryRef {
+  name: string;
+  to?: string; // the wiki page, if it's published
+}
+export interface GalleryItem {
+  img: string;
+  description?: string;
+  artist?: string;
+  date?: string; // YYYY-MM-DD, real-world
+  sessions: GalleryRef[];
+  characters: GalleryRef[];
+}
+
+function gallery(
+  notes: VaultNote[],
+  opts: ExportOptions,
+  byVaultPath: Map<string, { to: string; title: string }>,
+  imageTarget: (vaultPath: string) => string,
+): GalleryItem[] {
+  const folder = opts.galleryFolder!.replace(/\/+$/, "") + "/";
+  const items: GalleryItem[] = [];
+  const text = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : undefined);
+  // A link or plain name. Unpublished pages show as text: their alias if given, otherwise the name written.
+  const refs = (v: unknown, from: string): GalleryRef[] =>
+    (Array.isArray(v) ? v : v === undefined || v === null ? [] : [v])
+      .map((x) => String(x).trim())
+      .filter(Boolean)
+      .map((x) => {
+        const m = x.match(/^\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|([^\]]+))?\]\]$/);
+        if (!m) return { name: x };
+        const resolved = opts.resolveLink(m[1], from);
+        const page = resolved ? byVaultPath.get(resolved) : undefined;
+        return page ? { name: m[2] ?? page.title, to: page.to } : { name: m[2] ?? m[1].split("/").pop()! };
+      });
+  for (const n of notes) {
+    if (!n.path.startsWith(folder) || !n.path.endsWith(".md")) continue;
+    const m = n.text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    const props = (m ? opts.yaml.parse(m[1]) ?? {} : {}) as Record<string, unknown>;
+    // The picture: the `image` property, or else the first picture embedded in the note
+    const raw = text(props.image) ?? n.text.slice(m ? m[0].length : 0).match(/!\[\[([^\]]+)\]\]/)?.[1];
+    const link = raw?.replace(/^!?\[\[|\]\]$/g, "").split("|")[0];
+    const resolved = link ? opts.resolveLink(link, n.path) : null;
+    if (!resolved || !/\.(png|jpe?g|gif|webp|svg|avif)$/i.test(resolved)) continue;
+    const d = props.date as unknown;
+    const date = d instanceof Date ? d.toISOString().slice(0, 10) : text(d)?.slice(0, 10);
+    items.push({
+      img: imageTarget(resolved),
+      ...(text(props.description) ? { description: text(props.description) } : {}),
+      ...(text(props.artist) ? { artist: text(props.artist) } : {}),
+      ...(date ? { date } : {}),
+      sessions: refs(props.session, n.path),
+      characters: refs(props.character, n.path),
+    });
+  }
+  return items.sort((a, b) => (b.date ?? "").localeCompare(a.date ?? "") || (a.description ?? "").localeCompare(b.description ?? ""));
 }

@@ -439,6 +439,181 @@ body:has(.mw-landing) .center > hr {
     font-size: 0.7rem;
   }
 }
+
+/* Gallery: player art */
+.mw-gallery-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.6rem 0.8rem;
+  margin: 0.5rem 0 1.1rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 10px;
+}
+
+.mw-gallery-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+
+.mw-gallery-filters select {
+  min-width: 9.5rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 6px;
+  background: var(--light);
+  color: var(--dark);
+  font: inherit;
+  font-size: 0.9rem;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.mw-gallery-clear {
+  padding: 0.3rem 0.2rem;
+  border: none;
+  background: none;
+  color: var(--secondary);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.mw-gallery-count {
+  margin-left: auto;
+  padding-bottom: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--gray);
+}
+
+/* Before the browser lays it out (or without JavaScript): plain columns */
+.mw-gallery-grid {
+  columns: 210px;
+  column-gap: 14px;
+}
+
+.mw-gallery-grid.mw-masonry {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  columns: auto;
+}
+
+.mw-gcol {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+figure.mw-gcard {
+  margin: 0 0 14px;
+  break-inside: avoid;
+  overflow: hidden;
+  border: 1px solid var(--lightgray);
+  border-radius: 10px;
+}
+
+.mw-masonry figure.mw-gcard {
+  margin: 0 0 14px;
+}
+
+.mw-gcard[hidden] {
+  display: none;
+}
+
+a.mw-gcard-img {
+  display: block;
+  padding: 0;
+  background: none;
+  line-height: 0;
+}
+
+/* The site skips drawing off-screen images (content-visibility: auto), which makes them
+   measure as 0px tall. The masonry needs their real height. */
+.mw-gcard-img img {
+  content-visibility: visible;
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 !important;
+  border-radius: 0;
+}
+
+.mw-gcard figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.55rem 0.7rem 0.65rem;
+}
+
+.mw-gcard-desc {
+  line-height: 1.35;
+}
+
+.mw-gcard-by {
+  font-size: 0.85rem;
+  color: var(--secondary);
+}
+
+.mw-gcard-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.mw-gchip {
+  padding: 0.05rem 0.5rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 999px;
+  background: none;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--darkgray);
+  text-decoration: none;
+}
+
+a.internal.mw-gchip {
+  padding: 0.05rem 0.5rem;
+  background: none;
+  font-weight: 400;
+}
+
+.mw-gchip-char {
+  border-color: color-mix(in srgb, var(--secondary) 45%, transparent);
+  color: color-mix(in srgb, var(--secondary) 75%, var(--darkgray));
+}
+
+.mw-gcard-date {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: var(--gray);
+}
+
+@media (max-width: 600px) {
+  .mw-gallery-filters label {
+    flex: 1 1 40%;
+  }
+  .mw-gallery-filters select {
+    min-width: 0;
+    width: 100%;
+  }
+  .mw-gallery-grid.mw-masonry {
+    gap: 8px;
+  }
+  .mw-masonry figure.mw-gcard {
+    margin-bottom: 8px;
+  }
+  .mw-gcard figcaption {
+    padding: 0.4rem 0.5rem 0.5rem;
+    font-size: 0.85rem;
+  }
+}
 `;
 
 // src/components/Related.tsx
@@ -507,6 +682,65 @@ function Landing({ slug, root, href, allFiles }) {
     ] }))
   ] });
 }
+var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+var niceDate = (d) => {
+  const m = d?.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return m ? `${Number(m[3])} ${MONTHS[Number(m[2]) - 1]} ${m[1]}` : d;
+};
+function Gallery({ items, root, href }) {
+  const uniq = (xs) => [...new Set(xs.filter(Boolean))];
+  const artists = uniq(items.map((i) => i.artist ?? "")).sort((a, b) => a.localeCompare(b));
+  const chars = uniq(items.flatMap((i) => (i.characters ?? []).map((c) => c.name))).sort((a, b) => a.localeCompare(b));
+  const sessions = uniq(items.flatMap((i) => (i.sessions ?? []).map((c) => c.name))).sort(
+    (a, b) => a.localeCompare(b, void 0, { numeric: true })
+  );
+  const pick = (label, key, all, opts) => /* @__PURE__ */ jsxs("label", { children: [
+    label,
+    /* @__PURE__ */ jsxs("select", { "data-filter": key, children: [
+      /* @__PURE__ */ jsx("option", { value: "", children: all }),
+      opts.map((o) => /* @__PURE__ */ jsx("option", { value: o, children: o }))
+    ] })
+  ] });
+  const chip = (r, cls) => r.to ? /* @__PURE__ */ jsx("a", { href: href(r.to), class: `internal mw-gchip ${cls}`, children: r.name }) : /* @__PURE__ */ jsx("span", { class: `mw-gchip ${cls}`, children: r.name });
+  return /* @__PURE__ */ jsxs("div", { class: "mw-gallery", children: [
+    /* @__PURE__ */ jsxs("div", { class: "mw-gallery-filters", children: [
+      pick("Artist", "artist", "Everyone", artists),
+      pick("Character", "character", "Everyone", chars),
+      pick("Session", "session", "All sessions", sessions),
+      /* @__PURE__ */ jsx("button", { type: "button", class: "mw-gallery-clear", children: "Clear" }),
+      /* @__PURE__ */ jsxs("span", { class: "mw-gallery-count", children: [
+        items.length,
+        " ",
+        items.length === 1 ? "picture" : "pictures"
+      ] })
+    ] }),
+    /* @__PURE__ */ jsx("div", { class: "mw-gallery-grid", children: items.map((it) => /* @__PURE__ */ jsxs(
+      "figure",
+      {
+        class: "mw-gcard",
+        "data-artist": it.artist ?? "",
+        "data-character": (it.characters ?? []).map((c) => c.name).join("\n"),
+        "data-session": (it.sessions ?? []).map((c) => c.name).join("\n"),
+        children: [
+          /* @__PURE__ */ jsx("a", { href: `${root}/${it.img}`, target: "_blank", rel: "noopener", class: "mw-gcard-img", children: /* @__PURE__ */ jsx("img", { src: `${root}/${it.img}`, alt: it.description ?? "Player art" }) }),
+          /* @__PURE__ */ jsxs("figcaption", { children: [
+            it.description && /* @__PURE__ */ jsx("span", { class: "mw-gcard-desc", children: it.description }),
+            it.artist && /* @__PURE__ */ jsxs("span", { class: "mw-gcard-by", children: [
+              "by ",
+              it.artist
+            ] }),
+            /* @__PURE__ */ jsxs("span", { class: "mw-gcard-meta", children: [
+              (it.characters ?? []).map((c) => chip(c, "mw-gchip-char")),
+              (it.sessions ?? []).map((c) => chip(c, "")),
+              it.date && /* @__PURE__ */ jsx("span", { class: "mw-gcard-date", children: niceDate(it.date) })
+            ] })
+          ] })
+        ]
+      }
+    )) }),
+    /* @__PURE__ */ jsx("p", { class: "mw-gallery-none", hidden: true, children: "No pictures match. Try another filter." })
+  ] });
+}
 var Related_default2 = (() => {
   const Related = ({ fileData, allFiles }) => {
     const slug = String(fileData.slug ?? "");
@@ -516,6 +750,7 @@ var Related_default2 = (() => {
     const href = (target) => resolveRelative(slug, target);
     const pages = allFiles.filter(isPage);
     if (fm.mw_folder === true) return /* @__PURE__ */ jsx(Landing, { slug, root, href, allFiles });
+    if (Array.isArray(fm.mw_gallery)) return /* @__PURE__ */ jsx(Gallery, { items: fm.mw_gallery, root, href });
     const ownLinks = new Set((fileData.links ?? []).map(String));
     const affinity = Object.keys(fm).filter((key) => key.startsWith("affinity_") && typeof fm[key] === "string" && fm[key]).map((key) => [key, key.slice(9).charAt(0).toUpperCase() + key.slice(10)]);
     const npcs = pages.filter(
@@ -624,6 +859,75 @@ document.addEventListener("nav", () => {
       fig.appendChild(cap)
     }
   }
+})
+
+// Gallery: masonry columns (each picture goes in the shortest column, newest first) and filters
+document.addEventListener("nav", () => {
+  const root = document.querySelector(".mw-gallery")
+  if (!root || root.dataset.mwDone) return
+  root.dataset.mwDone = "1"
+  const grid = root.querySelector(".mw-gallery-grid")
+  const cards = [...root.querySelectorAll(".mw-gcard")]
+  const selects = [...root.querySelectorAll("select[data-filter]")]
+  const count = root.querySelector(".mw-gallery-count")
+  const none = root.querySelector(".mw-gallery-none")
+  let lastWidth = 0
+  const layout = () => {
+    const shown = cards.filter((c) => !c.hidden)
+    const n = Math.max(2, Math.floor(grid.clientWidth / 215))
+    for (const c of cards) grid.appendChild(c)
+    grid.querySelectorAll(".mw-gcol").forEach((c) => c.remove())
+    const cols = Array.from({ length: n }, () => {
+      const d = document.createElement("div")
+      d.className = "mw-gcol"
+      grid.appendChild(d)
+      return { d, h: 0 }
+    })
+    for (const c of shown) {
+      const col = cols.reduce((a, b) => (b.h < a.h - 1 ? b : a))
+      col.d.appendChild(c)
+      col.h += c.offsetHeight + 14
+    }
+    grid.classList.add("mw-masonry")
+    lastWidth = grid.clientWidth
+  }
+  const filter = () => {
+    const want = Object.fromEntries(selects.map((s) => [s.dataset.filter, s.value]))
+    let n = 0
+    for (const c of cards) {
+      const ok = Object.entries(want).every(([k, v]) => !v || (c.dataset[k] || "").split("\\n").includes(v))
+      c.hidden = !ok
+      if (ok) n++
+    }
+    count.textContent = n + (n === 1 ? " picture" : " pictures")
+    none.hidden = n > 0
+    layout()
+  }
+  selects.forEach((s) => s.addEventListener("change", filter))
+  root.querySelector(".mw-gallery-clear").addEventListener("click", () => {
+    selects.forEach((s) => (s.value = ""))
+    filter()
+  })
+  let queued = false
+  const relayout = () => {
+    if (queued) return
+    queued = true
+    requestAnimationFrame(() => {
+      queued = false
+      layout()
+    })
+  }
+  for (const img of root.querySelectorAll("img")) {
+    img.loading = "eager"
+    if (!img.complete) {
+      img.addEventListener("load", relayout)
+      img.addEventListener("error", relayout)
+    }
+  }
+  const ro = new ResizeObserver(() => Math.abs(grid.clientWidth - lastWidth) > 4 && relayout())
+  ro.observe(grid)
+  window.addCleanup?.(() => ro.disconnect())
+  layout()
 })
 `;
   return Related;
