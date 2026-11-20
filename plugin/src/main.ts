@@ -21,6 +21,7 @@ interface WikiSettings {
   contentPath: string;
   playerPagesFolder: string;
   galleryFolder: string; // one note per picture of player art
+  groupTypesNote: string; // the people web's group types
   defaultSection: string;
   sections: SectionRule[];
   sectionTitles: Record<string, string>;
@@ -38,6 +39,7 @@ const DEFAULT_SETTINGS: WikiSettings = {
   contentPath: "content",
   playerPagesFolder: "5. Wiki/Player Pages",
   galleryFolder: "5. Wiki/Player Art",
+  groupTypesNote: "5. Wiki/People web groups.md",
   defaultSection: "misc",
   sections: [
     { folder: "4. People/NPCs", section: "people" },
@@ -300,6 +302,10 @@ class WikiSettingTab extends PluginSettingTab {
       .setName("Player art folder")
       .setDesc("One note per picture, for the Gallery page. Everything in these notes is published.")
       .addText((t) => t.setValue(s.galleryFolder).onChange((v) => { s.galleryFolder = v.trim(); save(); }));
+    new Setting(containerEl)
+      .setName("People web groups note")
+      .setDesc("Lists each group under its type (location, collective, religion, government), for the people web's colours.")
+      .addText((t) => t.setValue(s.groupTypesNote).onChange((v) => { s.groupTypesNote = v.trim(); save(); }));
     new Setting(containerEl)
       .setName("Menu sections")
       .setDesc("One per line: vault folder = wiki section. The longest matching folder wins.")

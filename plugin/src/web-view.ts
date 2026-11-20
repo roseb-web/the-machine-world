@@ -6,7 +6,7 @@
 
 import { debounce, ItemView, TFile, WorkspaceLeaf } from "obsidian";
 import { renderWeb } from "../../shared/web-render";
-import { areaOf, cleanTies, groupId, groupName, parseRelation, WebData, WebGroup, WebPerson, WebTie } from "../../shared/web";
+import { cleanTies, GROUP_TYPES, groupId, groupName, parseRelation, WebData, WebGroup, WebPerson, WebTie } from "../../shared/web";
 import type MachineWorldWiki from "./main";
 
 export const WEB_VIEW = "machine-world-people-web";
@@ -18,7 +18,6 @@ const tagsOf = (fm: FM) =>
     .flatMap((t) => String(t).split(/[\s,]+/))
     .map((t) => t.replace(/^#/, "").toLowerCase())
     .filter(Boolean);
-const firstLink = (v: unknown) => String(list(v)[0] ?? "").match(/\[\[([^\]|#]+)/)?.[1];
 
 export class PeopleWebView extends ItemView {
   private playerView = false;
@@ -43,6 +42,7 @@ export class PeopleWebView extends ItemView {
     // Notes changed (a new tie, a new group): draw again, keeping where people are
     this.registerEvent(this.app.metadataCache.on("changed", (file) => {
       const fm = this.app.metadataCache.getFileCache(file)?.frontmatter;
+      if (file.path === this.plugin.settings.groupTypesNote) return this.redraw();
       if (fm && (fm.groups || fm.relations || fm.player_groups || fm.player_relations)) this.redraw();
     }));
   }
@@ -81,14 +81,17 @@ export class PeopleWebView extends ItemView {
     const fmOf = (f: TFile) => (metadataCache.getFileCache(f)?.frontmatter ?? {}) as FM;
     const resolve = (link: string, from: string) => metadataCache.getFirstLinkpathDest(link, from);
 
-    // Places: for working out which town someone is in
-    const placeInfo = (name: string) => {
-      const f = resolve(name, "");
-      if (!f) return undefined;
-      const fm = fmOf(f);
-      const inn = fm.player_in;
-      return { type: typeof fm.player_type === "string" ? fm.player_type : undefined, in: firstLink(inn) ?? (typeof inn === "string" && inn.trim() ? inn.trim() : undefined) };
-    };
+    // Group types: one list per type in the groups note
+    const types = new Map<string, string>();
+    const typesFile = vault.getAbstractFileByPath(this.plugin.settings.groupTypesNote);
+    if (typesFile instanceof TFile) {
+      const fm = fmOf(typesFile);
+      for (const type of Object.keys(GROUP_TYPES))
+        for (const raw of list(fm[type])) {
+          const name = groupName(raw);
+          if (name) types.set(groupId(name), type);
+        }
+    }
 
     const people: WebPerson[] = [];
     const rawTies: { from: TFile; rel: ReturnType<typeof parseRelation> }[] = [];
@@ -119,7 +122,7 @@ export class PeopleWebView extends ItemView {
         if (!groups.has(id)) {
           const link = String(raw).match(/^\[\[([^\]|#]+)/)?.[1];
           const note = link ? resolve(link, f.path) : null;
-          groups.set(id, { id, name: gname, ...(id === "the party" ? { party: true } : {}), ...(note ? { open: note.path } : {}) });
+          groups.set(id, { id, name: gname, ...(id === "the party" ? { party: true } : {}), ...(note ? { open: note.path } : {}), ...(types.has(id) ? { type: types.get(id) } : {}) });
         }
         if (!gs.includes(id)) gs.push(id);
       }
@@ -130,7 +133,6 @@ export class PeopleWebView extends ItemView {
         ...(photoFile instanceof TFile ? { photo: vault.getResourcePath(photoFile) } : {}),
         ...(pc ? { pc: true } : {}),
         groups: gs,
-        ...(areaOf(firstLink(fm.where_now), placeInfo) ? { area: areaOf(firstLink(fm.where_now), placeInfo) } : {}),
         open: f.path,
       });
       for (const r of list(fm[rKey])) rawTies.push({ from: f, rel: parseRelation(r) });

@@ -22,7 +22,16 @@ export interface WebGroup {
   name: string;
   party?: boolean;
   open?: string;
+  type?: string; // location, collective, religion, government
 }
+
+// Group lines are coloured by the group's type
+export const GROUP_TYPES: Record<string, string> = {
+  location: "#4e7a5c",
+  collective: "#4f6d8f",
+  religion: "#7a5c99",
+  government: "#9b3b2e",
+};
 
 export interface WebTie {
   a: string; // person ids
