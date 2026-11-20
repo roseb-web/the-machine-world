@@ -23,6 +23,7 @@ var defaultOptions = {
       items: [
         { title: "Places", section: "places" },
         { title: "People", section: "people" },
+        { title: "People web", page: "people-web" },
         { title: "Factions", section: "factions" },
         { title: "Lore", section: "lore" },
         { title: "Gods", section: "gods" },

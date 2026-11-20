@@ -318,6 +318,13 @@ plugins:
     layout:
       position: afterBody
       priority: 20
+  - source: ./site-plugins/people-web
+    enabled: true
+    options: {}
+    order: 50
+    layout:
+      position: afterBody
+      priority: 20
 layout:
   sidebars:
     left: scroll

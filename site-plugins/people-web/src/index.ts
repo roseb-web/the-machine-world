@@ -1,0 +1,1 @@
+export { PeopleWebPage } from "./components"
