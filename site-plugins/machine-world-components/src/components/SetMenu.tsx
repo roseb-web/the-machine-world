@@ -48,6 +48,7 @@ const defaultOptions: SetMenuOptions = {
       items: [
         { title: "The party", section: "party" },
         { title: "Handouts", page: "handouts" },
+        { title: "Gallery", page: "gallery" },
         { title: "Session recaps", section: "sessions" },
       ],
     },

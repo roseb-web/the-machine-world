@@ -435,3 +435,178 @@ body:has(.mw-landing) .center > hr {
     font-size: 0.7rem;
   }
 }
+
+/* Gallery: player art */
+.mw-gallery-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.6rem 0.8rem;
+  margin: 0.5rem 0 1.1rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 10px;
+}
+
+.mw-gallery-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+
+.mw-gallery-filters select {
+  min-width: 9.5rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 6px;
+  background: var(--light);
+  color: var(--dark);
+  font: inherit;
+  font-size: 0.9rem;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.mw-gallery-clear {
+  padding: 0.3rem 0.2rem;
+  border: none;
+  background: none;
+  color: var(--secondary);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.mw-gallery-count {
+  margin-left: auto;
+  padding-bottom: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--gray);
+}
+
+/* Before the browser lays it out (or without JavaScript): plain columns */
+.mw-gallery-grid {
+  columns: 210px;
+  column-gap: 14px;
+}
+
+.mw-gallery-grid.mw-masonry {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  columns: auto;
+}
+
+.mw-gcol {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+figure.mw-gcard {
+  margin: 0 0 14px;
+  break-inside: avoid;
+  overflow: hidden;
+  border: 1px solid var(--lightgray);
+  border-radius: 10px;
+}
+
+.mw-masonry figure.mw-gcard {
+  margin: 0 0 14px;
+}
+
+.mw-gcard[hidden] {
+  display: none;
+}
+
+a.mw-gcard-img {
+  display: block;
+  padding: 0;
+  background: none;
+  line-height: 0;
+}
+
+/* The site skips drawing off-screen images (content-visibility: auto), which makes them
+   measure as 0px tall. The masonry needs their real height. */
+.mw-gcard-img img {
+  content-visibility: visible;
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 !important;
+  border-radius: 0;
+}
+
+.mw-gcard figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.55rem 0.7rem 0.65rem;
+}
+
+.mw-gcard-desc {
+  line-height: 1.35;
+}
+
+.mw-gcard-by {
+  font-size: 0.85rem;
+  color: var(--secondary);
+}
+
+.mw-gcard-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.mw-gchip {
+  padding: 0.05rem 0.5rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 999px;
+  background: none;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--darkgray);
+  text-decoration: none;
+}
+
+a.internal.mw-gchip {
+  padding: 0.05rem 0.5rem;
+  background: none;
+  font-weight: 400;
+}
+
+.mw-gchip-char {
+  border-color: color-mix(in srgb, var(--secondary) 45%, transparent);
+  color: color-mix(in srgb, var(--secondary) 75%, var(--darkgray));
+}
+
+.mw-gcard-date {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: var(--gray);
+}
+
+@media (max-width: 600px) {
+  .mw-gallery-filters label {
+    flex: 1 1 40%;
+  }
+  .mw-gallery-filters select {
+    min-width: 0;
+    width: 100%;
+  }
+  .mw-gallery-grid.mw-masonry {
+    gap: 8px;
+  }
+  .mw-masonry figure.mw-gcard {
+    margin-bottom: 8px;
+  }
+  .mw-gcard figcaption {
+    padding: 0.4rem 0.5rem 0.5rem;
+    font-size: 0.85rem;
+  }
+}

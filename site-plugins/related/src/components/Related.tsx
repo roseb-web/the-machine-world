@@ -115,6 +115,95 @@ function Landing({ slug, root, href, allFiles }: { slug: string; root: string; h
   )
 }
 
+// Gallery page: player art, newest first, with filters for artist, character and session.
+// The masonry layout and the filters are done in the browser (see afterDOMLoaded below).
+interface GRef {
+  name: string
+  to?: string
+}
+interface GItem {
+  img: string
+  description?: string
+  artist?: string
+  date?: string
+  sessions?: GRef[]
+  characters?: GRef[]
+}
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+const niceDate = (d?: string) => {
+  const m = d?.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  return m ? `${Number(m[3])} ${MONTHS[Number(m[2]) - 1]} ${m[1]}` : d
+}
+
+function Gallery({ items, root, href }: { items: GItem[]; root: string; href: (t: string) => string }) {
+  const uniq = (xs: string[]) => [...new Set(xs.filter(Boolean))]
+  const artists = uniq(items.map((i) => i.artist ?? "")).sort((a, b) => a.localeCompare(b))
+  const chars = uniq(items.flatMap((i) => (i.characters ?? []).map((c) => c.name))).sort((a, b) => a.localeCompare(b))
+  const sessions = uniq(items.flatMap((i) => (i.sessions ?? []).map((c) => c.name))).sort((a, b) =>
+    a.localeCompare(b, undefined, { numeric: true }),
+  )
+  const pick = (label: string, key: string, all: string, opts: string[]) => (
+    <label>
+      {label}
+      <select data-filter={key}>
+        <option value="">{all}</option>
+        {opts.map((o) => (
+          <option value={o}>{o}</option>
+        ))}
+      </select>
+    </label>
+  )
+  const chip = (r: GRef, cls: string) =>
+    r.to ? (
+      <a href={href(r.to)} class={`internal mw-gchip ${cls}`}>
+        {r.name}
+      </a>
+    ) : (
+      <span class={`mw-gchip ${cls}`}>{r.name}</span>
+    )
+  return (
+    <div class="mw-gallery">
+      <div class="mw-gallery-filters">
+        {pick("Artist", "artist", "Everyone", artists)}
+        {pick("Character", "character", "Everyone", chars)}
+        {pick("Session", "session", "All sessions", sessions)}
+        <button type="button" class="mw-gallery-clear">
+          Clear
+        </button>
+        <span class="mw-gallery-count">
+          {items.length} {items.length === 1 ? "picture" : "pictures"}
+        </span>
+      </div>
+      <div class="mw-gallery-grid">
+        {items.map((it) => (
+          <figure
+            class="mw-gcard"
+            data-artist={it.artist ?? ""}
+            data-character={(it.characters ?? []).map((c) => c.name).join("\n")}
+            data-session={(it.sessions ?? []).map((c) => c.name).join("\n")}
+          >
+            <a href={`${root}/${it.img}`} target="_blank" rel="noopener" class="mw-gcard-img">
+              <img src={`${root}/${it.img}`} alt={it.description ?? "Player art"} />
+            </a>
+            <figcaption>
+              {it.description && <span class="mw-gcard-desc">{it.description}</span>}
+              {it.artist && <span class="mw-gcard-by">by {it.artist}</span>}
+              <span class="mw-gcard-meta">
+                {(it.characters ?? []).map((c) => chip(c, "mw-gchip-char"))}
+                {(it.sessions ?? []).map((c) => chip(c, ""))}
+                {it.date && <span class="mw-gcard-date">{niceDate(it.date)}</span>}
+              </span>
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+      <p class="mw-gallery-none" hidden>
+        No pictures match. Try another filter.
+      </p>
+    </div>
+  )
+}
+
 export default (() => {
   const Related: QuartzComponent = ({ fileData, allFiles }: QuartzComponentProps) => {
     const slug = String(fileData.slug ?? "")
@@ -124,6 +213,7 @@ export default (() => {
     const href = (target: string) => resolveRelative(slug as never, target as never)
     const pages = allFiles.filter(isPage)
     if (fm.mw_folder === true) return <Landing slug={slug} root={root} href={href} allFiles={allFiles} />
+    if (Array.isArray(fm.mw_gallery)) return <Gallery items={fm.mw_gallery as GItem[]} root={root} href={href} />
     const ownLinks = new Set((fileData.links ?? []).map(String))
 
     // Affinity (gods): only the characters that have one set
@@ -313,6 +403,75 @@ document.addEventListener("nav", () => {
       fig.appendChild(cap)
     }
   }
+})
+
+// Gallery: masonry columns (each picture goes in the shortest column, newest first) and filters
+document.addEventListener("nav", () => {
+  const root = document.querySelector(".mw-gallery")
+  if (!root || root.dataset.mwDone) return
+  root.dataset.mwDone = "1"
+  const grid = root.querySelector(".mw-gallery-grid")
+  const cards = [...root.querySelectorAll(".mw-gcard")]
+  const selects = [...root.querySelectorAll("select[data-filter]")]
+  const count = root.querySelector(".mw-gallery-count")
+  const none = root.querySelector(".mw-gallery-none")
+  let lastWidth = 0
+  const layout = () => {
+    const shown = cards.filter((c) => !c.hidden)
+    const n = Math.max(2, Math.floor(grid.clientWidth / 215))
+    for (const c of cards) grid.appendChild(c)
+    grid.querySelectorAll(".mw-gcol").forEach((c) => c.remove())
+    const cols = Array.from({ length: n }, () => {
+      const d = document.createElement("div")
+      d.className = "mw-gcol"
+      grid.appendChild(d)
+      return { d, h: 0 }
+    })
+    for (const c of shown) {
+      const col = cols.reduce((a, b) => (b.h < a.h - 1 ? b : a))
+      col.d.appendChild(c)
+      col.h += c.offsetHeight + 14
+    }
+    grid.classList.add("mw-masonry")
+    lastWidth = grid.clientWidth
+  }
+  const filter = () => {
+    const want = Object.fromEntries(selects.map((s) => [s.dataset.filter, s.value]))
+    let n = 0
+    for (const c of cards) {
+      const ok = Object.entries(want).every(([k, v]) => !v || (c.dataset[k] || "").split("\\n").includes(v))
+      c.hidden = !ok
+      if (ok) n++
+    }
+    count.textContent = n + (n === 1 ? " picture" : " pictures")
+    none.hidden = n > 0
+    layout()
+  }
+  selects.forEach((s) => s.addEventListener("change", filter))
+  root.querySelector(".mw-gallery-clear").addEventListener("click", () => {
+    selects.forEach((s) => (s.value = ""))
+    filter()
+  })
+  let queued = false
+  const relayout = () => {
+    if (queued) return
+    queued = true
+    requestAnimationFrame(() => {
+      queued = false
+      layout()
+    })
+  }
+  for (const img of root.querySelectorAll("img")) {
+    img.loading = "eager"
+    if (!img.complete) {
+      img.addEventListener("load", relayout)
+      img.addEventListener("error", relayout)
+    }
+  }
+  const ro = new ResizeObserver(() => Math.abs(grid.clientWidth - lastWidth) > 4 && relayout())
+  ro.observe(grid)
+  window.addCleanup?.(() => ro.disconnect())
+  layout()
 })
 `
   return Related
