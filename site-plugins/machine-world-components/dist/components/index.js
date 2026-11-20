@@ -52,7 +52,7 @@ var SetMenu_default2 = ((userOpts) => {
   const SetMenu = ({ fileData, allFiles, displayClass }) => {
     const current = String(fileData.slug ?? "");
     const isFolderPage = (f) => f.frontmatter?.mw_folder === true;
-    const pages = allFiles.filter((f) => f.slug && String(f.slug) !== "index" && !String(f.slug).startsWith("tags/") && !isFolderPage(f)).filter((f) => !String(f.slug).endsWith("/index") || String(f.slug).split("/").length > 2).map((f) => ({ slug: String(f.slug), title: titleOf(f) }));
+    const pages = allFiles.filter((f) => f.slug && String(f.slug) !== "index" && !String(f.slug).startsWith("tags/") && !String(f.slug).startsWith("locked/") && !isFolderPage(f)).filter((f) => !String(f.slug).endsWith("/index") || String(f.slug).split("/").length > 2).map((f) => ({ slug: String(f.slug), title: titleOf(f) }));
     const folderTitles = new Map(
       allFiles.filter((f) => String(f.slug).endsWith("/index")).map((f) => [String(f.slug).slice(0, -6), titleOf(f)])
     );
@@ -89,7 +89,7 @@ var SetMenu_default2 = ((userOpts) => {
       sort(root);
       return root;
     };
-    const renderFolder = (f) => /* @__PURE__ */ jsxs("ul", { class: "mw-menu-sub", children: [
+    const renderFolder = (f) => /* @__PURE__ */ jsxs("ul", { class: "mw-menu-sub", "data-mw-path": f.path, children: [
       f.folders.map((sub) => {
         const open = current === sub.page || current.startsWith(sub.path + "/");
         return /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs("details", { open, children: [
@@ -109,17 +109,20 @@ var SetMenu_default2 = ((userOpts) => {
         }
         const prefix = `${item.section}/`;
         const children = pages.filter((p) => p.slug.startsWith(prefix));
-        if (children.length === 0) return null;
+        if (children.length === 0) return { item, children, tree: null, active: false, empty: true };
         return { item, children, tree: buildTree(item.section, children), active: current.startsWith(prefix) };
       }).filter((x) => x !== null);
       return { label: group.label, items };
     }).filter((g) => g.items.length > 0);
     return /* @__PURE__ */ jsxs("nav", { class: `mw-menu ${displayClass ?? ""}`, "aria-label": "Wiki menu", children: [
       /* @__PURE__ */ jsx("button", { type: "button", class: "mw-menu-toggle", "aria-expanded": "false", children: "Menu" }),
-      /* @__PURE__ */ jsx("div", { class: "mw-menu-body", children: groups.map((group) => /* @__PURE__ */ jsxs("div", { class: "mw-menu-group", children: [
+      /* @__PURE__ */ jsx("div", { class: "mw-menu-body", children: groups.map((group) => /* @__PURE__ */ jsxs("div", { class: "mw-menu-group", hidden: group.items.every((i) => "empty" in i), children: [
         /* @__PURE__ */ jsx("div", { class: "mw-menu-label", children: group.label }),
         /* @__PURE__ */ jsx("ul", { children: group.items.map(
-          ({ item, children, tree, active }) => children.length === 0 ? /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx("a", { href: link(item.page), class: active ? "mw-active" : "", children: item.title }) }) : /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs("details", { open: active, children: [
+          ({ item, children, tree, active, ...rest }) => "empty" in rest ? /* @__PURE__ */ jsx("li", { hidden: true, children: /* @__PURE__ */ jsxs("details", { children: [
+            /* @__PURE__ */ jsx("summary", { children: item.title }),
+            /* @__PURE__ */ jsx("ul", { class: "mw-menu-sub", "data-mw-path": item.section })
+          ] }) }) : children.length === 0 ? /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx("a", { href: link(item.page), class: active ? "mw-active" : "", children: item.title }) }) : /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs("details", { open: active, children: [
             /* @__PURE__ */ jsx("summary", { class: active ? "mw-active-section" : "", children: item.title }),
             tree && renderFolder(tree)
           ] }) })

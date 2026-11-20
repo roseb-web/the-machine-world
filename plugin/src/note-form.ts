@@ -8,6 +8,7 @@
 import { AbstractInputSuggest, App, Modal, Notice, TFile, ToggleComponent } from "obsidian";
 import { findOverview, playerCallouts } from "../../shared/overview";
 import { readSections, writeSections } from "../../shared/sections";
+import { LOCKABLE_DETAILS, readVisibility, VISIBILITY_PROPERTY } from "../../shared/visibility";
 import type { SectionRule } from "../../shared/export";
 import { renderHeaderCard } from "./header-card";
 
@@ -86,6 +87,7 @@ export interface NoteFormContext {
   sectionTitles: Record<string, string>;
   playerPagesFolder: string;
   months: string[]; // Calendarium's month names, if it's there
+  party: string[]; // the players' names in lower case ("tam"), for "who can see it"
   onSaved?: () => void;
 }
 
@@ -133,6 +135,9 @@ export class NoteForm extends Modal {
   private kind: Kind = "other";
   private pcs: string[] = []; // affinity names, for gods
   private showMore = false;
+  private vis: Record<string, string> = {}; // who can see each detail (wiki_visibility); missing = everyone
+  private visOriginal: Record<string, string> = {};
+  private lockedFor: string[] = []; // a locked page: who its sections are for
   private preview!: HTMLElement;
   private status!: HTMLElement;
 
@@ -148,6 +153,10 @@ export class NoteForm extends Modal {
     this.overview = this.overviewOriginal = ov?.text ?? "";
     this.overviewSimple = ov?.simple ?? true;
     this.callouts = playerCallouts(text);
+    this.vis = { ...readVisibility(fm) };
+    delete this.vis.banner_focus; // follows the banner
+    this.visOriginal = { ...this.vis };
+    this.lockedFor = [...new Set(readSections(text.replace(/%%[\s\S]*?%%/g, "")).map((x) => x.vis))].filter((x) => x !== "everyone");
     this.kind = kindOf(file.path, this.ctx.sections, this.ctx.playerPagesFolder, typeof fm.wiki_section === "string" ? fm.wiki_section : undefined);
 
     for (const f of this.allFields()) this.original[f.key] = fm[f.key];
@@ -262,6 +271,7 @@ export class NoteForm extends Modal {
     const label = row.createDiv({ cls: "mw-nf-label", text: f.label });
     if (f.hint) label.createDiv({ cls: "mw-nf-hint", text: f.hint });
     const control = row.createDiv({ cls: "mw-nf-control" });
+    if (this.kind !== "page" && LOCKABLE_DETAILS.includes(f.key)) this.whoSees(row, f.key);
     const v = this.values[f.key];
     const set = (value: unknown) => {
       this.values[f.key] = value;
@@ -329,6 +339,30 @@ export class NoteForm extends Modal {
     });
   }
 
+  // Who can see this detail: everyone, one player, or the DM (who can always see what a player can)
+  private whoSees(row: HTMLElement, key: string) {
+    const sel = row.createEl("select", { cls: "dropdown mw-nf-vis" });
+    sel.title = "Who can see this on the wiki";
+    sel.createEl("option", { text: "Everyone", value: "" });
+    for (const p of this.ctx.party) sel.createEl("option", { text: `🔒 ${p.charAt(0).toUpperCase()}${p.slice(1)}`, value: p });
+    sel.createEl("option", { text: "🔒 DM", value: "dm" });
+    const current = this.vis[key] ?? "";
+    // Someone no longer in the party: keep them as a choice, so nothing changes by accident
+    if (current && ![...this.ctx.party, "dm"].includes(current)) sel.createEl("option", { text: `🔒 ${current}`, value: current });
+    sel.value = current;
+    const paint = () => {
+      sel.toggleClass("mw-vis-player", !!sel.value && sel.value !== "dm");
+      sel.toggleClass("mw-vis-dm", sel.value === "dm");
+    };
+    paint();
+    sel.addEventListener("change", () => {
+      if (sel.value) this.vis[key] = sel.value;
+      else delete this.vis[key];
+      paint();
+      this.refresh();
+    });
+  }
+
   private affinity(parent: HTMLElement) {
     parent.createDiv({ cls: "mw-nf-section", text: "Affinity (only when the whole party knows)" });
     for (const pc of this.pcs)
@@ -370,9 +404,15 @@ export class NoteForm extends Modal {
   private refresh() {
     const willPublish = this.kind === "page" || this.callouts > (this.overviewOriginal ? 1 : 0) || !!this.overview.trim();
     const wasPublished = this.kind === "page" || this.callouts > 0;
+    const cap = (a: string) => (a === "dm" ? "DM" : a.charAt(0).toUpperCase() + a.slice(1));
     this.status.empty();
     this.status.className = `mw-nf-status ${willPublish ? "mw-yes" : "mw-no"}`;
-    this.status.setText(
+    if (!willPublish && this.lockedFor.length) {
+      // Sections only for players or the DM: a locked page
+      this.status.className = "mw-nf-status mw-locked";
+      const who = this.lockedFor.filter((a) => a !== "dm").map(cap);
+      this.status.setText(`🔒 A locked page: only for ${who.length ? `${who.join(", ")} (and you)` : "you (DM)"}. Write an Overview for everyone to make it a normal page.`);
+    } else this.status.setText(
       willPublish && !wasPublished
         ? "✓ Will be on the wiki after saving (it gets an Overview)"
         : willPublish
@@ -399,12 +439,22 @@ export class NoteForm extends Modal {
 
     // What else changes on the wiki
     const notes: string[] = [];
-    if (v("player_faction")) notes.push(`Listed under ${unlink(v("player_faction"))}'s Key NPCs.`);
-    if (v("player_seen")) notes.push(`Listed under ${unlink(v("player_seen"))}'s Key NPCs.`);
+    // (Not when only some can see it: locked details aren't listed anywhere else)
+    if (v("player_faction") && !this.vis.player_faction) notes.push(`Listed under ${unlink(v("player_faction"))}'s Key NPCs.`);
+    if (v("player_seen") && !this.vis.player_seen) notes.push(`Listed under ${unlink(v("player_seen"))}'s Key NPCs.`);
     if (this.values.pinned === true && this.values.quest_status === "active") notes.push("Shown in the quest log on the home page.");
     if (this.kind === "session" && v("fc-date")) notes.push("On the calendar. If it's the newest, it's \"Previously on…\" on the home page.");
     if (Array.isArray(this.values.player_handouts) && this.values.player_handouts.length) notes.push(`${this.values.player_handouts.length} handout(s) under Related handouts.`);
     if (v("pinterest")) notes.push("A moodboard, fetched when you publish.");
+    // Details only some can see
+    const byWho = new Map<string, string[]>();
+    for (const f of this.allFields()) {
+      const who = this.vis[f.key];
+      if (!who || isEmpty(this.values[f.key])) continue;
+      byWho.set(who, [...(byWho.get(who) ?? []), f.label]);
+    }
+    for (const [who, labels] of byWho)
+      notes.push(`🔒 ${labels.join(", ")}: only ${who === "dm" ? "you (DM)" : `${cap(who)} (and you)`} can see ${labels.length === 1 ? "it" : "them"}.`);
     notes.push("Only the wiki's own properties and the Overview are saved here. Your other properties and notes aren't touched.");
     const ul = p.createEl("ul", { cls: "mw-nf-notes" });
     for (const n of notes) ul.createEl("li", { text: n });
@@ -444,12 +494,22 @@ export class NoteForm extends Modal {
       else out[f.key] = now;
     }
     if (this.kind === "session" && "fc-date" in out && out["fc-date"]) out["fc-category"] = "party";
+    const visChanged = JSON.stringify(Object.entries(this.vis).sort()) !== JSON.stringify(Object.entries(this.visOriginal).sort());
 
-    if (Object.keys(out).length)
+    if (Object.keys(out).length || visChanged)
       await app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
         for (const [k, val] of Object.entries(out)) {
           if (val === undefined) delete fm[k];
           else fm[k] = val;
+        }
+        if (visChanged) {
+          // Only the details this form shows are changed: anything else already in it stays
+          const old = fm[VISIBILITY_PROPERTY] && typeof fm[VISIBILITY_PROPERTY] === "object" ? { ...(fm[VISIBILITY_PROPERTY] as Record<string, unknown>) } : {};
+          for (const key of LOCKABLE_DETAILS) delete old[key];
+          delete old.banner_focus;
+          const next = { ...old, ...this.vis };
+          if (Object.keys(next).length) fm[VISIBILITY_PROPERTY] = next;
+          else delete fm[VISIBILITY_PROPERTY];
         }
       });
     if (this.kind !== "page" && this.overview.trim() !== this.overviewOriginal.trim())

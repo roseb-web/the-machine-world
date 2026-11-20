@@ -1,5 +1,157 @@
-// src/components/PageHeader.tsx
+// src/components/header.tsx
 import { pathToRoot, resolveRelative } from "@quartz-community/utils";
+import { jsx, jsxs } from "preact/jsx-runtime";
+function parseLink(value) {
+  const m = value.match(/^\[\[([^\]|]+)(?:\|([^\]]+))?\]\]$/);
+  if (!m) return { text: value };
+  return { target: m[1], text: m[2] ?? m[1].split("/").pop() ?? m[1] };
+}
+function renderLink(slug, value) {
+  const { target, text } = parseLink(value);
+  return target ? /* @__PURE__ */ jsx("a", { href: resolveRelative(slug, target), class: "internal", children: text }) : text;
+}
+var TONES = {
+  hostile: "bad",
+  grudge: "bad",
+  enemy: "bad",
+  wary: "low",
+  cold: "low",
+  shunned: "low",
+  neutral: "mid",
+  friendly: "good",
+  warm: "good",
+  noticed: "good",
+  allied: "best",
+  favoured: "best",
+  chosen: "best"
+};
+function headerView(fm, slug) {
+  const str = (key) => typeof fm[key] === "string" && fm[key] ? fm[key] : void 0;
+  const banner = str("banner");
+  const focus = ["top", "center", "bottom"].includes(str("banner_focus") ?? "") ? str("banner_focus") : "center";
+  const header = renderHeader(fm, slug, str);
+  if (!banner) return header;
+  return /* @__PURE__ */ jsxs("div", { class: "mw-header-wrap", children: [
+    /* @__PURE__ */ jsx("img", { class: "mw-banner", src: `${pathToRoot(slug)}/${banner}`, alt: "", style: `object-position: center ${focus};` }),
+    header
+  ] });
+}
+function renderHeader(fm, slug, str) {
+  const title = str("title") ?? slug.split("/").pop() ?? "";
+  const renderValue = (value) => {
+    const { target, text } = parseLink(value);
+    return target ? /* @__PURE__ */ jsx("a", { href: resolveRelative(slug, target), class: "internal", children: text }) : text;
+  };
+  const chips = [];
+  for (const key of ["player_type", "player_species", "player_status"]) {
+    const v = str(key);
+    if (v) chips.push({ text: parseLink(v).text });
+  }
+  const faction = str("player_faction");
+  for (const [key, label] of [["player_favour", "Favour"], ["player_standing", "Standing"]]) {
+    const v = str(key);
+    if (v) chips.push({ text: `${label}: ${v.toLowerCase()}`, tone: TONES[v.toLowerCase()] ?? "mid" });
+  }
+  if (slug === "index") {
+    const d = fm.game_date;
+    return /* @__PURE__ */ jsxs("header", { class: "mw-header mw-home-header", children: [
+      /* @__PURE__ */ jsxs("div", { children: [
+        /* @__PURE__ */ jsx("h1", { class: "article-title", children: str("mw_welcome") ?? "Welcome" }),
+        str("party_location") && /* @__PURE__ */ jsxs("p", { class: "mw-party-location", children: [
+          "The party is in ",
+          renderLink(slug, str("party_location"))
+        ] })
+      ] }),
+      d && /* @__PURE__ */ jsxs("div", { class: "mw-date-card", title: d.concord || void 0, children: [
+        /* @__PURE__ */ jsx("div", { class: "mw-date-day", children: d.day }),
+        /* @__PURE__ */ jsxs("div", { class: "mw-date-text", children: [
+          /* @__PURE__ */ jsxs("div", { class: "mw-date-month", children: [
+            d.month,
+            ", ",
+            `${d.year} ${d.era}`.trim()
+          ] }),
+          /* @__PURE__ */ jsxs("div", { class: "mw-date-other", children: [
+            d.weekday,
+            " \xB7 ",
+            d.season
+          ] })
+        ] })
+      ] })
+    ] });
+  }
+  const photo = str("photo");
+  const sigil = photo ? void 0 : str("player_sigil");
+  const subtitle = str("player_title");
+  const say = str("player_say");
+  const artist = photo ? str("player_artist") : void 0;
+  const artistLink = artist?.match(/^\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)$/);
+  const seen = str("player_seen");
+  const song = spotifyEmbed(str("spotify"));
+  const dates = Array.isArray(fm.mw_dates) ? fm.mw_dates.filter((d) => typeof d === "string") : [];
+  const hasDetails = photo || sigil || subtitle || say || chips.length > 0 || faction || seen || dates.length > 0 || song;
+  if (!hasDetails) {
+    return /* @__PURE__ */ jsx("h1", { class: "article-title", children: title });
+  }
+  const root = pathToRoot(slug);
+  return /* @__PURE__ */ jsxs(
+    "header",
+    {
+      class: `mw-header ${photo ? "mw-has-photo" : sigil ? "mw-has-sigil" : ""} ${fm.mw_folder === true ? "mw-folder-header" : ""}`,
+      children: [
+        photo && /* @__PURE__ */ jsxs("figure", { class: "mw-portrait-fig", children: [
+          /* @__PURE__ */ jsx("img", { class: "mw-portrait", src: `${root}/${photo}`, alt: `Portrait of ${title}` }),
+          artist && /* @__PURE__ */ jsxs("figcaption", { class: "mw-artist", children: [
+            "Art:",
+            " ",
+            artistLink ? /* @__PURE__ */ jsx("a", { href: artistLink[2], class: "external", target: "_blank", rel: "noopener", children: artistLink[1] }) : artist
+          ] })
+        ] }),
+        sigil && /* @__PURE__ */ jsx("img", { class: "mw-sigil", src: `${root}/${sigil}`, alt: "" }),
+        /* @__PURE__ */ jsxs("div", { class: "mw-header-text", children: [
+          /* @__PURE__ */ jsx("h1", { class: "article-title", children: title }),
+          say && /* @__PURE__ */ jsxs("p", { class: "mw-say", title: "How to say it", children: [
+            /* @__PURE__ */ jsx("span", { class: "mw-say-label", children: "Say it" }),
+            " ",
+            say
+          ] }),
+          subtitle && /* @__PURE__ */ jsx("p", { class: "mw-subtitle", children: subtitle }),
+          (chips.length > 0 || faction) && /* @__PURE__ */ jsxs("div", { class: "mw-chips", children: [
+            faction && /* @__PURE__ */ jsx("span", { class: "mw-chip", children: renderValue(faction) }),
+            chips.map((c) => /* @__PURE__ */ jsx("span", { class: `mw-chip ${c.tone ? `mw-tone-${c.tone}` : ""}`, children: c.text }))
+          ] }),
+          seen && /* @__PURE__ */ jsxs("p", { class: "mw-seen", children: [
+            "Last seen: ",
+            renderValue(seen)
+          ] }),
+          dates.map((d) => /* @__PURE__ */ jsxs("p", { class: "mw-datecard", children: [
+            /* @__PURE__ */ jsxs("svg", { viewBox: "0 0 16 16", width: "14", height: "14", "aria-hidden": "true", children: [
+              /* @__PURE__ */ jsx("rect", { x: "1.5", y: "2.5", width: "13", height: "12", rx: "1.5", fill: "none", stroke: "currentColor" }),
+              /* @__PURE__ */ jsx("path", { d: "M1.5 6h13M5 1v3M11 1v3", stroke: "currentColor" })
+            ] }),
+            d
+          ] })),
+          song && /* @__PURE__ */ jsx(
+            "iframe",
+            {
+              class: "mw-song",
+              title: "Theme song",
+              src: song.src,
+              height: song.height,
+              loading: "lazy",
+              frameBorder: "0",
+              allow: "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            }
+          )
+        ] })
+      ]
+    }
+  );
+}
+function spotifyEmbed(url) {
+  const m = url?.match(/^https:\/\/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(track|album|playlist|episode)\/([A-Za-z0-9]+)/);
+  if (!m) return null;
+  return { src: `https://open.spotify.com/embed/${m[1]}/${m[2]}?utm_source=generator`, height: m[1] === "track" || m[1] === "episode" ? 80 : 152 };
+}
 
 // src/components/PageHeader.css
 var PageHeader_default = `.mw-header {
@@ -256,172 +408,15 @@ var PageHeader_default = `.mw-header {
 `;
 
 // src/components/PageHeader.tsx
-import { jsx, jsxs } from "preact/jsx-runtime";
-function parseLink(value) {
-  const m = value.match(/^\[\[([^\]|]+)(?:\|([^\]]+))?\]\]$/);
-  if (!m) return { text: value };
-  return { target: m[1], text: m[2] ?? m[1].split("/").pop() ?? m[1] };
-}
-function renderLink(slug, value) {
-  const { target, text } = parseLink(value);
-  return target ? /* @__PURE__ */ jsx("a", { href: resolveRelative(slug, target), class: "internal", children: text }) : text;
-}
-var TONES = {
-  hostile: "bad",
-  grudge: "bad",
-  enemy: "bad",
-  wary: "low",
-  cold: "low",
-  shunned: "low",
-  neutral: "mid",
-  friendly: "good",
-  warm: "good",
-  noticed: "good",
-  allied: "best",
-  favoured: "best",
-  chosen: "best"
-};
+import { jsx as jsx2 } from "preact/jsx-runtime";
 var PageHeader_default2 = (() => {
   const PageHeader = (props) => {
     const fm = props.fileData.frontmatter ?? {};
-    const slug = String(props.fileData.slug ?? "");
-    const str = (key) => typeof fm[key] === "string" && fm[key] ? fm[key] : void 0;
-    const banner = str("banner");
-    const focus = ["top", "center", "bottom"].includes(str("banner_focus") ?? "") ? str("banner_focus") : "center";
-    const header = renderHeader(props, fm, slug, str);
-    if (!banner) return header;
-    return /* @__PURE__ */ jsxs("div", { class: "mw-header-wrap", children: [
-      /* @__PURE__ */ jsx(
-        "img",
-        {
-          class: "mw-banner",
-          src: `${pathToRoot(slug)}/${banner}`,
-          alt: "",
-          style: `object-position: center ${focus};`
-        }
-      ),
-      header
-    ] });
+    return /* @__PURE__ */ jsx2("div", { class: "mw-page-header", children: headerView(fm, String(props.fileData.slug ?? "")) });
   };
   PageHeader.css = PageHeader_default;
   return PageHeader;
 });
-function renderHeader({ fileData }, fm, slug, str) {
-  const title = str("title") ?? slug.split("/").pop() ?? "";
-  const renderValue = (value) => {
-    const { target, text } = parseLink(value);
-    return target ? /* @__PURE__ */ jsx("a", { href: resolveRelative(slug, target), class: "internal", children: text }) : text;
-  };
-  const chips = [];
-  for (const key of ["player_type", "player_species", "player_status"]) {
-    const v = str(key);
-    if (v) chips.push({ text: parseLink(v).text });
-  }
-  const faction = str("player_faction");
-  for (const [key, label] of [["player_favour", "Favour"], ["player_standing", "Standing"]]) {
-    const v = str(key);
-    if (v) chips.push({ text: `${label}: ${v.toLowerCase()}`, tone: TONES[v.toLowerCase()] ?? "mid" });
-  }
-  if (slug === "index") {
-    const d = fm.game_date;
-    return /* @__PURE__ */ jsxs("header", { class: "mw-header mw-home-header", children: [
-      /* @__PURE__ */ jsxs("div", { children: [
-        /* @__PURE__ */ jsx("h1", { class: "article-title", children: str("mw_welcome") ?? "Welcome" }),
-        str("party_location") && /* @__PURE__ */ jsxs("p", { class: "mw-party-location", children: [
-          "The party is in ",
-          renderLink(slug, str("party_location"))
-        ] })
-      ] }),
-      d && /* @__PURE__ */ jsxs("div", { class: "mw-date-card", title: d.concord || void 0, children: [
-        /* @__PURE__ */ jsx("div", { class: "mw-date-day", children: d.day }),
-        /* @__PURE__ */ jsxs("div", { class: "mw-date-text", children: [
-          /* @__PURE__ */ jsxs("div", { class: "mw-date-month", children: [
-            d.month,
-            ", ",
-            `${d.year} ${d.era}`.trim()
-          ] }),
-          /* @__PURE__ */ jsxs("div", { class: "mw-date-other", children: [
-            d.weekday,
-            " \xB7 ",
-            d.season
-          ] })
-        ] })
-      ] })
-    ] });
-  }
-  const photo = str("photo");
-  const sigil = photo ? void 0 : str("player_sigil");
-  const subtitle = str("player_title");
-  const say = str("player_say");
-  const artist = photo ? str("player_artist") : void 0;
-  const artistLink = artist?.match(/^\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)$/);
-  const seen = str("player_seen");
-  const song = spotifyEmbed(str("spotify"));
-  const dates = Array.isArray(fm.mw_dates) ? fm.mw_dates.filter((d) => typeof d === "string") : [];
-  const hasDetails = photo || sigil || subtitle || say || chips.length > 0 || faction || seen || dates.length > 0 || song;
-  if (!hasDetails) {
-    return /* @__PURE__ */ jsx("h1", { class: "article-title", children: title });
-  }
-  const root = pathToRoot(slug);
-  return /* @__PURE__ */ jsxs(
-    "header",
-    {
-      class: `mw-header ${photo ? "mw-has-photo" : sigil ? "mw-has-sigil" : ""} ${fm.mw_folder === true ? "mw-folder-header" : ""}`,
-      children: [
-        photo && /* @__PURE__ */ jsxs("figure", { class: "mw-portrait-fig", children: [
-          /* @__PURE__ */ jsx("img", { class: "mw-portrait", src: `${root}/${photo}`, alt: `Portrait of ${title}` }),
-          artist && /* @__PURE__ */ jsxs("figcaption", { class: "mw-artist", children: [
-            "Art:",
-            " ",
-            artistLink ? /* @__PURE__ */ jsx("a", { href: artistLink[2], class: "external", target: "_blank", rel: "noopener", children: artistLink[1] }) : artist
-          ] })
-        ] }),
-        sigil && /* @__PURE__ */ jsx("img", { class: "mw-sigil", src: `${root}/${sigil}`, alt: "" }),
-        /* @__PURE__ */ jsxs("div", { class: "mw-header-text", children: [
-          /* @__PURE__ */ jsx("h1", { class: "article-title", children: title }),
-          say && /* @__PURE__ */ jsxs("p", { class: "mw-say", title: "How to say it", children: [
-            /* @__PURE__ */ jsx("span", { class: "mw-say-label", children: "Say it" }),
-            " ",
-            say
-          ] }),
-          subtitle && /* @__PURE__ */ jsx("p", { class: "mw-subtitle", children: subtitle }),
-          (chips.length > 0 || faction) && /* @__PURE__ */ jsxs("div", { class: "mw-chips", children: [
-            faction && /* @__PURE__ */ jsx("span", { class: "mw-chip", children: renderValue(faction) }),
-            chips.map((c) => /* @__PURE__ */ jsx("span", { class: `mw-chip ${c.tone ? `mw-tone-${c.tone}` : ""}`, children: c.text }))
-          ] }),
-          seen && /* @__PURE__ */ jsxs("p", { class: "mw-seen", children: [
-            "Last seen: ",
-            renderValue(seen)
-          ] }),
-          dates.map((d) => /* @__PURE__ */ jsxs("p", { class: "mw-datecard", children: [
-            /* @__PURE__ */ jsxs("svg", { viewBox: "0 0 16 16", width: "14", height: "14", "aria-hidden": "true", children: [
-              /* @__PURE__ */ jsx("rect", { x: "1.5", y: "2.5", width: "13", height: "12", rx: "1.5", fill: "none", stroke: "currentColor" }),
-              /* @__PURE__ */ jsx("path", { d: "M1.5 6h13M5 1v3M11 1v3", stroke: "currentColor" })
-            ] }),
-            d
-          ] })),
-          song && /* @__PURE__ */ jsx(
-            "iframe",
-            {
-              class: "mw-song",
-              title: "Theme song",
-              src: song.src,
-              height: song.height,
-              loading: "lazy",
-              frameBorder: "0",
-              allow: "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            }
-          )
-        ] })
-      ]
-    }
-  );
-}
-function spotifyEmbed(url) {
-  const m = url?.match(/^https:\/\/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(track|album|playlist|episode)\/([A-Za-z0-9]+)/);
-  if (!m) return null;
-  return { src: `https://open.spotify.com/embed/${m[1]}/${m[2]}?utm_source=generator`, height: m[1] === "track" || m[1] === "episode" ? 80 : 152 };
-}
 export {
   PageHeader_default2 as PageHeader
 };

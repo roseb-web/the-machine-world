@@ -145,6 +145,7 @@ export default class MachineWorldWiki extends Plugin {
   private async lockSections(result: ExportResult, audiences: Map<string, { name: string; password: string }>) {
     if (!audiences.size) {
       result.locked = [];
+      result.lockedMenu = [];
       return;
     }
     if (!this.settings.audienceSalt) {
@@ -161,9 +162,34 @@ export default class MachineWorldWiki extends Plugin {
       if (sealed.length) setProps(file as { path: string; text?: string }, { mw_locked: sealed }, YAML);
     }
     const names = new Map([...audiences].map(([aud, a]) => [aud, a.name]));
-    result.files.push({ path: "audiences.json", text: JSON.stringify(await audienceIndex(salt, keys, names)) });
-    // Tidy: the readable sections aren't needed any more, only how many there were
-    result.locked = result.locked.map((l) => ({ page: l.page, sections: l.sections.map((x) => ({ ...x, md: "", title: "" })) }));
+    const index = await audienceIndex(salt, keys, names);
+    // Locked pages' places in the menu: each opens only for its audience (and the DM)
+    const pages = await sealSections(result.lockedMenu, keys);
+    if (pages.length) index.pages = pages;
+    result.files.push({ path: "audiences.json", text: JSON.stringify(index) });
+    // Tidy: the readable text isn't needed any more, only how many there were
+    result.locked = result.locked.map((l) => ({
+      page: l.page,
+      sections: l.sections.map((x) => (x.kind === "detail" ? { ...x, value: "" } : { ...x, md: "", title: "" })),
+    }));
+    result.lockedMenu = result.lockedMenu.map((m) => ({ ...m, title: "", menu: "" }));
+  }
+
+  // Folders set for templates (Obsidian's own Templates, and Templater): never published
+  async templateFolders(): Promise<string[]> {
+    const out: string[] = [];
+    const read = async (path: string, key: string) => {
+      try {
+        if (!(await this.app.vault.adapter.exists(path))) return;
+        const v = JSON.parse(await this.app.vault.adapter.read(path))?.[key];
+        if (typeof v === "string" && v.trim()) out.push(v.trim().replace(/^\/+|\/+$/g, ""));
+      } catch {
+        /* not set up: nothing to skip */
+      }
+    };
+    await read(`${this.app.vault.configDir}/templates.json`, "folder");
+    await read(`${this.app.vault.configDir}/plugins/templater-obsidian/data.json`, "templates_folder");
+    return out;
   }
 
   // The party's names, for per-player sections and affinity: first word of the name the party
@@ -198,6 +224,7 @@ export default class MachineWorldWiki extends Plugin {
       sectionTitles: { ...DEFAULT_SETTINGS.sectionTitles, ...this.settings.sectionTitles },
       playerPagesFolder: this.settings.playerPagesFolder,
       months: calendarium(this.app)?.calendar.static.months.map((m) => m.name) ?? [],
+      party: this.partyNames(),
     }).open();
   }
 
@@ -305,8 +332,14 @@ export default class MachineWorldWiki extends Plugin {
     }
     const moodboards = await this.moodboards(fetchPinterest);
     const audiences = this.audiences();
+    if (audiences.size && !this.settings.lockSecret) {
+      this.settings.lockSecret = toB64(randomBytes(24));
+      await this.saveSettings();
+    }
     const result = exportWiki(notes, {
       audiences: Object.fromEntries([...audiences].map(([aud, a]) => [aud, a.name])),
+      lockSecret: this.settings.lockSecret,
+      ignoreFolders: await this.templateFolders(),
       gameDate,
       worldName: this.settings.worldName.trim() || undefined,
       eras: this.eras(),
@@ -383,8 +416,15 @@ class ConfirmModal extends Modal {
     contentEl.createEl("h2", { text: "Publish wiki" });
     const images = this.result.files.filter((f) => f.copyFrom).length;
     contentEl.createEl("p", { text: `${this.result.published.length} pages and ${images} images will be public.` });
-    const locked = this.result.locked.reduce((n, l) => n + l.sections.length, 0);
-    if (locked) contentEl.createEl("p", { cls: "mw-pub-locked", text: `🔒 Plus ${locked} locked section${locked === 1 ? "" : "s"} for audiences (one player, or the DM). Only their passwords open them.` });
+    const all = this.result.locked.flatMap((l) => l.sections);
+    const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+    const lockedPages = new Set(this.result.lockedMenu.map((m) => m.to)).size;
+    const parts = [
+      lockedPages ? plural(lockedPages, "locked page") : "",
+      all.filter((x) => x.kind !== "detail").length ? plural(all.filter((x) => x.kind !== "detail").length, "locked section") : "",
+      all.filter((x) => x.kind === "detail").length ? plural(all.filter((x) => x.kind === "detail").length, "locked detail") : "",
+    ].filter(Boolean);
+    if (parts.length) contentEl.createEl("p", { cls: "mw-pub-locked", text: `🔒 Plus ${parts.join(", ")} for audiences (one player, or the DM). Only their passwords open them.` });
 
     // Counts by wiki section: "People 24", "Places 10"...
     const groups = new Map<string, { title: string; to: string }[]>();
@@ -470,7 +510,20 @@ class WikiSettingTab extends PluginSettingTab {
       cls: "setting-item-description",
       text: "A password for each player, and one for you. Their sections ([!player-name], [!dm]) are published locked: only that password, or yours, opens them on the wiki. An empty password keeps that audience's sections off the wiki. Passwords stay in Obsidian.",
     });
-    for (const aud of [...this.plugin.partyNames(), "dm"]) {
+    // Two players whose names start with the same word would share one password and one callout name
+    const names = this.plugin.partyNames();
+    const clash = [...new Set(names.filter((n, i) => names.indexOf(n) !== i || n === "dm" || n === "everyone"))];
+    if (clash.length)
+      containerEl.createEl("p", {
+        cls: "mw-settings-warning",
+        text: `⚠ More than one player's name starts with "${clash.join('", "')}" (or it's a word the wiki uses itself). Give them different first words in "Name they know", so each gets their own password.`,
+      });
+    if (!names.length)
+      containerEl.createEl("p", {
+        cls: "setting-item-description",
+        text: "No players yet: their names come from the notes in your \"party\" menu section.",
+      });
+    for (const aud of [...new Set([...names.filter((n) => n !== "dm" && n !== "everyone"), "dm"])]) {
       const name = aud === "dm" ? "DM (you: opens everything)" : aud.charAt(0).toUpperCase() + aud.slice(1);
       new Setting(containerEl).setName(name).addText((t) => {
         t.inputEl.type = "password";
