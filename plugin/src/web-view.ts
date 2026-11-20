@@ -52,20 +52,23 @@ export class PeopleWebView extends ItemView {
     const data = await this.build();
     const root = this.contentEl;
     root.empty();
-    const holder = root.createDiv({ cls: "mw-web-holder" });
+    // The same switch as the timeline's
+    const bar = root.createDiv({ cls: "mw-tl-bar mw-web-obar" });
+    const toggle = bar.createEl("label", { cls: "mw-tl-toggle" });
+    const box = toggle.createEl("input", { type: "checkbox" });
+    box.checked = this.playerView;
+    toggle.appendText(" Player view: only what the wiki would show");
+    box.addEventListener("change", () => {
+      this.playerView = box.checked;
+      this.draw();
+    });
+    const holder = root.createDiv({ cls: `mw-web-holder${this.playerView ? " mw-web-playerview" : ""}` });
     const store = (k: string) => `mw-web:${this.playerView ? "party" : "dm"}:${k}`;
     renderWeb(holder, data, {
       wheelZoom: "plain",
       storage: {
         get: (k) => (this.app as unknown as { loadLocalStorage: (k: string) => unknown }).loadLocalStorage(store(k)),
         set: (k, v) => (this.app as unknown as { saveLocalStorage: (k: string, v: unknown) => void }).saveLocalStorage(store(k), v),
-      },
-      playerToggle: {
-        on: this.playerView,
-        set: (on) => {
-          this.playerView = on;
-          this.draw();
-        },
       },
       onEdit: (p) => {
         const file = p.open ? this.app.vault.getAbstractFileByPath(p.open) : null;
