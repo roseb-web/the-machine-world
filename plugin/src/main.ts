@@ -2,7 +2,7 @@
 // Adds a "Publish wiki" button. It exports only player content, shows you the list of pages,
 // and pushes to GitHub only after you confirm.
 
-import { App, Modal, Notice, parseYaml, Plugin, PluginSettingTab, requestUrl, Setting, stringifyYaml, TFile } from "obsidian";
+import { App, MarkdownView, Modal, Notice, parseYaml, Plugin, PluginSettingTab, requestUrl, Setting, stringifyYaml, TFile } from "obsidian";
 import { boardKey, fetchMoodboards, MoodPin, PinterestAuthError } from "../../shared/pinterest";
 import { exportWiki, ExportOptions, ExportResult, SectionRule } from "../../shared/export";
 import { pushWiki } from "./github";
@@ -14,6 +14,8 @@ import { DEFAULT_SETTINGS } from "./defaults";
 import type { Eras, SecondCalendar } from "../../shared/eras";
 import { TIMELINE_VIEW, TimelineView } from "./timeline-view";
 import { PeopleWebView, WEB_VIEW } from "./web-view";
+import { NoteForm } from "./note-form";
+import { calendarium } from "./event-modal";
 import { gameDateFrom } from "../../shared/calendar";
 
 export default class MachineWorldWiki extends Plugin {
@@ -32,6 +34,42 @@ export default class MachineWorldWiki extends Plugin {
     this.registerView(WEB_VIEW, (leaf) => new PeopleWebView(leaf, this));
     this.addRibbonIcon("waypoints", "Open people web", () => this.openView(WEB_VIEW));
     this.addCommand({ id: "open-people-web", name: "Open people web", callback: () => this.openView(WEB_VIEW) });
+
+    // "Edit wiki details": a ✎ button at the top of every note, and a command
+    this.addCommand({
+      id: "edit-wiki-details",
+      name: "Edit wiki details",
+      checkCallback: (checking) => {
+        const file = this.app.workspace.getActiveFile();
+        if (!file || file.extension !== "md") return false;
+        if (!checking) this.editDetails(file);
+        return true;
+      },
+    });
+    const addButtons = () => {
+      for (const leaf of this.app.workspace.getLeavesOfType("markdown")) {
+        const view = leaf.view as MarkdownView & { _mwEdit?: HTMLElement };
+        if (view._mwEdit) continue;
+        view._mwEdit = view.addAction("pencil", "Edit wiki details", () => view.file && this.editDetails(view.file));
+        this.register(() => {
+          view._mwEdit?.remove();
+          delete view._mwEdit;
+        });
+      }
+    };
+    this.app.workspace.onLayoutReady(addButtons);
+    this.registerEvent(this.app.workspace.on("layout-change", addButtons));
+  }
+
+  editDetails(file: TFile) {
+    new NoteForm({
+      app: this.app,
+      file,
+      sections: this.settings.sections,
+      sectionTitles: { ...DEFAULT_SETTINGS.sectionTitles, ...this.settings.sectionTitles },
+      playerPagesFolder: this.settings.playerPagesFolder,
+      months: calendarium(this.app)?.calendar.static.months.map((m) => m.name) ?? [],
+    }).open();
   }
 
   async openView(type: string) {
@@ -196,27 +234,51 @@ export default class MachineWorldWiki extends Plugin {
         new Notice(`Publish failed: ${(e as Error).message}`, 10000);
         console.error(e);
       }
-    }).open();
+    }, { ...DEFAULT_SETTINGS.sectionTitles, ...this.settings.sectionTitles }).open();
   }
 }
 
 // Shows every page that will go public, before anything is sent.
 class ConfirmModal extends Modal {
-  constructor(app: App, private result: ExportResult, private onConfirm: () => void) {
+  constructor(app: App, private result: ExportResult, private onConfirm: () => void, private sectionTitles: Record<string, string> = {}) {
     super(app);
   }
 
   onOpen() {
-    const { contentEl } = this;
+    const { contentEl, modalEl } = this;
+    modalEl.addClass("mw-pub-modal");
     contentEl.createEl("h2", { text: "Publish wiki" });
     const images = this.result.files.filter((f) => f.copyFrom).length;
-    contentEl.createEl("p", {
-      text: `${this.result.published.length} pages and ${images} images will be public.`,
-    });
-    const list = contentEl.createEl("ul");
-    for (const p of [...this.result.published].sort((a, b) => a.to.localeCompare(b.to))) {
-      list.createEl("li", { text: `${p.title}  (${p.to})` });
+    contentEl.createEl("p", { text: `${this.result.published.length} pages and ${images} images will be public.` });
+
+    // Counts by wiki section: "People 24", "Places 10"...
+    const groups = new Map<string, { title: string; to: string }[]>();
+    for (const p of this.result.published) {
+      const section = p.to.includes("/") ? p.to.split("/")[0] : "";
+      if (!groups.has(section)) groups.set(section, []);
+      groups.get(section)!.push(p);
     }
+    const nameOf = (section: string) => (section ? (this.sectionTitles[section] ?? section.replace(/-/g, " ")) : "Other pages");
+    const order = [...groups.keys()].sort((a, b) => (a === "" ? 1 : b === "" ? -1 : nameOf(a).localeCompare(nameOf(b))));
+    const counts = contentEl.createDiv({ cls: "mw-pub-counts" });
+    for (const section of order) {
+      const row = counts.createDiv({ cls: "mw-pub-count" });
+      row.createSpan({ text: nameOf(section) });
+      row.createSpan({ cls: "mw-pub-n", text: String(groups.get(section)!.length) });
+    }
+
+    // The full list, folded away
+    const details = contentEl.createEl("details", { cls: "mw-pub-files" });
+    details.createEl("summary", { text: "See files" });
+    for (const section of order) {
+      details.createEl("h4", { text: nameOf(section) });
+      const list = details.createEl("ul");
+      for (const p of groups.get(section)!.sort((a, b) => a.title.localeCompare(b.title))) {
+        const li = list.createEl("li", { text: p.title });
+        li.createSpan({ cls: "mw-pub-path", text: `  ${p.to}` });
+      }
+    }
+
     new Setting(contentEl)
       .addButton((b) => b.setButtonText("Cancel").onClick(() => this.close()))
       .addButton((b) =>

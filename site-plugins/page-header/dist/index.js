@@ -243,6 +243,16 @@ var PageHeader_default = `.mw-header {
   color: var(--gray);
   margin-right: 0.3rem;
 }
+
+/* Theme song: Spotify's own small player, under the header text */
+.mw-song {
+  display: block;
+  width: 100%;
+  max-width: 460px;
+  margin-top: 0.8rem;
+  border: 0;
+  border-radius: 12px;
+}
 `;
 
 // src/components/PageHeader.tsx
@@ -346,8 +356,9 @@ function renderHeader({ fileData }, fm, slug, str) {
   const artist = photo ? str("player_artist") : void 0;
   const artistLink = artist?.match(/^\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)$/);
   const seen = str("player_seen");
+  const song = spotifyEmbed(str("spotify"));
   const dates = Array.isArray(fm.mw_dates) ? fm.mw_dates.filter((d) => typeof d === "string") : [];
-  const hasDetails = photo || sigil || subtitle || say || chips.length > 0 || faction || seen || dates.length > 0;
+  const hasDetails = photo || sigil || subtitle || say || chips.length > 0 || faction || seen || dates.length > 0 || song;
   if (!hasDetails) {
     return /* @__PURE__ */ jsx("h1", { class: "article-title", children: title });
   }
@@ -388,11 +399,28 @@ function renderHeader({ fileData }, fm, slug, str) {
               /* @__PURE__ */ jsx("path", { d: "M1.5 6h13M5 1v3M11 1v3", stroke: "currentColor" })
             ] }),
             d
-          ] }))
+          ] })),
+          song && /* @__PURE__ */ jsx(
+            "iframe",
+            {
+              class: "mw-song",
+              title: "Theme song",
+              src: song.src,
+              height: song.height,
+              loading: "lazy",
+              frameBorder: "0",
+              allow: "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            }
+          )
         ] })
       ]
     }
   );
+}
+function spotifyEmbed(url) {
+  const m = url?.match(/^https:\/\/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(track|album|playlist|episode)\/([A-Za-z0-9]+)/);
+  if (!m) return null;
+  return { src: `https://open.spotify.com/embed/${m[1]}/${m[2]}?utm_source=generator`, height: m[1] === "track" || m[1] === "episode" ? 80 : 152 };
 }
 export {
   PageHeader_default2 as PageHeader

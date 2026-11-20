@@ -731,11 +731,20 @@ export function renderWeb(root: HTMLElement, data: WebData, opts: WebOptions = {
   stage.addEventListener("pointerup", end);
   stage.addEventListener("pointercancel", end);
 
-  let lastSize = "";
+  // The first time the web has a size, fit everyone in. After that (the side panel opening,
+  // the window changing size) keep the same view, just kept centred.
+  let last: { w: number; h: number } | null = null;
   const ro = new (win as typeof window).ResizeObserver(() => {
-    const size = `${stage.clientWidth}x${stage.clientHeight}`;
-    if (size !== lastSize && !dragMoved) fit();
-    lastSize = size;
+    const w = stage.clientWidth;
+    const h = stage.clientHeight;
+    if (!w || !h) return;
+    if (!last) fit();
+    else {
+      tx += (w - last.w) / 2;
+      ty += (h - last.h) / 2;
+      apply();
+    }
+    last = { w, h };
   });
   ro.observe(stage);
   host._mwWebCleanup = () => {

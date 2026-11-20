@@ -239,3 +239,13 @@
   color: var(--gray);
   margin-right: 0.3rem;
 }
+
+/* Theme song: Spotify's own small player, under the header text */
+.mw-song {
+  display: block;
+  width: 100%;
+  max-width: 460px;
+  margin-top: 0.8rem;
+  border: 0;
+  border-radius: 12px;
+}
