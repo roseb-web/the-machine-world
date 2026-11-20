@@ -137,18 +137,39 @@ export function extractPlayerNote(
   return { title, properties, overview, content, entries };
 }
 
+// Where a locked section goes: its kind, and how many of everyone's sections of that kind come before it
+export interface LockSlot {
+  id: number;
+  kind: "overview" | "content" | "known";
+  after: number;
+}
+
+// An empty marker: the wiki puts the unlocked section here for those who can see it
+const marker = (l: LockSlot, heading = false) => `<div class="mw-lock" data-mw-lock="${l.id}"${heading ? ' data-mw-heading="known"' : ""}></div>`;
+
 // Writes the player-safe note back out as markdown for Quartz.
-export function renderPlayerNote(note: PlayerNote, yaml: YamlTools): string {
+export function renderPlayerNote(note: PlayerNote, yaml: YamlTools, locks: LockSlot[] = []): string {
+  const at = (kind: LockSlot["kind"], after: number) => locks.filter((l) => l.kind === kind && l.after === after).map((l) => marker(l));
   const front = yaml.stringify({ title: note.title, ...note.properties }).trimEnd();
   const parts: string[] = [`---\n${front}\n---`];
   if (note.overview) parts.push(`## Overview\n\n${note.overview}`);
+  parts.push(...locks.filter((l) => l.kind === "overview").map((l) => marker(l)));
   // Content: the page's own text, with its own headings, between the Overview and "What we know"
-  for (const c of note.content) parts.push(c.label ? `## ${c.label}\n\n${c.body}` : c.body);
+  parts.push(...at("content", 0));
+  note.content.forEach((c, i) => {
+    parts.push(c.label ? `## ${c.label}\n\n${c.body}` : c.body);
+    parts.push(...at("content", i + 1));
+  });
   if (note.entries.length > 0) {
-    const items = note.entries.map((e) =>
-      e.label ? `### ${e.label}\n\n${e.body}` : e.body,
-    );
+    const items: string[] = [...at("known", 0)];
+    note.entries.forEach((e, i) => {
+      items.push(e.label ? `### ${e.label}\n\n${e.body}` : e.body);
+      items.push(...at("known", i + 1));
+    });
     parts.push(`## What we know\n\n${items.join("\n\n")}`);
+  } else {
+    // No "What we know" for everyone: the wiki adds the heading when it unlocks one of these
+    parts.push(...locks.filter((l) => l.kind === "known").map((l) => marker(l, true)));
   }
   return parts.join("\n\n") + "\n";
 }

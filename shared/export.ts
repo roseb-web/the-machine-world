@@ -1,7 +1,9 @@
 // Builds the whole player wiki from the vault.
 // Pure logic: no Obsidian or GitHub code here, so it can be tested on its own.
 
-import { extractPlayerNote, renderPlayerNote, YamlTools } from "./extract";
+import { extractPlayerNote, LockSlot, PlayerNote, renderPlayerNote, YamlTools } from "./extract";
+import { readSections, withoutNested } from "./sections";
+import type { LockedSection } from "./audiences";
 import type { GameDate } from "./calendar";
 import { readMap, MapData } from "./maps";
 import { calendarExport, dateCard } from "./events";
@@ -31,6 +33,9 @@ export interface ExportOptions {
   worldName?: string; // e.g. "Eldmoor": the home page says "Welcome to Eldmoor"
   eras?: Eras; // how years are written, e.g. "100 YC" and "540 BL"
   secondCalendar?: SecondCalendar; // another set of month names (optional)
+  // Audiences with a password: their sections are published locked. "neri" -> "Neri", "dm" -> "DM".
+  // An audience not listed here has its sections left out entirely.
+  audiences?: Record<string, string>;
   // Pins fetched from Pinterest, by boardKey (see shared/pinterest.ts)
   moodboards?: Record<string, MoodPin[]>;
   // Calendarium's settings, for the Calendar (and Timeline) pages
@@ -53,6 +58,9 @@ export interface ExportFile {
 export interface ExportResult {
   files: ExportFile[];
   published: { from: string; to: string; title: string }[];
+  // Sections for one player or the DM, still readable: the plugin locks them before anything is sent.
+  // Pages only hold empty markers for them.
+  locked: { page: string; sections: LockedSection[] }[];
 }
 
 // Properties that hold an image path or a list of them.
@@ -87,6 +95,7 @@ interface Prepared {
   section: string; // e.g. "places"; "" for the site root
   slug: string; // e.g. "the-banked-fire"
   props: Record<string, unknown>; // the note's own properties (player_in is read from here)
+  player?: PlayerNote; // the player-safe note (not for Player Pages)
   folders: string[]; // vault folders between the section's folder and the note
 }
 
@@ -96,6 +105,7 @@ function prepare(note: VaultNote, opts: ExportOptions): Prepared | null {
   let title: string;
   let section: string | null = null;
   let props: Record<string, unknown> = {};
+  let player: PlayerNote | undefined;
 
   if (wholePage) {
     // Player Pages are published as written, with a title added.
@@ -118,6 +128,7 @@ function prepare(note: VaultNote, opts: ExportOptions): Prepared | null {
     const override = extracted.properties["wiki_section"];
     if (typeof override === "string") section = override;
     markdown = renderPlayerNote(extracted, opts.yaml);
+    player = extracted;
   }
 
   const rule = wholePage ? null : ruleFor(note.path, opts.sections);
@@ -126,7 +137,7 @@ function prepare(note: VaultNote, opts: ExportOptions): Prepared | null {
   const slug = slugify(title) || slugify(baseName(note.path));
   // A Player Pages note called "Home" becomes the site's front page.
   const to = wholePage && slug === "home" ? "index" : section ? `${section}/${slug}` : slug;
-  return { from: note.path, to, title, markdown, section, slug, props: wholePage ? {} : props, folders };
+  return { from: note.path, to, title, markdown, section, slug, props: wholePage ? {} : props, folders, ...(player ? { player } : {}) };
 }
 
 const LINK = /^\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|([^\]]*))?\]\]$/;
@@ -322,9 +333,45 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
     return { markdown: out, maps };
   }
 
+  // Locked sections: links point at wiki pages, written as Markdown links the browser can follow
+  // once it has opened them ("wiki:people/pell"). Links to pages not on the wiki become plain text.
+  function lockedMarkdown(md: string, fromPath: string): string {
+    return md.replace(WIKILINK, (_all, bang: string, target: string, _heading, alias?: string) => {
+      const resolved = target ? opts.resolveLink(target, fromPath) : null;
+      if (bang && resolved && IMAGE_EXT.test(resolved)) return `![${alias ?? ""}](wiki:${imageTarget(resolved)})`;
+      const page = resolved ? byVaultPath.get(resolved) : undefined;
+      if (bang) return "";
+      return page ? `[${alias ?? page.title}](wiki:${page.to})` : (alias ?? target);
+    });
+  }
+  const locked: ExportResult["locked"] = [];
+
   const files: ExportFile[] = [];
   for (const p of prepared) {
     let source = p.markdown;
+    // Sections for one player or the DM: an empty marker where each goes, the text kept aside to be locked
+    if (p.player && opts.audiences && Object.keys(opts.audiences).length) {
+      const note = (notesByPath.get(p.from)?.text ?? "").replace(/%%[\s\S]*?%%/g, "");
+      const all = readSections(note);
+      const slots: LockSlot[] = [];
+      const sections: LockedSection[] = [];
+      const seen = { overview: 0, content: 0, known: 0 };
+      for (const sec of all) {
+        if (sec.vis === "everyone") {
+          seen[sec.kind]++;
+          continue;
+        }
+        if (!(sec.vis in opts.audiences)) continue;
+        const id = sections.length;
+        sections.push({ id, aud: sec.vis, name: opts.audiences[sec.vis], kind: sec.kind, title: sec.title, md: lockedMarkdown(withoutNested(sec.text), p.from) });
+        slots.push({ id, kind: sec.kind, after: seen[sec.kind] });
+      }
+      if (sections.length) {
+        // The first Overview for everyone is the page's Overview; any more go under "What we know"
+        source = renderPlayerNote(p.player, opts.yaml, slots.map((l) => (l.kind === "known" ? { ...l, after: Math.min(l.after, p.player!.entries.length) } : l)));
+        locked.push({ page: p.to, sections });
+      }
+    }
     let maps: MapData[] = [];
     if (p.from.startsWith(opts.playerPagesFolder + "/")) {
       const fm = source.match(/^---\r?\n[\s\S]*?\r?\n---/)?.[0] ?? "";
@@ -463,6 +510,7 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
   return {
     files,
     published: prepared.map((p) => ({ from: p.from, to: p.to, title: p.title })),
+    locked,
   };
 }
 

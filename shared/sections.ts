@@ -93,3 +93,20 @@ export function writeSections(note: string, sections: WikiSection[]): string {
   const out = lines.join("\n") + (blocks.length ? `${lines.length ? "\n\n" : ""}${blocks.join("\n\n")}` : "") + "\n";
   return crlf ? out.replace(/\n/g, "\r\n") : out;
 }
+
+// A section's text without any other callout inside it (publishing leaves those out)
+export function withoutNested(text: string): string {
+  const out: string[] = [];
+  let skipping = false;
+  for (const line of text.split("\n")) {
+    const nested = line.match(/^>\s*\[!(\w[\w-]*)/i);
+    if (nested) {
+      skipping = nested[1].toLowerCase() !== "player";
+      continue;
+    }
+    if (skipping && line.startsWith(">")) continue;
+    skipping = false;
+    out.push(line);
+  }
+  return out.join("\n");
+}

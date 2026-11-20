@@ -364,6 +364,13 @@ plugins:
     layout:
       position: afterBody
       priority: 20
+  - source: ./site-plugins/audiences
+    enabled: true
+    options: {}
+    order: 50
+    layout:
+      position: beforeBody
+      priority: 5
 layout:
   sidebars:
     left: scroll

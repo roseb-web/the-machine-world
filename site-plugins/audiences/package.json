@@ -1,0 +1,27 @@
+{
+  "name": "audiences",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Audience views: signing in to see sections for one player, or the DM.",
+  "exports": {
+    ".": { "import": "./dist/index.js" },
+    "./components": { "import": "./dist/components/index.js" },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "scripts": { "build": "node build.mjs" },
+  "quartz": {
+    "name": "audiences",
+    "displayName": "Audience views",
+    "category": "component",
+    "version": "1.0.0",
+    "quartzVersion": ">=5.0.0",
+    "dependencies": [],
+    "defaultEnabled": true,
+    "defaultOptions": {},
+    "components": {
+      "Audiences": { "displayName": "Audience views", "defaultPosition": "beforeBody", "defaultPriority": 5 }
+    }
+  }
+}
