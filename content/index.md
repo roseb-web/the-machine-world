@@ -1,6 +1,7 @@
 ---
 party_location: "[[places/the-marrowlands/thornwick/index|Thornwick]]"
 title: Home
+mw_welcome: Welcome to Vaharan
 game_date:
   day: 3
   month: Orrimel

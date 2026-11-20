@@ -9,13 +9,6 @@ mw_web:
       groups:
         - thornwick residents
       open: people/the-marrowlands/thornwick/wil-carder
-    - id: people/the-marrowlands/thornwick/reeve-tomas-ashdown
-      name: Reeve Tomas Ashdown
-      title: Head of the village
-      photo: assets/reeve-tomas-ashdown.png
-      groups:
-        - thornwick residents
-      open: people/the-marrowlands/thornwick/reeve-tomas-ashdown
     - id: people/the-marrowlands/thornwick/pell
       name: Pell
       title: Mr Penn, paper and ink
@@ -23,6 +16,13 @@ mw_web:
       groups:
         - thornwick residents
       open: people/the-marrowlands/thornwick/pell
+    - id: people/the-marrowlands/thornwick/reeve-tomas-ashdown
+      name: Reeve Tomas Ashdown
+      title: Head of the village
+      photo: assets/reeve-tomas-ashdown.png
+      groups:
+        - thornwick residents
+      open: people/the-marrowlands/thornwick/reeve-tomas-ashdown
     - id: people/the-marrowlands/thornwick/old-corwin
       name: Old Corwin
       title: Gravedigger
@@ -30,13 +30,6 @@ mw_web:
       groups:
         - thornwick residents
       open: people/the-marrowlands/thornwick/old-corwin
-    - id: people/the-marrowlands/thornwick/mrs-agnes-hesk
-      name: Mrs Agnes Hesk
-      title: Odds and Needs, the general store
-      photo: assets/pasted-image-20261022210439.png
-      groups:
-        - thornwick residents
-      open: people/the-marrowlands/thornwick/mrs-agnes-hesk
     - id: people/the-marrowlands/thornwick/mother-wren
       name: Mother Wren
       title: Thornwick's chapel
@@ -45,13 +38,13 @@ mw_web:
         - thornwick residents
         - dolvenya
       open: people/the-marrowlands/thornwick/mother-wren
-    - id: people/the-marrowlands/thornwick/jory-banks
-      name: Jory Banks
-      title: Innkeeper of the Banked Fire
-      photo: assets/pasted-image-20261022210238.png
+    - id: people/the-marrowlands/thornwick/mrs-agnes-hesk
+      name: Mrs Agnes Hesk
+      title: Odds and Needs, the general store
+      photo: assets/pasted-image-20261022210439.png
       groups:
         - thornwick residents
-      open: people/the-marrowlands/thornwick/jory-banks
+      open: people/the-marrowlands/thornwick/mrs-agnes-hesk
     - id: people/the-marrowlands/thornwick/garran-tull
       name: Garran Tull
       title: Village smith
@@ -59,6 +52,13 @@ mw_web:
       groups:
         - thornwick residents
       open: people/the-marrowlands/thornwick/garran-tull
+    - id: people/the-marrowlands/thornwick/jory-banks
+      name: Jory Banks
+      title: Innkeeper of the Banked Fire
+      photo: assets/pasted-image-20261022210238.png
+      groups:
+        - thornwick residents
+      open: people/the-marrowlands/thornwick/jory-banks
     - id: people/the-marrowlands/thornwick/foreman-oskar-brede
       name: Foreman Oskar Brede
       title: Foreman of the drawing station
