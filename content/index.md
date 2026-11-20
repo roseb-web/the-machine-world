@@ -35,6 +35,54 @@ mw_coming_up:
 mw_changes:
   since:
   items:
+    - to: people-web
+      title: People web
+      kind: new
+      section: People-web
+    - to: people/the-marrowlands/thornwick/wil-carder
+      title: Wil Carder
+      kind: updated
+      section: People
+    - to: people/the-marrowlands/thornwick/reeve-tomas-ashdown
+      title: Reeve Tomas Ashdown
+      kind: updated
+      section: People
+    - to: people/the-marrowlands/thornwick/pell
+      title: Pell
+      kind: updated
+      section: People
+    - to: people/the-marrowlands/thornwick/old-corwin
+      title: Old Corwin
+      kind: updated
+      section: People
+    - to: people/the-marrowlands/thornwick/mrs-agnes-hesk
+      title: Mrs Agnes Hesk
+      kind: updated
+      section: People
+    - to: people/the-marrowlands/thornwick/mother-wren
+      title: Mother Wren
+      kind: updated
+      section: People
+    - to: people/the-marrowlands/thornwick/jory-banks
+      title: Jory Banks
+      kind: updated
+      section: People
+    - to: people/the-marrowlands/thornwick/garran-tull
+      title: Garran Tull
+      kind: updated
+      section: People
+    - to: people/the-marrowlands/thornwick/foreman-oskar-brede
+      title: Foreman Oskar Brede
+      kind: updated
+      section: People
+    - to: people/the-marrowlands/thornwick/enok
+      title: Enok
+      kind: updated
+      section: People
+    - to: people/the-marrowlands/thornwick/dunny-pratt
+      title: Dunny Pratt
+      kind: updated
+      section: People
     - to: gallery
       title: Gallery
       kind: new

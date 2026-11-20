@@ -4,6 +4,12 @@ photo: assets/reeve-tomas-ashdown.png
 player_title: Head of the village
 player_seen: "[[places/the-marrowlands/thornwick/index|Thornwick]]"
 player_artist: Eric Belisle
+player_groups:
+  - Thornwick residents
+player_relations:
+  - "[[Mother Wren]]"
+  - "[[Foreman Oskar Brede]]"
+  - "[[Warden-Inspector Isaiah Rutherford]]"
 ---
 
 ## Overview

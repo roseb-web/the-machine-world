@@ -5,6 +5,11 @@ player_title: Station worker
 player_handouts:
   - assets/wils-scrap.png
 player_artist: Kaiyela
+player_groups:
+  - Thornwick residents
+player_relations:
+  - "[[Enok]]"
+  - "[[Foreman Oskar Brede]]"
 mw_handout_names:
   - Wil's scrap
 ---

@@ -6,6 +6,15 @@ player_seen: "[[places/the-marrowlands/thornwick/the-drawing-station|The Drawing
 player_handouts:
   - assets/bredes-wagon-list.png
 player_artist: Adam Schumpert, Marina Chemeris and Karl Heisenberg
+player_groups:
+  - "[[Meridian Concord]]"
+  - Thornwick residents
+player_relations:
+  - "[[Ida Marsh]]"
+  - "[[Wil Carder]]"
+  - "[[Dunny Pratt]]"
+  - "[[Enok]]"
+  - "[[Reeve Tomas Ashdown]]"
 mw_handout_names:
   - Brede's wagon list
 ---

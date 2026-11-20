@@ -4,6 +4,11 @@ photo: assets/dunny-pratt.png
 player_title: Stores clerk at the station
 player_species: Gnome
 player_artist: Gabriel Romann
+player_groups:
+  - "[[Meridian Concord]]"
+  - Thornwick residents
+player_relations:
+  - "[[Foreman Oskar Brede]]"
 ---
 
 ## Overview

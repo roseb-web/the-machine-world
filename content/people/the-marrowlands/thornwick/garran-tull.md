@@ -3,6 +3,8 @@ title: Garran Tull
 photo: assets/garran-tull.png
 player_title: Village smith
 player_artist: SHY (Souvenir)
+player_groups:
+  - Thornwick residents
 ---
 
 ## Overview

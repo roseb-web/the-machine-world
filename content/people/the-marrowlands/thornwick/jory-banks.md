@@ -6,6 +6,10 @@ player_species: Harengon
 player_seen: "[[places/the-marrowlands/thornwick/the-banked-fire|The Banked Fire]]"
 player_favour: Favoured
 player_artist: "@januaryface"
+player_relations:
+  - "[[Neri]] | friend"
+player_groups:
+  - Thornwick residents
 ---
 
 ## Overview

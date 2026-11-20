@@ -3,6 +3,13 @@ title: Enok
 player_title: Luca's father
 player_seen: "[[places/the-marrowlands/thornwick/the-drawing-station|The Drawing Station]]"
 player_status: Very ill
+player_groups:
+  - Thornwick residents
+player_relations:
+  - "[[Bronwyn]]"
+  - "[[Luca]]"
+  - "[[Nix]]"
+  - "[[Wil Carder]]"
 ---
 
 ## Overview
