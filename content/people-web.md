@@ -9,13 +9,6 @@ mw_web:
       groups:
         - thornwick residents
       open: people/the-marrowlands/thornwick/wil-carder
-    - id: people/the-marrowlands/thornwick/pell
-      name: Pell
-      title: Mr Penn, paper and ink
-      photo: assets/pell.png
-      groups:
-        - thornwick residents
-      open: people/the-marrowlands/thornwick/pell
     - id: people/the-marrowlands/thornwick/reeve-tomas-ashdown
       name: Reeve Tomas Ashdown
       title: Head of the village
@@ -23,6 +16,13 @@ mw_web:
       groups:
         - thornwick residents
       open: people/the-marrowlands/thornwick/reeve-tomas-ashdown
+    - id: people/the-marrowlands/thornwick/pell
+      name: Pell
+      title: Mr Penn, paper and ink
+      photo: assets/pell.png
+      groups:
+        - thornwick residents
+      open: people/the-marrowlands/thornwick/pell
     - id: people/the-marrowlands/thornwick/old-corwin
       name: Old Corwin
       title: Gravedigger
@@ -45,13 +45,6 @@ mw_web:
       groups:
         - thornwick residents
       open: people/the-marrowlands/thornwick/mrs-agnes-hesk
-    - id: people/the-marrowlands/thornwick/garran-tull
-      name: Garran Tull
-      title: Village smith
-      photo: assets/garran-tull.png
-      groups:
-        - thornwick residents
-      open: people/the-marrowlands/thornwick/garran-tull
     - id: people/the-marrowlands/thornwick/jory-banks
       name: Jory Banks
       title: Innkeeper of the Banked Fire
@@ -59,6 +52,13 @@ mw_web:
       groups:
         - thornwick residents
       open: people/the-marrowlands/thornwick/jory-banks
+    - id: people/the-marrowlands/thornwick/garran-tull
+      name: Garran Tull
+      title: Village smith
+      photo: assets/garran-tull.png
+      groups:
+        - thornwick residents
+      open: people/the-marrowlands/thornwick/garran-tull
     - id: people/the-marrowlands/thornwick/foreman-oskar-brede
       name: Foreman Oskar Brede
       title: Foreman of the drawing station

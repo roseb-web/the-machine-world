@@ -14,6 +14,7 @@ player_handouts:
 player_artist: Wes Talbott
 player_groups:
   - Thornwick residents
+spotify: https://open.spotify.com/track/5vkKKKq4s2KvtLSez9n7Ev?si=5fe7d62196a94079
 mw_handout_names:
   - Pell's room - Travel papers
   - Pell's room - Marked person permit

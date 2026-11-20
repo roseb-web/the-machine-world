@@ -36,6 +36,10 @@ mw_coming_up:
 mw_changes:
   since:
   items:
+    - to: people/the-marrowlands/thornwick/pell
+      title: Pell
+      kind: updated
+      section: People
     - to: people-web
       title: People web
       kind: new
@@ -46,10 +50,6 @@ mw_changes:
       section: People
     - to: people/the-marrowlands/thornwick/reeve-tomas-ashdown
       title: Reeve Tomas Ashdown
-      kind: updated
-      section: People
-    - to: people/the-marrowlands/thornwick/pell
-      title: Pell
       kind: updated
       section: People
     - to: people/the-marrowlands/thornwick/old-corwin
