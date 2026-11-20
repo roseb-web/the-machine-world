@@ -117,9 +117,10 @@ function renderHeader(
     const artist = photo ? str("player_artist") : undefined
     const artistLink = artist?.match(/^\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)$/)
     const seen = str("player_seen")
+    const song = spotifyEmbed(str("spotify"))
     // Date cards: when this page's events happen (added by the export from Calendarium)
     const dates = Array.isArray(fm.mw_dates) ? (fm.mw_dates as unknown[]).filter((d): d is string => typeof d === "string") : []
-    const hasDetails = photo || sigil || subtitle || say || chips.length > 0 || faction || seen || dates.length > 0
+    const hasDetails = photo || sigil || subtitle || say || chips.length > 0 || faction || seen || dates.length > 0 || song
 
     if (!hasDetails) {
       return <h1 class="article-title">{title}</h1>
@@ -174,7 +175,26 @@ function renderHeader(
               {d}
             </p>
           ))}
+          {song && (
+            <iframe
+              class="mw-song"
+              title="Theme song"
+              src={song.src}
+              height={song.height}
+              loading="lazy"
+              frameBorder="0"
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            />
+          )}
         </div>
       </header>
     )
+}
+
+// A Spotify share link -> Spotify's own small player.
+// "https://open.spotify.com/track/ID?si=..." (also album, playlist and episode links)
+function spotifyEmbed(url: string | undefined): { src: string; height: number } | null {
+  const m = url?.match(/^https:\/\/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(track|album|playlist|episode)\/([A-Za-z0-9]+)/)
+  if (!m) return null
+  return { src: `https://open.spotify.com/embed/${m[1]}/${m[2]}?utm_source=generator`, height: m[1] === "track" || m[1] === "episode" ? 80 : 152 }
 }
