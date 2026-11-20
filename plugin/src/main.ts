@@ -54,7 +54,7 @@ export default class MachineWorldWiki extends Plugin {
           if (!(leaf.view instanceof MarkdownView)) continue;
           const view = leaf.view as MarkdownView & { _mwEdit?: HTMLElement };
           if (view._mwEdit) continue;
-          view._mwEdit = view.addAction("pencil", "Edit wiki details", () => view.file && this.editDetails(view.file));
+          view._mwEdit = view.addAction("scroll-text", "Edit wiki details", () => view.file && this.editDetails(view.file));
           this.register(() => {
             view._mwEdit?.remove();
             delete view._mwEdit;
