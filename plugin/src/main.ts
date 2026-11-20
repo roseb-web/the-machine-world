@@ -10,6 +10,7 @@ import { setProps, trackChanges } from "../../shared/home";
 
 const YAML = { parse: parseYaml, stringify: stringifyYaml };
 import { TIMELINE_VIEW, TimelineView } from "./timeline-view";
+import { PeopleWebView, WEB_VIEW } from "./web-view";
 import { gameDateFrom } from "../../shared/calendar";
 
 interface WikiSettings {
@@ -20,6 +21,7 @@ interface WikiSettings {
   contentPath: string;
   playerPagesFolder: string;
   galleryFolder: string; // one note per picture of player art
+  groupTypesNote: string; // the people web's group types
   defaultSection: string;
   sections: SectionRule[];
   sectionTitles: Record<string, string>;
@@ -37,6 +39,7 @@ const DEFAULT_SETTINGS: WikiSettings = {
   contentPath: "content",
   playerPagesFolder: "5. Wiki/Player Pages",
   galleryFolder: "5. Wiki/Player Art",
+  groupTypesNote: "5. Wiki/People web groups.md",
   defaultSection: "misc",
   sections: [
     { folder: "4. People/NPCs", section: "people" },
@@ -79,6 +82,16 @@ export default class MachineWorldWiki extends Plugin {
     this.registerView(TIMELINE_VIEW, (leaf) => new TimelineView(leaf, this));
     this.addRibbonIcon("calendar-range", "Open timeline", () => this.openTimeline());
     this.addCommand({ id: "open-timeline", name: "Open timeline", callback: () => this.openTimeline() });
+    this.registerView(WEB_VIEW, (leaf) => new PeopleWebView(leaf, this));
+    this.addRibbonIcon("waypoints", "Open people web", () => this.openView(WEB_VIEW));
+    this.addCommand({ id: "open-people-web", name: "Open people web", callback: () => this.openView(WEB_VIEW) });
+  }
+
+  async openView(type: string) {
+    const existing = this.app.workspace.getLeavesOfType(type)[0];
+    const leaf = existing ?? this.app.workspace.getLeaf("tab");
+    if (!existing) await leaf.setViewState({ type, active: true });
+    this.app.workspace.revealLeaf(leaf);
   }
 
   async openTimeline() {
@@ -289,6 +302,10 @@ class WikiSettingTab extends PluginSettingTab {
       .setName("Player art folder")
       .setDesc("One note per picture, for the Gallery page. Everything in these notes is published.")
       .addText((t) => t.setValue(s.galleryFolder).onChange((v) => { s.galleryFolder = v.trim(); save(); }));
+    new Setting(containerEl)
+      .setName("People web groups note")
+      .setDesc("Lists each group under its type (location, collective, religion, government), for the people web's colours.")
+      .addText((t) => t.setValue(s.groupTypesNote).onChange((v) => { s.groupTypesNote = v.trim(); save(); }));
     new Setting(containerEl)
       .setName("Menu sections")
       .setDesc("One per line: vault folder = wiki section. The longest matching folder wins.")
