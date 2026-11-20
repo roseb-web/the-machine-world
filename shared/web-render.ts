@@ -20,6 +20,7 @@ export interface WebOptions {
   storage?: { get: (key: string) => unknown; set: (key: string, value: unknown) => void };
   styles?: Record<string, TieStyle>;
   playerToggle?: { on: boolean; set: (on: boolean) => void };
+  onEdit?: (person: WebPerson) => void; // Obsidian only: the Edit button
 }
 
 type View = "groups" | "relationships";
@@ -130,6 +131,9 @@ export function renderWeb(root: HTMLElement, data: WebData, opts: WebOptions = {
   bar.append(search, list, gear);
 
   const picker = el("div", "mw-web-picker");
+  // On phones the group buttons fold away behind this
+  const pickToggle = button("mw-web-chip mw-web-pick-toggle", "Choose groups ▾", () => wrap.classList.toggle("mw-pick-open"));
+  bar.insertBefore(pickToggle, search);
 
   const slider = (label: string, key: "spacing" | "pull" | "spread") => {
     const row = el("label", "mw-web-slider");
@@ -197,6 +201,8 @@ export function renderWeb(root: HTMLElement, data: WebData, opts: WebOptions = {
   function fillPicker() {
     picker.innerHTML = "";
     picker.hidden = view !== "groups";
+    pickToggle.hidden = view !== "groups";
+    pickToggle.textContent = picked.size ? `Groups: ${picked.size} chosen ▾` : "Choose groups ▾";
     const all = [...groups.values()].filter((g) => membersOf(g.id).length);
     const kinds = [...new Set(all.map(typeOf))].sort((a, b) => (TYPE_ORDER.indexOf(a) + 1 || 9) - (TYPE_ORDER.indexOf(b) + 1 || 9));
     picker.appendChild(button(`mw-web-gchip${picked.size ? "" : " mw-on"}`, "All groups", () => setPicked([])));
@@ -541,6 +547,10 @@ export function renderWeb(root: HTMLElement, data: WebData, opts: WebOptions = {
       }
     }
     openLink(p.open, () => opts.onOpen?.({ kind: "person", person: p }));
+    if (opts.onEdit) {
+      panel.appendChild(el("br"));
+      panel.appendChild(button("mw-web-open", "✎ Edit groups and ties", () => opts.onEdit!(p)));
+    }
   }
 
   function selectGroup(gid: string) {
@@ -766,7 +776,8 @@ export const WEB_CSS = `
 .mw-web-chip.mw-on { border-color: var(--w-accent) !important; color: var(--w-accent) !important; }
 .mw-web-gear { padding: 0.15rem 0.55rem !important; }
 .mw-web-picker { display: flex; flex-wrap: wrap; gap: 0.35rem 1rem; align-items: center; padding: 0.5rem 0.8rem; border-bottom: 1px solid var(--w-line); font-size: 0.78rem; }
-.mw-web-picker[hidden] { display: none; }
+.mw-web-picker[hidden], .mw-web-pick-toggle[hidden] { display: none; }
+.mw-web-pick-toggle { display: none; }
 .mw-web-gkind { display: inline-flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; }
 .mw-web-gkind-name { color: var(--w-muted); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.66rem; margin-right: 0.2rem; }
 .mw-web-gchip { padding: 0.1rem 0.6rem !important; border: 1px solid var(--c, var(--w-line)) !important; border-radius: 999px !important; background: var(--w-bg) !important; color: var(--c, var(--w-muted)) !important; }
@@ -824,6 +835,9 @@ export const WEB_CSS = `
 .mw-web-open { display: inline-block; margin-top: 0.9rem; padding: 0 !important; border: 0 !important; background: none !important; color: var(--w-accent) !important; font-weight: 600; font-size: 0.85rem; text-decoration: none; }
 @media (max-width: 700px) {
   .mw-web-search { width: 100%; margin-left: 0; order: 9; }
+  .mw-web-pick-toggle:not([hidden]) { display: inline-block; }
+  .mw-web:not(.mw-pick-open) .mw-web-picker { display: none; }
+  .mw-web-picker { max-height: 40vh; overflow-y: auto; }
   .mw-web-body { flex-direction: column; }
   .mw-web-panel, .mw-web-panel.mw-open { width: auto; max-height: 45%; border-left: 0; border-top: 1px solid var(--w-line); }
   .mw-web-panel:not(.mw-open) { display: none; }

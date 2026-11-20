@@ -7,6 +7,7 @@ import { readMap, MapData } from "./maps";
 import { calendarExport, dateCard } from "./events";
 import { boardKey, MoodPin } from "./pinterest";
 import { comingUp, latestSession, setProps } from "./home";
+import { cleanTies, dropLoners, GROUP_TYPES, groupId, groupName, parseRelation, WebData, WebGroup, WebPerson, WebTie } from "./web";
 
 export interface VaultNote {
   path: string; // vault path, e.g. "4. People/NPCs/Pell.md"
@@ -23,6 +24,7 @@ export interface ExportOptions {
   defaultSection: string;
   playerPagesFolder: string; // notes here are published whole
   galleryFolder?: string; // one note per picture of player art; becomes the Gallery page
+  groupTypesNote?: string; // vault path of the note listing each group under its type (people web colours)
   sectionTitles?: Record<string, string>; // e.g. { people: "People" }, used for the section's own page
   gameDate?: GameDate | null; // today's in-game date, shown on the home page
   // Pins fetched from Pinterest, by boardKey (see shared/pinterest.ts)
@@ -364,6 +366,14 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
       });
   }
 
+  // People web: published people with player_groups or player_relations
+  const web = peopleWeb(prepared, notes, opts, byVaultPath, imageTarget);
+  if (web.people.length && !files.some((f) => f.path === "people-web.md"))
+    files.push({
+      path: "people-web.md",
+      text: `---\n${opts.yaml.stringify({ title: "People web", mw_web: web }).trimEnd()}\n---\n\nWho the party has met, and who they're tied to. Click anyone for more.\n`,
+    });
+
   for (const [vaultPath, contentPath] of images) files.push({ path: contentPath, copyFrom: vaultPath });
 
   // Home page: if it names where the party is, it uses that place's banner.
@@ -505,4 +515,84 @@ function gallery(
     });
   }
   return items.sort((a, b) => (b.date ?? "").localeCompare(a.date ?? "") || (a.description ?? "").localeCompare(b.description ?? ""));
+}
+
+// The people web's data. Only published people are in it, and only what their player_groups
+// and player_relations say (never the DM's own groups and relations).
+// Someone is one of the party if "The party" is in their player_groups.
+function peopleWeb(
+  prepared: Prepared[],
+  notes: VaultNote[],
+  opts: ExportOptions,
+  byVaultPath: Map<string, Prepared>,
+  imageTarget: (vaultPath: string) => string,
+): WebData {
+  const list = (v: unknown): unknown[] => (Array.isArray(v) ? v : v === undefined || v === null || v === "" ? [] : [v]);
+  const frontOf = (text: string) => {
+    const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    return (m ? opts.yaml.parse(m[1]) ?? {} : {}) as Record<string, unknown>;
+  };
+  // Group types, from the groups note
+  const types = new Map<string, string>();
+  const typesNote = opts.groupTypesNote ? notes.find((n) => n.path === opts.groupTypesNote) : undefined;
+  if (typesNote) {
+    const fm = frontOf(typesNote.text);
+    for (const type of Object.keys(GROUP_TYPES))
+      for (const raw of list(fm[type])) {
+        const name = groupName(raw);
+        if (name) types.set(groupId(name), type);
+      }
+  }
+  const notesByPath = new Map(notes.map((n) => [n.path, n]));
+  const people: WebPerson[] = [];
+  const groups = new Map<string, WebGroup>();
+  const raw: { from: Prepared; rel: unknown }[] = [];
+  for (const p of prepared) {
+    // Player Pages are published whole, so all their properties are public
+    const props = p.from.startsWith(opts.playerPagesFolder + "/") ? frontOf(notesByPath.get(p.from)?.text ?? "") : p.props;
+    const gs = list(props.player_groups);
+    const rs = list(props.player_relations);
+    if (!gs.length && !rs.length) continue;
+    const ids: string[] = [];
+    for (const g of gs) {
+      const name = groupName(g);
+      if (!name) continue;
+      const id = groupId(name);
+      if (!groups.has(id)) {
+        // A linked group gets a link only if its page is published
+        const link = String(g).match(/^\[\[([^\]|#]+)/)?.[1];
+        const resolved = link ? opts.resolveLink(link, p.from) : null;
+        const page = resolved ? byVaultPath.get(resolved) : undefined;
+        groups.set(id, {
+          id,
+          name,
+          ...(id === "the party" ? { party: true } : {}),
+          ...(types.has(id) ? { type: types.get(id) } : {}),
+          ...(page ? { open: page.to } : {}),
+        });
+      }
+      if (!ids.includes(id)) ids.push(id);
+    }
+    const photoLink = typeof props.photo === "string" ? props.photo.replace(/^!?\[\[|\]\]$/g, "").split("|")[0] : "";
+    const photo = photoLink ? opts.resolveLink(photoLink, p.from) : null;
+    people.push({
+      id: p.to,
+      name: p.title,
+      ...(typeof props.player_title === "string" ? { title: props.player_title } : {}),
+      ...(photo && IMAGE_EXT.test(photo) ? { photo: imageTarget(photo) } : {}),
+      ...(ids.includes("the party") ? { pc: true } : {}),
+      groups: ids,
+      open: p.to,
+    });
+    for (const r of rs) raw.push({ from: p, rel: r });
+  }
+  const ties: WebTie[] = [];
+  for (const { from, rel } of raw) {
+    const r = parseRelation(rel);
+    if (!r) continue;
+    const resolved = opts.resolveLink(r.target, from.from);
+    const page = resolved ? byVaultPath.get(resolved) : undefined;
+    if (page) ties.push({ a: from.to, b: page.to, type: r.type, ...(r.strength ? { strength: r.strength } : {}) });
+  }
+  return dropLoners({ people, groups: [...groups.values()], ties: cleanTies(ties, people) });
 }

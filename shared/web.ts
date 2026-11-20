@@ -123,3 +123,18 @@ export function cleanTies(ties: WebTie[], people: WebPerson[]): WebTie[] {
   }
   return [...seen.values()];
 }
+
+// Writes a tie back out: "[[Pell]]", "[[Pell]] | friend", "[[Pell]] | friend | close"
+export function formatRelation(target: string, type: string, strength?: "close" | "loose"): string {
+  const t = type.trim().toLowerCase() || "knows";
+  if (!strength) return t === "knows" ? `[[${target}]]` : `[[${target}]] | ${t}`;
+  return `[[${target}]] | ${t} | ${strength}`;
+}
+
+// Drops people left with no groups and no ties (so the wiki doesn't fill with loose circles)
+export function dropLoners(data: WebData): WebData {
+  const tied = new Set(data.ties.flatMap((t) => [t.a, t.b]));
+  const people = data.people.filter((p) => p.groups.length || tied.has(p.id));
+  const used = new Set(people.flatMap((p) => p.groups));
+  return { people, groups: data.groups.filter((g) => used.has(g.id)), ties: data.ties };
+}

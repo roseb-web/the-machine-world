@@ -63,6 +63,32 @@
 .mw-ev-suggest-path { font-size: 0.8em; color: var(--text-muted); }
 
 /* The people web view: the web fills the pane */
-.mw-web-view { padding: 0 !important; }
-.mw-web-holder { height: 100%; }
+.mw-web-view { padding: 0 !important; display: flex; flex-direction: column; }
+.mw-web-obar { padding: 0.5rem 0.9rem; border-bottom: 1px solid var(--background-modifier-border); }
+.mw-web-holder { flex: 1; min-height: 0; }
+.mw-web-playerview .mw-web { box-shadow: inset 0 0 0 3px color-mix(in srgb, #b8860b 45%, transparent); }
 .mw-web-holder .mw-web { border: 0; border-radius: 0; }
+
+/* People web: the "Edit groups and ties" form */
+.mw-we-modal { width: min(640px, 94vw); }
+.mw-we-title { margin: 0 0 0.3rem; }
+.mw-we-pub { display: inline-block; font-size: 0.8em; padding: 0.1rem 0.7rem; border-radius: 999px; margin-bottom: 0.6rem; }
+.mw-we-pub.mw-yes { background: color-mix(in srgb, #4e7a5c 15%, transparent); color: #4e7a5c; }
+.mw-we-pub.mw-no { background: var(--background-modifier-hover); color: var(--text-muted); }
+.mw-we-head { display: flex; justify-content: space-between; margin: 1rem 0 0.4rem; font-size: 0.72em; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+.mw-we-head-r { letter-spacing: 0; text-transform: none; }
+.mw-we-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.6rem; margin-bottom: 0.35rem; border: 1px solid var(--background-modifier-border); border-radius: 8px; background: var(--background-primary); }
+.mw-we-row.mw-off { background: var(--background-secondary); }
+.mw-we-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.mw-we-name { flex: 1; }
+.mw-we-input { flex: 1; min-width: 8rem; }
+.mw-we-lbl { width: 3.4rem; text-align: right; font-size: 0.78em; color: var(--text-muted); }
+.mw-we-x, .mw-we-add, .mw-we-other { box-shadow: none !important; background: none !important; border: 0 !important; padding: 0.1rem 0.3rem !important; height: auto !important; cursor: pointer; }
+.mw-we-x { color: var(--text-faint); }
+.mw-we-add { color: var(--text-accent); font-size: 0.88em; }
+.mw-we-other { color: var(--text-accent); text-decoration: underline; }
+.mw-we-others { display: flex; flex-wrap: wrap; gap: 0.3rem 0.8rem; }
+.mw-we-hint { font-size: 0.8em; color: var(--text-faint); margin-top: 0.2rem; }
+.mw-we-error { color: var(--text-error); min-height: 1.2em; margin-top: 0.6rem; }
+.mw-we-buttons { display: flex; gap: 0.5rem; margin-top: 0.4rem; }
+.mw-we-spacer { flex: 1; }

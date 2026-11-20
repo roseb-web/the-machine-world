@@ -190,6 +190,7 @@ export default class MachineWorldWiki extends Plugin {
       defaultSection: this.settings.defaultSection,
       playerPagesFolder: this.settings.playerPagesFolder,
       galleryFolder: this.settings.galleryFolder || undefined,
+      groupTypesNote: this.settings.groupTypesNote || undefined,
       sectionTitles: { ...DEFAULT_SETTINGS.sectionTitles, ...this.settings.sectionTitles },
       resolveLink: (link, from) => this.app.metadataCache.getFirstLinkpathDest(link, from)?.path ?? null,
       yaml: { parse: parseYaml, stringify: stringifyYaml },
