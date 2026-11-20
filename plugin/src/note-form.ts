@@ -6,7 +6,8 @@
 // Saves through Obsidian (processFrontMatter and vault.process), so Obsidian can stay open.
 
 import { AbstractInputSuggest, App, Modal, Notice, TFile, ToggleComponent } from "obsidian";
-import { findOverview, playerCallouts, setOverview } from "../../shared/overview";
+import { findOverview, playerCallouts } from "../../shared/overview";
+import { readSections, writeSections } from "../../shared/sections";
 import type { SectionRule } from "../../shared/export";
 import { renderHeaderCard } from "./header-card";
 
@@ -452,7 +453,16 @@ export class NoteForm extends Modal {
         }
       });
     if (this.kind !== "page" && this.overview.trim() !== this.overviewOriginal.trim())
-      await app.vault.process(file, (text) => setOverview(text, this.overview));
+      // Like the Wiki preview's Edit: wiki sections are kept at the bottom of the note, folded
+      await app.vault.process(file, (text) => {
+        const sections = readSections(text).filter((x) => x.simple);
+        const ov = sections.find((x) => x.kind === "overview" && x.vis === "everyone");
+        const want = this.overview.trim();
+        if (ov && want) ov.text = want;
+        else if (ov) sections.splice(sections.indexOf(ov), 1);
+        else if (want) sections.unshift({ kind: "overview", title: "", text: want, vis: "everyone", simple: true });
+        return writeSections(text, sections);
+      });
   }
 
   onClose() {

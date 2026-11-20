@@ -2,12 +2,12 @@
 // The publishing rules themselves are in extract.ts. This only labels the parts for the preview.
 
 export type Part =
-  | { kind: "player"; title: string; text: string; hasHidden: boolean } // a [!player] callout (published)
+  | { kind: "player"; title: string; text: string; hasHidden: boolean; content: boolean } // a [!player] callout (published)
   | { kind: "callout"; type: string; title: string; text: string } // any other callout (never published)
   | { kind: "text"; text: string } // normal text (never published)
   | { kind: "comment"; text: string }; // %% comments %% (never published)
 
-const START = /^>\s*\[!(\w[\w-]*)\][+-]?\s*(.*)$/i;
+const START = /^>\s*\[!(\w[\w-]*)(?:\|([^\]]*))?\][+-]?\s*(.*)$/i;
 
 export function noteParts(note: string): Part[] {
   let body = note.replace(/\r\n/g, "\n");
@@ -43,8 +43,9 @@ export function noteParts(note: string): Part[] {
     let j = i + 1;
     while (j < lines.length && lines[j].startsWith(">")) inner.push(lines[j++].replace(/^> ?/, ""));
     const content = inner.join("\n").trim();
-    if (m[1].toLowerCase() === "player") parts.push({ kind: "player", title: m[2].trim(), text: content, hasHidden: /^>\s*\[!(?!player\])/im.test(content) });
-    else parts.push({ kind: "callout", type: m[1].toLowerCase(), title: m[2].trim(), text: content });
+    const title = m[3].trim();
+    if (m[1].toLowerCase() === "player") parts.push({ kind: "player", title, text: content, hasHidden: /^>\s*\[!/im.test(content), content: (m[2] ?? "").trim().toLowerCase() === "content" });
+    else parts.push({ kind: "callout", type: m[1].toLowerCase(), title, text: content });
     i = j - 1;
   }
   flush();

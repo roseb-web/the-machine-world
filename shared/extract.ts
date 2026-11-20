@@ -11,6 +11,7 @@ export interface PlayerNote {
   title: string;
   properties: Record<string, unknown>;
   overview: string | null;
+  content: { label: string; body: string }[]; // "> [!player|content]" callouts: the page's main text
   entries: { label: string; body: string }[];
 }
 
@@ -46,8 +47,9 @@ function stripComments(text: string): string {
   return text.replace(/%%[\s\S]*?%%/g, "");
 }
 
-// Matches the first line of a callout, e.g. "> [!player]- Session 5"
-const CALLOUT_START = /^>\s*\[!(\w[\w-]*)\][+-]?\s*(.*)$/i;
+// Matches the first line of a callout, e.g. "> [!player]- Session 5" or "> [!player|content] The stars".
+// Only the type "player" is published: "player-neri" (one player) and "dm" are not, yet.
+const CALLOUT_START = /^>\s*\[!(\w[\w-]*)(?:\|([^\]]*))?\][+-]?\s*(.*)$/i;
 
 // Inside a player callout, removes any nested callout that isn't a player one
 // (for example a DM callout someone put inside by mistake).
@@ -71,9 +73,9 @@ function stripNestedCallouts(lines: string[]): string[] {
 }
 
 // Finds every [!player] callout in the body.
-function findPlayerCallouts(body: string): { title: string; text: string }[] {
+function findPlayerCallouts(body: string): { title: string; text: string; content: boolean }[] {
   const lines = body.split(/\r?\n/);
-  const found: { title: string; text: string }[] = [];
+  const found: { title: string; text: string; content: boolean }[] = [];
   let inCode = false;
   for (let i = 0; i < lines.length; i++) {
     // Skip code blocks: a callout written inside one is an example, not content.
@@ -91,7 +93,7 @@ function findPlayerCallouts(body: string): { title: string; text: string }[] {
       j++;
     }
     const cleaned = stripNestedCallouts(content).join("\n").trim();
-    found.push({ title: start[2].trim(), text: cleaned });
+    found.push({ title: start[3].trim(), text: cleaned, content: (start[2] ?? "").trim().toLowerCase() === "content" });
     i = j - 1;
   }
   return found;
@@ -120,8 +122,10 @@ export function extractPlayerNote(
 
   let overview: string | null = null;
   const entries: { label: string; body: string }[] = [];
+  const content: { label: string; body: string }[] = [];
   for (const c of callouts) {
-    if (c.title.toLowerCase() === "overview" && overview === null) overview = c.text;
+    if (c.content) content.push({ label: c.title, body: c.text });
+    else if (c.title.toLowerCase() === "overview" && overview === null) overview = c.text;
     else entries.push({ label: c.title, body: c.text });
   }
 
@@ -130,7 +134,7 @@ export function extractPlayerNote(
       ? (properties["player_name"] as string)
       : fileNameToTitle(path);
 
-  return { title, properties, overview, entries };
+  return { title, properties, overview, content, entries };
 }
 
 // Writes the player-safe note back out as markdown for Quartz.
@@ -138,6 +142,8 @@ export function renderPlayerNote(note: PlayerNote, yaml: YamlTools): string {
   const front = yaml.stringify({ title: note.title, ...note.properties }).trimEnd();
   const parts: string[] = [`---\n${front}\n---`];
   if (note.overview) parts.push(`## Overview\n\n${note.overview}`);
+  // Content: the page's own text, with its own headings, between the Overview and "What we know"
+  for (const c of note.content) parts.push(c.label ? `## ${c.label}\n\n${c.body}` : c.body);
   if (note.entries.length > 0) {
     const items = note.entries.map((e) =>
       e.label ? `### ${e.label}\n\n${e.body}` : e.body,

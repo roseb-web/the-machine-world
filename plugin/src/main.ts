@@ -15,6 +15,7 @@ import type { Eras, SecondCalendar } from "../../shared/eras";
 import { TIMELINE_VIEW, TimelineView } from "./timeline-view";
 import { PeopleWebView, WEB_VIEW } from "./web-view";
 import { NoteForm } from "./note-form";
+import { readSections, writeSections } from "../../shared/sections";
 import { PREVIEW_VIEW, WikiPreviewView } from "./wiki-preview";
 import { calendarium } from "./event-modal";
 import { gameDateFrom } from "../../shared/calendar";
@@ -57,6 +58,19 @@ export default class MachineWorldWiki extends Plugin {
     this.registerEvent(this.app.vault.on("modify", (f) => this.published && f instanceof TFile && this.markPublished(f)));
     this.registerEvent(this.app.vault.on("delete", (f) => this.published?.delete(f.path)));
     this.registerEvent(this.app.vault.on("rename", () => (this.published = null)));
+
+    // Tidies a note: its wiki sections move to the bottom, folded. Nothing else changes.
+    this.addCommand({
+      id: "tidy-wiki-sections",
+      name: "Tidy wiki sections (move them to the bottom, folded)",
+      checkCallback: (checking) => {
+        const file = this.app.workspace.getActiveFile();
+        if (!file || file.extension !== "md") return false;
+        if (!checking)
+          this.app.vault.process(file, (text) => writeSections(text, readSections(text).filter((x) => x.simple))).then(() => new Notice("Wiki sections tidied"));
+        return true;
+      },
+    });
 
     // "Edit wiki details": a scroll button at the top of every note, and a command
     this.addCommand({
@@ -115,6 +129,20 @@ export default class MachineWorldWiki extends Plugin {
     if (on) this.published?.add(f.path);
     else this.published?.delete(f.path);
   }
+  // The party's names, for per-player sections and affinity: first word of the name the party
+  // knows, in lower case ("neri"), from the notes in the "party" menu section
+  partyNames(): string[] {
+    const folders = this.settings.sections.filter((r) => r.section === "party").map((r) => r.folder + "/");
+    const names = this.app.vault
+      .getMarkdownFiles()
+      .filter((f) => folders.some((p) => f.path.startsWith(p)))
+      .map((f) => {
+        const n = this.app.metadataCache.getFileCache(f)?.frontmatter?.player_name;
+        return String(typeof n === "string" && n.trim() ? n : f.basename).split(/\s+/)[0].toLowerCase();
+      });
+    return [...new Set(names)].filter(Boolean).sort();
+  }
+
   // Notes the party knows by another name: their own name -> player_name
   secretNames(): Map<string, string> {
     const out = new Map<string, string>();
