@@ -61,7 +61,7 @@ export function linksIn(markdown: string): { target: string; shown: string; embe
   }));
 }
 
-// Names the party doesn't know, used in player text: "Nix" when they know her as "Luca".
+// Names the party doesn't know, used in player text: "Rowan" when they know her as "The Grey Lady".
 // `secret` maps a note's own name to the name the party knows (from player_name).
 export function secretNames(markdown: string, secret: Map<string, string>): { name: string; known: string }[] {
   const out: { name: string; known: string }[] = [];

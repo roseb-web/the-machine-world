@@ -60,7 +60,7 @@ Nothing reaches the wiki by accident. A note is only published if you mark part 
 | Callout | Who it's for |
 |---|---|
 | `> [!player]` | Everyone: on the wiki |
-| `> [!player-neri]` | Only that player (the name the party knows, in lower case) |
+| `> [!player-tam]` | Only that player (the name the party knows, in lower case) |
 | `> [!dm]` | Only you (the DM) |
 
 These are separate from your own DM callouts (like `> [!danger] DM only`), which are never published anywhere.

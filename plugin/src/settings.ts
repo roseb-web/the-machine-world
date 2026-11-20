@@ -23,6 +23,6 @@ export interface WikiSettings {
   yearBefore: string; // name for years before 1, e.g. "BL" (may be empty)
   secondCalendarLabel: string; // e.g. "the Concord's calendar" (empty: no second calendar)
   secondCalendarMonths: string[]; // its month names, in the same order as Calendarium's months
-  audiencePasswords: Record<string, string>; // "neri" -> password, "dm" -> password. Never published.
+  audiencePasswords: Record<string, string>; // "tam" -> password, "dm" -> password. Never published.
   audienceSalt: string; // random, made once (base64): part of turning passwords into keys
 }

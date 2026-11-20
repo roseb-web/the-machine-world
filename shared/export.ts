@@ -33,7 +33,7 @@ export interface ExportOptions {
   worldName?: string; // e.g. "Eldmoor": the home page says "Welcome to Eldmoor"
   eras?: Eras; // how years are written, e.g. "100 YC" and "540 BL"
   secondCalendar?: SecondCalendar; // another set of month names (optional)
-  // Audiences with a password: their sections are published locked. "neri" -> "Neri", "dm" -> "DM".
+  // Audiences with a password: their sections are published locked. "tam" -> "Tam", "dm" -> "DM".
   // An audience not listed here has its sections left out entirely.
   audiences?: Record<string, string>;
   // Pins fetched from Pinterest, by boardKey (see shared/pinterest.ts)
@@ -297,10 +297,21 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
       props[key] = Array.isArray(v) ? v.map(fix).filter((x) => x !== null) : fix(v);
       changed = true;
     }
-    // Links inside properties (e.g. player_seen: "[[Thornwick]]") follow the same rules.
+    // Groups and relations are only for the people web, which reads them from the note itself
+    // (and leaves out anyone who isn't published). They never go in the page's own file.
+    for (const key of ["player_groups", "player_relations"]) {
+      if (key in props) {
+        delete props[key];
+        changed = true;
+      }
+    }
+    // Links inside properties (e.g. player_seen: "[[Thornwick]]"), and inside lists, follow the same rules.
     for (const [key, v] of Object.entries(props)) {
       if (typeof v === "string" && v.includes("[[")) {
         props[key] = rewriteLinks(v, fromPath);
+        changed = true;
+      } else if (Array.isArray(v) && v.some((x) => typeof x === "string" && x.includes("[["))) {
+        props[key] = v.map((x) => (typeof x === "string" && x.includes("[[") ? rewriteLinks(x, fromPath) : x));
         changed = true;
       }
     }

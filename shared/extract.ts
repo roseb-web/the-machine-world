@@ -48,7 +48,7 @@ function stripComments(text: string): string {
 }
 
 // Matches the first line of a callout, e.g. "> [!player]- Session 5" or "> [!player|content] The stars".
-// Only the type "player" is published: "player-neri" (one player) and "dm" are not, yet.
+// Only the type "player" is published as is. "player-tam" (one player) and "dm" are published locked (audiences.ts).
 const CALLOUT_START = /^>\s*\[!(\w[\w-]*)(?:\|([^\]]*))?\][+-]?\s*(.*)$/i;
 
 // Inside a player callout, removes any nested callout that isn't a player one

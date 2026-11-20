@@ -130,7 +130,7 @@ export default class MachineWorldWiki extends Plugin {
     if (on) this.published?.add(f.path);
     else this.published?.delete(f.path);
   }
-  // Audiences with a password: "neri" -> { name: "Neri", password }, "dm" -> { name: "DM", password }
+  // Audiences with a password: "tam" -> { name: "Tam", password }, "dm" -> { name: "DM", password }
   audiences(): Map<string, { name: string; password: string }> {
     const out = new Map<string, { name: string; password: string }>();
     for (const aud of [...this.partyNames(), "dm"]) {
@@ -167,7 +167,7 @@ export default class MachineWorldWiki extends Plugin {
   }
 
   // The party's names, for per-player sections and affinity: first word of the name the party
-  // knows, in lower case ("neri"), from the notes in the "party" menu section
+  // knows, in lower case ("tam"), from the notes in the "party" menu section
   partyNames(): string[] {
     const folders = this.settings.sections.filter((r) => r.section === "party").map((r) => r.folder + "/");
     const names = this.app.vault

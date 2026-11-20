@@ -18,7 +18,7 @@ import type MachineWorldWiki from "./main";
 
 export const PREVIEW_VIEW = "machine-world-wiki-preview";
 const YAML = { parse: parseYaml, stringify: stringifyYaml };
-type Mode = string; // "everyone", a player's name ("neri"), "dm", or "edit"
+type Mode = string; // "everyone", a player's name ("tam"), "dm", or "edit"
 const KINDS: [Kind, string][] = [["overview", "Overview"], ["content", "Content"], ["known", "What we know"]];
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 

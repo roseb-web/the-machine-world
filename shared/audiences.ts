@@ -11,8 +11,8 @@
 
 export interface LockedSection {
   id: number;
-  aud: string; // "neri", or "dm"
-  name: string; // how it's shown to the DM: "Neri", "DM"
+  aud: string; // "tam", or "dm"
+  name: string; // how it's shown to the DM: "Tam", "DM"
   kind: "overview" | "content" | "known";
   title: string;
   md: string; // Markdown, with links already pointing at wiki pages ("wiki:people/pell")
@@ -80,7 +80,7 @@ async function open(key: Uint8Array, b64: string): Promise<Uint8Array | null> {
 
 // ---- Locking (in Obsidian, when publishing) ----
 
-// keys: each audience's key bytes ("neri", "dm"...). A section opens with its own audience's key and the DM's.
+// keys: each audience's key bytes ("tam", "dm"...). A section opens with its own audience's key and the DM's.
 export async function sealSections(sections: LockedSection[], keys: Map<string, Uint8Array>): Promise<SealedSection[]> {
   const out: SealedSection[] = [];
   for (const s of sections) {
