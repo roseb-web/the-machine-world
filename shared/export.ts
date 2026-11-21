@@ -1,9 +1,10 @@
 // Builds the whole player wiki from the vault.
 // Pure logic: no Obsidian or GitHub code here, so it can be tested on its own.
 
-import { extractPlayerNote, LockSlot, PlayerNote, renderPlayerNote, YamlTools } from "./extract";
-import { readSections, withoutNested } from "./sections";
-import type { LockedSection } from "./audiences";
+import { extractPlayerNote, isAllowedProperty, LockSlot, PlayerNote, renderPlayerNote, YamlTools } from "./extract";
+import { readSections, WikiSection, withoutNested } from "./sections";
+import { lockId, LockedDetail, LockedMenuItem, LockedSection } from "./audiences";
+import { LOCKABLE_DETAILS, readVisibility } from "./visibility";
 import type { GameDate } from "./calendar";
 import { readMap, MapData } from "./maps";
 import { calendarExport, dateCard } from "./events";
@@ -36,6 +37,11 @@ export interface ExportOptions {
   // Audiences with a password: their sections are published locked. "tam" -> "Tam", "dm" -> "DM".
   // An audience not listed here has its sections left out entirely.
   audiences?: Record<string, string>;
+  // Kept in the plugin's settings and never published: gives locked pages and pictures addresses
+  // that don't show their names.
+  lockSecret?: string;
+  // Vault folders that are never published (e.g. templates)
+  ignoreFolders?: string[];
   // Pins fetched from Pinterest, by boardKey (see shared/pinterest.ts)
   moodboards?: Record<string, MoodPin[]>;
   // Calendarium's settings, for the Calendar (and Timeline) pages
@@ -58,9 +64,11 @@ export interface ExportFile {
 export interface ExportResult {
   files: ExportFile[];
   published: { from: string; to: string; title: string }[];
-  // Sections for one player or the DM, still readable: the plugin locks them before anything is sent.
-  // Pages only hold empty markers for them.
-  locked: { page: string; sections: LockedSection[] }[];
+  // Sections and details for one player or the DM, still readable: the plugin locks them before anything
+  // is sent. Pages only hold empty markers for the sections.
+  locked: { page: string; sections: (LockedSection | LockedDetail)[] }[];
+  // Locked pages' places in the menu, still readable (the plugin locks them into audiences.json)
+  lockedMenu: LockedMenuItem[];
 }
 
 // Properties that hold an image path or a list of them.
@@ -97,6 +105,31 @@ interface Prepared {
   props: Record<string, unknown>; // the note's own properties (player_in is read from here)
   player?: PlayerNote; // the player-safe note (not for Player Pages)
   folders: string[]; // vault folders between the section's folder and the note
+  details: { key: string; value: unknown; aud: string }[]; // details only some can see (wiki_visibility)
+}
+
+// A note whose wiki sections are all for one player or the DM: a page at a random address,
+// in the menu (with a lock) only for those who can see it.
+interface LockedPage {
+  from: string;
+  to: string; // "locked/3f9a2c1d7b04e6a5"
+  title: string;
+  menu: string; // where it goes in the menu, e.g. "people/millbrook"
+  sections: WikiSection[];
+  props: Record<string, unknown>; // its allowed properties
+  vis: Record<string, string>; // wiki_visibility
+  auds: string[]; // who can see the page: everyone who has a section on it
+}
+
+function propsOf(text: string, yaml: YamlTools): Record<string, unknown> {
+  const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!m) return {};
+  try {
+    const v = yaml.parse(m[1]);
+    return v && typeof v === "object" ? (v as Record<string, unknown>) : {};
+  } catch {
+    return {};
+  }
 }
 
 function prepare(note: VaultNote, opts: ExportOptions): Prepared | null {
@@ -106,6 +139,7 @@ function prepare(note: VaultNote, opts: ExportOptions): Prepared | null {
   let section: string | null = null;
   let props: Record<string, unknown> = {};
   let player: PlayerNote | undefined;
+  const details: Prepared["details"] = [];
 
   if (wholePage) {
     // Player Pages are published as written, with a title added.
@@ -124,6 +158,13 @@ function prepare(note: VaultNote, opts: ExportOptions): Prepared | null {
     const extracted = extractPlayerNote(note.path, note.text, opts.yaml);
     if (!extracted) return null;
     title = extracted.title;
+    // Details only some can see: taken out of the page, and locked for them (if they have a password)
+    const vis = readVisibility(propsOf(note.text, opts.yaml));
+    for (const [key, aud] of Object.entries(vis)) {
+      if (!(key in extracted.properties)) continue;
+      details.push({ key, value: extracted.properties[key], aud });
+      delete extracted.properties[key];
+    }
     props = extracted.properties;
     const override = extracted.properties["wiki_section"];
     if (typeof override === "string") section = override;
@@ -137,7 +178,7 @@ function prepare(note: VaultNote, opts: ExportOptions): Prepared | null {
   const slug = slugify(title) || slugify(baseName(note.path));
   // A Player Pages note called "Home" becomes the site's front page.
   const to = wholePage && slug === "home" ? "index" : section ? `${section}/${slug}` : slug;
-  return { from: note.path, to, title, markdown, section, slug, props: wholePage ? {} : props, folders, ...(player ? { player } : {}) };
+  return { from: note.path, to, title, markdown, section, slug, props: wholePage ? {} : props, folders, details, ...(player ? { player } : {}) };
 }
 
 const LINK = /^\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|([^\]]*))?\]\]$/;
@@ -215,10 +256,74 @@ const WIKILINK = /(!?)\[\[([^\]|#]*)(#[^\]|]*)?(?:\|([^\]]*))?\]\]/g;
 const IMAGE_EXT = /\.(png|jpe?g|gif|webp|svg|avif)$/i;
 
 export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResult {
+  const ignored = (path: string) => (opts.ignoreFolders ?? []).some((f) => f && path.startsWith(f.replace(/\/+$/, "") + "/"));
+  notes = notes.filter((n) => !ignored(n.path));
   const prepared = notes.map((n) => prepare(n, opts)).filter((p): p is Prepared => p !== null);
   const folderPages = nest(prepared, opts);
   const byVaultPath = new Map(prepared.map((p) => [p.from, p]));
   const images = new Map<string, string>(); // vault path -> content path
+  const auds = opts.audiences ?? {};
+  const secret = opts.lockSecret ?? "";
+
+  // ---- Locked pages ----
+  // Kept apart from the published pages: public links, search, the people web and the calendar
+  // never see them. Only locked text links to them.
+  const lockedPages: LockedPage[] = [];
+  const lockedByVaultPath = new Map<string, LockedPage>();
+  const folderExists = (path: string) => folderPages.has(path) || prepared.some((p) => p.to === `${path}/index`);
+  // Where a locked page goes in the menu: inside the place it's "Inside", or its vault folder's place
+  // (if that's in the menu already), or else at the top of its section.
+  const menuFor = (n: VaultNote, props: Record<string, unknown>, section: string): string => {
+    const pin = props["player_in"];
+    const m = typeof pin === "string" ? pin.trim().match(LINK) : null;
+    const parent = m ? byVaultPath.get(opts.resolveLink(m[1], n.path) ?? "") : undefined;
+    if (parent && parent.section === section && parent.to !== "index")
+      return parent.to.endsWith("/index") ? parent.to.slice(0, -6) : parent.to.split("/").slice(0, -1).join("/");
+    const rule = ruleFor(n.path, opts.sections);
+    const folders = rule ? n.path.slice(rule.folder.length + 1).split("/").slice(0, -1) : [];
+    for (let i = folders.length; i > 0; i--) {
+      const path = `${section}/${folders.slice(0, i).map(slugify).join("/")}`;
+      if (folderExists(path)) return path;
+    }
+    return section;
+  };
+  if (Object.keys(auds).length) {
+    for (const n of notes) {
+      if (byVaultPath.has(n.path) || !n.path.endsWith(".md") || n.path.startsWith(opts.playerPagesFolder + "/")) continue;
+      if (opts.galleryFolder && n.path.startsWith(opts.galleryFolder.replace(/\/+$/, "") + "/")) continue;
+      if (n.path === opts.groupTypesNote) continue;
+      const sections = readSections(n.text.replace(/%%[\s\S]*?%%/g, "")).filter((s) => s.vis !== "everyone" && s.vis in auds);
+      if (!sections.length) continue;
+      const raw = propsOf(n.text, opts.yaml);
+      const props = Object.fromEntries(Object.entries(raw).filter(([k]) => isAllowedProperty(k)));
+      const title = typeof props.player_name === "string" && props.player_name.trim() ? props.player_name.trim() : baseName(n.path);
+      const rule = ruleFor(n.path, opts.sections);
+      const section = typeof props.wiki_section === "string" ? props.wiki_section : rule ? rule.section : opts.defaultSection;
+      const page: LockedPage = {
+        from: n.path,
+        to: `locked/${lockId(secret, n.path)}`,
+        title,
+        menu: menuFor(n, props, section),
+        sections,
+        props,
+        vis: readVisibility(raw),
+        auds: [...new Set(sections.map((s) => s.vis))],
+      };
+      lockedPages.push(page);
+      lockedByVaultPath.set(n.path, page);
+    }
+  }
+
+  // Pictures only in locked text get a name that doesn't give anything away
+  const lockedImages = new Map<string, string>();
+  function lockedImage(vaultPath: string): string {
+    if (images.has(vaultPath)) return images.get(vaultPath)!;
+    if (!lockedImages.has(vaultPath)) {
+      const ext = (vaultPath.match(/\.[a-z0-9]+$/i)?.[0] ?? "").toLowerCase();
+      lockedImages.set(vaultPath, `assets/locked-${lockId(secret, vaultPath)}${ext}`);
+    }
+    return lockedImages.get(vaultPath)!;
+  }
 
   function imageTarget(vaultPath: string): string {
     if (!images.has(vaultPath)) {
@@ -349,12 +454,40 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
   function lockedMarkdown(md: string, fromPath: string): string {
     return md.replace(WIKILINK, (_all, bang: string, target: string, _heading, alias?: string) => {
       const resolved = target ? opts.resolveLink(target, fromPath) : null;
-      if (bang && resolved && IMAGE_EXT.test(resolved)) return `![${alias ?? ""}](wiki:${imageTarget(resolved)})`;
-      const page = resolved ? byVaultPath.get(resolved) : undefined;
+      if (bang && resolved && IMAGE_EXT.test(resolved)) return `![${alias ?? ""}](wiki:${lockedImage(resolved)})`;
+      const page = resolved ? (byVaultPath.get(resolved) ?? lockedByVaultPath.get(resolved)) : undefined;
       if (bang) return "";
       return page ? `[${alias ?? page.title}](wiki:${page.to})` : (alias ?? target);
     });
   }
+  // A locked detail's value, written like the page's own properties: pictures as their path on the wiki,
+  // links as "[[people/pell|Pell]]" (or plain text if their page isn't on the wiki). null: leave it out.
+  function lockedValue(key: string, value: unknown, fromPath: string): unknown {
+    if (["photo", "banner", "player_sigil"].includes(key)) {
+      if (typeof value !== "string") return null;
+      const link = value.replace(/^!?\[\[|\]\]$/g, "").split("|")[0];
+      const resolved = opts.resolveLink(link, fromPath);
+      return resolved && IMAGE_EXT.test(resolved) ? lockedImage(resolved) : null;
+    }
+    if (typeof value !== "string" || !value.includes("[[")) return value;
+    return value.replace(WIKILINK, (_all, bang: string, target: string, _heading, alias?: string) => {
+      if (bang) return "";
+      const resolved = target ? opts.resolveLink(target, fromPath) : null;
+      const page = resolved ? (byVaultPath.get(resolved) ?? lockedByVaultPath.get(resolved)) : undefined;
+      return page ? `[[${page.to}|${alias ?? page.title}]]` : (alias ?? target);
+    });
+  }
+  // A page's locked details, for the audiences that have a password
+  const detailItems = (list: { key: string; value: unknown; aud: string }[], fromPath: string, nextId: number): LockedDetail[] => {
+    const out: LockedDetail[] = [];
+    for (const d of list) {
+      if (!(d.aud in auds)) continue;
+      const value = lockedValue(d.key, d.value, fromPath);
+      if (value === null || value === undefined || value === "") continue;
+      out.push({ id: nextId++, aud: d.aud, name: auds[d.aud], kind: "detail", key: d.key, value });
+    }
+    return out;
+  };
   const locked: ExportResult["locked"] = [];
 
   const files: ExportFile[] = [];
@@ -367,6 +500,7 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
       const slots: LockSlot[] = [];
       const sections: LockedSection[] = [];
       const seen = { overview: 0, content: 0, known: 0 };
+      const items: (LockedSection | LockedDetail)[] = sections;
       for (const sec of all) {
         if (sec.vis === "everyone") {
           seen[sec.kind]++;
@@ -380,8 +514,9 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
       if (sections.length) {
         // The first Overview for everyone is the page's Overview; any more go under "What we know"
         source = renderPlayerNote(p.player, opts.yaml, slots.map((l) => (l.kind === "known" ? { ...l, after: Math.min(l.after, p.player!.entries.length) } : l)));
-        locked.push({ page: p.to, sections });
       }
+      items.push(...detailItems(p.details, p.from, sections.length));
+      if (items.length) locked.push({ page: p.to, sections: items });
     }
     let maps: MapData[] = [];
     if (p.from.startsWith(opts.playerPagesFolder + "/")) {
@@ -419,6 +554,35 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
     }
     files.push({ path: `${p.to}.md`, text: header + body });
   }
+  // Locked pages: just the empty markers, a note for anyone who can't open them, and nothing else.
+  const lockedMenu: LockedMenuItem[] = [];
+  for (const lp of lockedPages) {
+    const items: (LockedSection | LockedDetail)[] = [];
+    const slots: LockSlot[] = [];
+    for (const sec of lp.sections) {
+      const id = items.length;
+      items.push({ id, aud: sec.vis, name: auds[sec.vis], kind: sec.kind, title: sec.title, md: lockedMarkdown(withoutNested(sec.text), lp.from) });
+      slots.push({ id, kind: sec.kind, after: 0 });
+    }
+    // The header: its name for everyone who can see the page, and its details (each for whoever it's for)
+    const details: { key: string; value: unknown; aud: string }[] = [];
+    for (const aud of lp.auds) details.push({ key: "title", value: lp.title, aud });
+    for (const key of [...LOCKABLE_DETAILS, "banner_focus"]) {
+      if (!(key in lp.props)) continue;
+      for (const aud of lp.vis[key] ? [lp.vis[key]] : lp.auds) details.push({ key, value: lp.props[key], aud });
+    }
+    items.push(...detailItems(details, lp.from, items.length));
+    const empty: PlayerNote = { title: "Locked page", properties: { unlisted: true, mw_locked_page: true }, overview: null, content: [], entries: [] };
+    const md = renderPlayerNote(empty, opts.yaml, slots);
+    const front = md.match(/^---\r?\n[\s\S]*?\r?\n---/)![0];
+    files.push({
+      path: `${lp.to}.md`,
+      text: `${front}\n\n<p class="mw-locked-notice">This page is for someone else. Sign in to see it, if it's yours.</p>\n${md.slice(front.length)}`,
+    });
+    locked.push({ page: lp.to, sections: items });
+    for (const aud of lp.auds) lockedMenu.push({ id: lockedMenu.length, aud, name: auds[aud], kind: "page", to: lp.to, title: lp.title, menu: lp.menu });
+  }
+
   // Gallery: one note per picture in the gallery folder. Their properties are published as they are.
   if (opts.galleryFolder) {
     const items = gallery(notes, opts, byVaultPath, imageTarget);
@@ -438,6 +602,7 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
     });
 
   for (const [vaultPath, contentPath] of images) files.push({ path: contentPath, copyFrom: vaultPath });
+  for (const [vaultPath, contentPath] of lockedImages) if (!images.has(vaultPath)) files.push({ path: contentPath, copyFrom: vaultPath });
 
   // Home page: if it names where the party is, it uses that place's banner.
   const home = files.find((f) => f.path === "index.md" && f.text);
@@ -522,6 +687,7 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
     files,
     published: prepared.map((p) => ({ from: p.from, to: p.to, title: p.title })),
     locked,
+    lockedMenu,
   };
 }
 

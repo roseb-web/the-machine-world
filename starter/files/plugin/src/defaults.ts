@@ -45,4 +45,5 @@ export const DEFAULT_SETTINGS: WikiSettings = {
   secondCalendarMonths: [],
   audiencePasswords: {},
   audienceSalt: "",
+  lockSecret: "",
 };

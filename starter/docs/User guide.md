@@ -84,7 +84,30 @@ Good to know:
 
 - A section is only published if its player (or you) has a password. With no passwords set, nothing locked is published.
 - If you change a password, publish again, and tell the player the new one.
-- For now this works for sections on pages that are already on the wiki. Pages just for one player are coming later.
+
+### Locked pages
+
+A note whose wiki sections are **all** for players or the DM (none for Everyone) becomes a **locked page**:
+
+- It goes in the menu in its usual place, with a 🔒, but only for the people it has sections for (and you).
+- Everyone else doesn't see it in the menu, in search, or anywhere else. Its web address is a random code, not its name.
+- Each person sees only their own sections on it. You see them all, tagged.
+- Links to it work from other locked sections. In text for everyone, a link to it is plain text, like any note that isn't on the wiki.
+- The Edit wiki details form says "🔒 A locked page: only for …" at the top.
+- To make it a normal page, give it an Overview for everyone.
+
+### Details only some can see
+
+In **✎ Edit wiki details**, each detail (subtitle, portrait, status, faction and so on) has a **who can see it** choice on the right: Everyone, one player, or DM.
+
+- Only that player (and you) see it. Everyone else sees nothing there, not even a gap.
+- You can always see everything a player can.
+- On a locked page, "Everyone" means everyone who can see the page.
+- The name, wiki section and "Inside" don't have this choice, because they decide where the page goes.
+- A locked Faction or Last seen doesn't list them under that page's Key NPCs.
+- It's saved in one property, `wiki_visibility`. You don't need to type it yourself.
+
+Pictures used only in locked sections or details are put on the wiki with a random name, so the file name doesn't give anything away.
 
 ### Checking a note: Wiki preview
 

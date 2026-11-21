@@ -85,7 +85,8 @@ export default ((userOpts?: Partial<SetMenuOptions>) => {
     const isFolderPage = (f: QuartzComponentProps["allFiles"][number]) =>
       (f.frontmatter as { mw_folder?: unknown } | undefined)?.mw_folder === true
     const pages: PageInfo[] = allFiles
-      .filter((f) => f.slug && String(f.slug) !== "index" && !String(f.slug).startsWith("tags/") && !isFolderPage(f))
+      // Locked pages ("locked/...") are never listed: the audiences plugin adds them, with a lock, after signing in
+      .filter((f) => f.slug && String(f.slug) !== "index" && !String(f.slug).startsWith("tags/") && !String(f.slug).startsWith("locked/") && !isFolderPage(f))
       .filter((f) => !String(f.slug).endsWith("/index") || String(f.slug).split("/").length > 2)
       .map((f) => ({ slug: String(f.slug), title: titleOf(f) }))
     const folderTitles = new Map(
@@ -127,8 +128,9 @@ export default ((userOpts?: Partial<SetMenuOptions>) => {
       return root
     }
 
+    // data-mw-path: where signed-in readers' locked pages go (see the audiences plugin)
     const renderFolder = (f: Folder) => (
-      <ul class="mw-menu-sub">
+      <ul class="mw-menu-sub" data-mw-path={f.path}>
         {f.folders.map((sub) => {
           const open = current === sub.page || current.startsWith(sub.path + "/")
           return (
@@ -170,7 +172,8 @@ export default ((userOpts?: Partial<SetMenuOptions>) => {
             }
             const prefix = `${item.section}/`
             const children = pages.filter((p) => p.slug.startsWith(prefix))
-            if (children.length === 0) return null
+            // Nothing in it yet: kept, hidden, in case a signed-in reader has a locked page there
+            if (children.length === 0) return { item, children, tree: null, active: false, empty: true }
             return { item, children, tree: buildTree(item.section!, children), active: current.startsWith(prefix) }
           })
           .filter((x): x is NonNullable<typeof x> => x !== null)
@@ -185,11 +188,18 @@ export default ((userOpts?: Partial<SetMenuOptions>) => {
         </button>
         <div class="mw-menu-body">
           {groups.map((group) => (
-            <div class="mw-menu-group">
+            <div class="mw-menu-group" hidden={group.items.every((i) => "empty" in i)}>
               <div class="mw-menu-label">{group.label}</div>
               <ul>
-                {group.items.map(({ item, children, tree, active }) =>
-                  children.length === 0 ? (
+                {group.items.map(({ item, children, tree, active, ...rest }) =>
+                  "empty" in rest ? (
+                    <li hidden>
+                      <details>
+                        <summary>{item.title}</summary>
+                        <ul class="mw-menu-sub" data-mw-path={item.section} />
+                      </details>
+                    </li>
+                  ) : children.length === 0 ? (
                     <li>
                       <a href={link(item.page!)} class={active ? "mw-active" : ""}>
                         {item.title}

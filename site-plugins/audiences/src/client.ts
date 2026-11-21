@@ -2,7 +2,16 @@
 // Runs on every page change (Quartz "nav" event).
 import { micromark } from "micromark";
 import { gfm, gfmHtml } from "micromark-extension-gfm";
-import { AudienceIndex, fromB64, openSections, SealedSection, signIn, toB64 } from "../../../shared/audiences";
+import { render } from "preact";
+import { AudienceIndex, fromB64, LockedDetail, LockedMenuItem, LockedSection, openSections, SealedSection, signIn, toB64 } from "../../../shared/audiences";
+import { headerView } from "../../page-header/src/components/header";
+
+// How details are named, for the line that says who they're for
+const LABELS: Record<string, string> = {
+  player_title: "Subtitle", player_say: "Say it", photo: "Portrait", player_artist: "Artist", player_sigil: "Symbol",
+  player_type: "Type", player_species: "Species", player_status: "Status", player_faction: "Faction", player_seen: "Last seen",
+  player_favour: "Favour", player_standing: "Standing", banner: "Banner", spotify: "Theme song",
+};
 
 interface Session {
   aud: string;
@@ -47,7 +56,7 @@ const el = (tag: string, cls = "", text?: string) => {
 };
 
 // Locked Markdown -> HTML. "wiki:people/pell" links become links to that page.
-function render(md: string, root: string): string {
+function renderMd(md: string, root: string): string {
   const html = micromark(md, { extensions: [gfm()], htmlExtensions: [gfmHtml()] });
   return html
     .replace(/href="wiki:([^"]*)"/g, (_a, to: string) => `href="${root}/${to}" class="internal"`)
@@ -77,9 +86,49 @@ async function setup(holder: HTMLElement) {
     holder.append(b);
   }
 
+  if (!session) return;
+  const key = fromB64(session.key);
+  const dm = session.aud === "dm";
+
+  // ---- Locked pages in the menu ----
+  if (idx.pages?.length) {
+    const items = (await openSections(idx.pages, key)).filter((i): i is LockedMenuItem => i.kind === "page");
+    addToMenu(items, root, holder.dataset.slug ?? "");
+  }
+
+  // ---- This page's details ----
+  if (!sealed.length) return;
+  const openedAll = await openSections(sealed, key);
+  const lockedPage = holder.dataset.lockedPage === "true";
+  const details = new Map<string, LockedDetail>();
+  for (const d of openedAll) if (d.kind === "detail" && !details.has(d.key)) details.set(d.key, d);
+  const headerEl = document.querySelector<HTMLElement>(".mw-page-header");
+  if (details.size && headerEl) {
+    const fm: Record<string, unknown> = lockedPage ? {} : JSON.parse(holder.dataset.fm || "{}");
+    for (const [k, d] of details) fm[k] = d.value;
+    headerEl.innerHTML = "";
+    render(headerView(fm, holder.dataset.slug ?? ""), headerEl);
+    const h1 = headerEl.querySelector("h1");
+    if (lockedPage && h1) {
+      const names = [...new Set(openedAll.filter((x) => x.kind !== "detail").map((x) => x.name))];
+      h1.append(el("span", `mw-aud-tag ${dm ? "mw-aud-tag-dm" : ""}`, `🔒 ${dm ? names.join(" · ") : "Just for you"}`));
+      if (typeof fm.title === "string") document.title = document.title.replace("Locked page", fm.title);
+    }
+    // Details on a normal page that only some can see: say so, under the header
+    const own = [...details.values()].filter((d) => d.key !== "title" && LABELS[d.key] && !lockedPage);
+    if (own.length) {
+      const line = el("p", "mw-aud-details");
+      line.textContent = dm
+        ? `🔒 ${own.map((d) => `${LABELS[d.key]}: ${d.name}`).join(" · ")}`
+        : `🔒 Just for you: ${own.map((d) => LABELS[d.key]).join(", ")}`;
+      headerEl.append(line);
+    }
+  }
+  if (lockedPage && openedAll.length) document.querySelector(".mw-locked-notice")?.remove();
+
   // ---- This page's sections ----
-  if (!session || !sealed.length) return;
-  const opened = await openSections(sealed, fromB64(session.key));
+  const opened = openedAll.filter((x): x is LockedSection => x.kind !== "detail" && x.kind !== "page");
+  if (!opened.length) return;
   const article = document.querySelector("article") ?? document.body;
   let knownHeading: HTMLElement | null = [...article.querySelectorAll("h2")].find((h) => h.textContent?.trim() === "What we know") ?? null;
   for (const s of opened.sort((a, b) => a.id - b.id)) {
@@ -96,9 +145,36 @@ async function setup(holder: HTMLElement) {
     h.append(el("span", "mw-aud-tag", `🔒 ${session.aud === "dm" ? s.name : "Just for you"}`));
     box.append(h);
     const body = el("div");
-    body.innerHTML = render(s.md, root);
+    body.innerHTML = renderMd(s.md, root);
     box.append(body);
     marker.replaceWith(box);
+  }
+}
+
+// Locked pages go in the menu where they'd be if they were public, with a lock.
+// One entry per page (the DM gets one for each player who can see it).
+function addToMenu(items: LockedMenuItem[], root: string, current: string) {
+  document.querySelectorAll(".mw-locked-item").forEach((x) => x.remove());
+  const seen = new Set<string>();
+  for (const it of items.sort((a, b) => a.title.localeCompare(b.title))) {
+    if (seen.has(it.to)) continue;
+    seen.add(it.to);
+    const list =
+      document.querySelector<HTMLElement>(`.mw-menu-sub[data-mw-path="${CSS.escape(it.menu)}"]`) ??
+      document.querySelector<HTMLElement>(`.mw-menu-sub[data-mw-path="${CSS.escape(it.menu.split("/")[0])}"]`);
+    if (!list) continue;
+    const li = el("li", "mw-locked-item");
+    const a = el("a", `internal mw-locked-link ${current === it.to ? "mw-active" : ""}`, `🔒 ${it.title}`) as HTMLAnchorElement;
+    a.href = `${root}/${it.to}`;
+    li.append(a);
+    // In order among the pages (after the folders, which come first)
+    const after = [...list.children].find((c) => !c.querySelector(":scope > details") && (c.textContent ?? "").replace("🔒 ", "").localeCompare(it.title) > 0);
+    list.insertBefore(li, after ?? null);
+    // Show anything that was hidden because it had nothing public in it, and open the way to the current page
+    for (let n: HTMLElement | null = list; n && !n.classList.contains("mw-menu"); n = n.parentElement) {
+      if (n.hidden) n.hidden = false;
+      if (current === it.to && n instanceof HTMLDetailsElement) n.open = true;
+    }
   }
 }
 

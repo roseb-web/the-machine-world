@@ -9,14 +9,37 @@
 //   tries the password against each, which tells the wiki who you are.
 // The same code runs in Obsidian (to lock) and in the browser (to open).
 
-export interface LockedSection {
+// Everything locked has these: an id (unique on its page), who it's for, and how that's shown to the DM
+export interface LockedBase {
   id: number;
   aud: string; // "tam", or "dm"
   name: string; // how it's shown to the DM: "Tam", "DM"
+}
+
+// A wiki section for one player, or the DM
+export interface LockedSection extends LockedBase {
   kind: "overview" | "content" | "known";
   title: string;
   md: string; // Markdown, with links already pointing at wiki pages ("wiki:people/pell")
 }
+
+// One detail from the page's properties (subtitle, portrait...), e.g. { key: "player_title", value: "The miller" }.
+// Links are written "[[people/pell|Pell]]" and pictures as their path on the wiki, like the page's own properties.
+export interface LockedDetail extends LockedBase {
+  kind: "detail";
+  key: string;
+  value: unknown;
+}
+
+// A locked page's place in the menu, e.g. menu "people/millbrook", page "locked/3f9a2c1d", title "The Hooded Woman"
+export interface LockedMenuItem extends LockedBase {
+  kind: "page";
+  to: string;
+  title: string;
+  menu: string;
+}
+
+export type LockedItem = LockedSection | LockedDetail | LockedMenuItem;
 
 export interface SealedSection {
   id: number;
@@ -29,6 +52,7 @@ export interface AudienceIndex {
   salt: string; // base64
   iterations: number;
   checks: string[]; // each audience's { aud, name }, locked with its key, base64
+  pages?: SealedSection[]; // locked pages' places in the menu (LockedMenuItem)
 }
 
 export const ITERATIONS = 250_000;
@@ -81,7 +105,7 @@ async function open(key: Uint8Array, b64: string): Promise<Uint8Array | null> {
 // ---- Locking (in Obsidian, when publishing) ----
 
 // keys: each audience's key bytes ("tam", "dm"...). A section opens with its own audience's key and the DM's.
-export async function sealSections(sections: LockedSection[], keys: Map<string, Uint8Array>): Promise<SealedSection[]> {
+export async function sealSections(sections: LockedBase[], keys: Map<string, Uint8Array>): Promise<SealedSection[]> {
   const out: SealedSection[] = [];
   for (const s of sections) {
     const who = [...new Set([s.aud, "dm"])].filter((a) => keys.has(a));
@@ -118,17 +142,33 @@ export async function signIn(password: string, index: AudienceIndex): Promise<{ 
   return null;
 }
 
-// The sections on a page this key can open
-export async function openSections(sealed: SealedSection[], key: Uint8Array): Promise<LockedSection[]> {
-  const out: LockedSection[] = [];
+// The sections (and details, or menu items) this key can open
+export async function openSections(sealed: SealedSection[], key: Uint8Array): Promise<LockedItem[]> {
+  const out: LockedItem[] = [];
   for (const s of sealed) {
     for (const w of s.wraps) {
       const sectionKey = await open(key, w);
       if (!sectionKey) continue;
       const plain = await open(sectionKey, s.data);
-      if (plain) out.push(JSON.parse(dec.decode(plain)) as LockedSection);
+      if (plain) out.push(JSON.parse(dec.decode(plain)) as LockedItem);
       break;
     }
   }
   return out;
+}
+
+// ---- Names that give nothing away ----
+
+// A short code from a secret and some text, the same every time: e.g. a locked page's address
+// ("locked/3f9a2c1d7b04e6a5") from the note's path, so it doesn't show the page's name.
+// The secret (kept in the plugin's settings, never published) stops anyone working backwards from a guess.
+export function lockId(secret: string, text: string): string {
+  let a = 0x811c9dc5,
+    b = 0x01000193 ^ 0x5bd1e995;
+  for (const ch of `${secret}\u0000${text}`) {
+    const c = ch.codePointAt(0)!;
+    a = Math.imul(a ^ c, 0x01000193) >>> 0;
+    b = Math.imul(b ^ c ^ (a >>> 7), 0x5bd1e995) >>> 0;
+  }
+  return a.toString(16).padStart(8, "0") + b.toString(16).padStart(8, "0");
 }
