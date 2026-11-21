@@ -246,10 +246,18 @@ export default (() => {
         : []
       : pages.filter((f) => String(f.slug).startsWith("places/") && ownLinks.has(String(f.slug)))
 
-    // Quests that link here
+    // Quests that link here, or are "Connected to" this page
+    const connectedTo = (f: File) =>
+      (Array.isArray(props(f).player_connected) ? (props(f).player_connected as unknown[]) : []).some(
+        (c) => !!c && typeof c === "object" && (c as { to?: unknown }).to === slug,
+      )
     const quests = pages.filter(
-      (f) => typeof props(f).quest === "string" && String(f.slug) !== slug && (f.links ?? []).map(String).includes(slug),
+      (f) => typeof props(f).quest === "string" && String(f.slug) !== slug && ((f.links ?? []).map(String).includes(slug) || connectedTo(f)),
     )
+    const questStatus = (f: File) => {
+      const s = typeof props(f).quest_status === "string" ? String(props(f).quest_status).trim().toLowerCase().replace(/[-_]+/g, " ") : ""
+      return s && s !== "active" ? s.charAt(0).toUpperCase() + s.slice(1) : ""
+    }
 
     // Handouts listed on this page
     const handouts = (Array.isArray(fm.player_handouts) ? fm.player_handouts : [fm.player_handouts]).filter(
@@ -332,6 +340,7 @@ export default (() => {
                     <li>
                       <span class="mw-mini-chip">{String(props(f).quest)}</span>
                       <a href={href(String(f.slug))} class="internal">{titleOf(f)}</a>
+                      {questStatus(f) && <small class="mw-quest-status"> · {questStatus(f)}</small>}
                     </li>
                   ))}
                 </ul>

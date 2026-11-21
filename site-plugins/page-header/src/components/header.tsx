@@ -108,7 +108,9 @@ function renderHeader(
     const song = spotifyEmbed(str("spotify"))
     // Date cards: when this page's events happen (added by the export from Calendarium)
     const dates = Array.isArray(fm.mw_dates) ? (fm.mw_dates as unknown[]).filter((d): d is string => typeof d === "string") : []
-    const hasDetails = photo || sigil || subtitle || say || chips.length > 0 || faction || seen || dates.length > 0 || song
+    // Connected to (quests): the people, places and factions, as written by the export
+    const connected = connectedOf(fm)
+    const hasDetails = photo || sigil || subtitle || say || chips.length > 0 || faction || seen || dates.length > 0 || song || connected.length > 0
 
     if (!hasDetails) {
       return <h1 class="article-title">{title}</h1>
@@ -154,6 +156,7 @@ function renderHeader(
             </div>
           )}
           {seen && <p class="mw-seen">Last seen: {renderValue(seen)}</p>}
+          {connected.length > 0 && <ConnectedChips items={connected} slug={slug} />}
           {dates.map((d) => (
             <p class="mw-datecard">
               <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
@@ -185,4 +188,49 @@ function spotifyEmbed(url: string | undefined): { src: string; height: number } 
   const m = url?.match(/^https:\/\/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(track|album|playlist|episode)\/([A-Za-z0-9]+)/)
   if (!m) return null
   return { src: `https://open.spotify.com/embed/${m[1]}/${m[2]}?utm_source=generator`, height: m[1] === "track" || m[1] === "episode" ? 80 : 152 }
+}
+
+// ---- Connected to: the people, places and factions a quest involves ----
+
+export interface Connected {
+  to: string
+  title: string
+  kind: string // party, person, faction, place or page
+  img?: string
+  group?: string // where a person lives, e.g. "Thornwick"
+  home?: string // that place's page
+}
+
+export function connectedOf(fm: Props): Connected[] {
+  const v = fm.player_connected
+  return (Array.isArray(v) ? v : []).filter(
+    (x): x is Connected => !!x && typeof x === "object" && typeof (x as Connected).to === "string" && typeof (x as Connected).title === "string",
+  )
+}
+
+const KIND_ICON: Record<string, string> = { faction: "⚑", place: "⌖", page: "•" }
+
+// Small faces (or an icon) with names, linking to their pages. The party are green.
+// links: false inside something that's already a link (a quest card)
+export function ConnectedChips({ items, slug, links = true }: { items: Connected[]; slug: string; links?: boolean }) {
+  const root = pathToRoot(slug as never)
+  const inner = (c: Connected) => (
+    <>
+      {c.img ? <img src={`${root}/${c.img}`} alt="" /> : <span class="mw-conn-icon">{KIND_ICON[c.kind] ?? c.title.charAt(0)}</span>}
+      {c.title}
+    </>
+  )
+  return (
+    <div class="mw-connected">
+      {items.map((c) =>
+        links ? (
+          <a href={resolveRelative(slug as never, c.to as never)} class={`internal mw-conn mw-conn-${c.kind}`}>
+            {inner(c)}
+          </a>
+        ) : (
+          <span class={`mw-conn mw-conn-${c.kind}`}>{inner(c)}</span>
+        ),
+      )}
+    </div>
+  )
 }

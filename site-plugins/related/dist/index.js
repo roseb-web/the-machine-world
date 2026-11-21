@@ -614,6 +614,8 @@ a.internal.mw-gchip {
     font-size: 0.85rem;
   }
 }
+
+.mw-quest-status { color: var(--gray); font-size: 0.8em; }
 `;
 
 // src/components/Related.tsx
@@ -764,9 +766,16 @@ var Related_default2 = (() => {
       const rest = s.slice(inside.length);
       return !rest.includes("/") || /^[^/]+\/index$/.test(rest);
     }) : [] : pages.filter((f) => String(f.slug).startsWith("places/") && ownLinks.has(String(f.slug)));
-    const quests = pages.filter(
-      (f) => typeof props(f).quest === "string" && String(f.slug) !== slug && (f.links ?? []).map(String).includes(slug)
+    const connectedTo = (f) => (Array.isArray(props(f).player_connected) ? props(f).player_connected : []).some(
+      (c) => !!c && typeof c === "object" && c.to === slug
     );
+    const quests = pages.filter(
+      (f) => typeof props(f).quest === "string" && String(f.slug) !== slug && ((f.links ?? []).map(String).includes(slug) || connectedTo(f))
+    );
+    const questStatus = (f) => {
+      const s = typeof props(f).quest_status === "string" ? String(props(f).quest_status).trim().toLowerCase().replace(/[-_]+/g, " ") : "";
+      return s && s !== "active" ? s.charAt(0).toUpperCase() + s.slice(1) : "";
+    };
     const handouts = (Array.isArray(fm.player_handouts) ? fm.player_handouts : [fm.player_handouts]).filter(
       (h) => typeof h === "string" && h.length > 0
     );
@@ -806,7 +815,11 @@ var Related_default2 = (() => {
           /* @__PURE__ */ jsx("h2", { children: "Related quests" }),
           /* @__PURE__ */ jsx("ul", { children: quests.map((f) => /* @__PURE__ */ jsxs("li", { children: [
             /* @__PURE__ */ jsx("span", { class: "mw-mini-chip", children: String(props(f).quest) }),
-            /* @__PURE__ */ jsx("a", { href: href(String(f.slug)), class: "internal", children: titleOf(f) })
+            /* @__PURE__ */ jsx("a", { href: href(String(f.slug)), class: "internal", children: titleOf(f) }),
+            questStatus(f) && /* @__PURE__ */ jsxs("small", { class: "mw-quest-status", children: [
+              " \xB7 ",
+              questStatus(f)
+            ] })
           ] })) })
         ] })
       ] }),

@@ -1,5 +1,5 @@
 // src/components/QuestLog.tsx
-import { resolveRelative } from "@quartz-community/utils";
+import { pathToRoot as pathToRoot2, resolveRelative as resolveRelative2 } from "@quartz-community/utils";
 
 // src/components/QuestLog.css
 var QuestLog_default = `.mw-quest-log {
@@ -287,7 +287,8 @@ a.internal.mw-home-link {
 
 /* ---- The quest log page ---- */
 .mw-ql-lead { color: var(--gray); margin: 0 0 1rem; }
-.mw-ql-filters { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.5rem; }
+.mw-ql-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; }
+.mw-ql-types { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 .mw-ql-filter { font: inherit; font-size: 0.8rem; padding: 0.15rem 0.8rem; border-radius: 999px; border: 1px solid var(--lightgray); background: transparent; color: var(--darkgray); cursor: pointer; }
 .mw-ql-filter:hover { border-color: var(--secondary); }
 .mw-ql-filter.mw-on { background: color-mix(in srgb, var(--secondary) 16%, transparent); border-color: var(--secondary); color: var(--dark); }
@@ -326,10 +327,48 @@ body:has(.mw-ql) .page-listing,
 body:has(.mw-ql) .center > hr {
   display: none;
 }
+
+/* Connected to: the search box, its grouped list, and the chosen chip */
+.mw-ql-pick { position: relative; margin-left: auto; }
+.mw-ql-search { font: inherit; font-size: 0.85rem; width: 14rem; max-width: 60vw; padding: 0.25rem 0.7rem; border: 1px solid var(--lightgray); border-radius: 999px; background: var(--light); color: var(--darkgray); }
+.mw-ql-search:focus { outline: none; border-color: var(--secondary); }
+.mw-ql-search[hidden], .mw-ql-chip[hidden], .mw-ql-menu[hidden] { display: none; }
+.mw-ql-menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 20; width: 17rem; max-height: 22rem; overflow-y: auto; padding: 0.3rem 0; border: 1px solid var(--lightgray); border-radius: 10px; background: var(--light); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); }
+.mw-ql-group { padding: 0.45rem 0.8rem 0.15rem; font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray); }
+.mw-ql-opt { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.8rem; font-size: 0.88rem; cursor: pointer; color: var(--darkgray); }
+.mw-ql-opt.mw-on, .mw-ql-opt:hover { background: color-mix(in srgb, var(--secondary) 12%, transparent); }
+.mw-ql-opt > span:not(.mw-conn-icon) { flex: 1; }
+.mw-ql-opt .mw-conn-icon, .mw-ql-chip .mw-conn-icon { flex: none; width: 1.35rem; height: 1.35rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; background: var(--lightgray); color: var(--secondary); }
+.mw-ql-opt small { font-size: 0.72rem; color: var(--gray); }
+.mw-ql-opt img, .mw-ql-chip img { width: 1.35rem; height: 1.35rem; border-radius: 50%; object-fit: cover; object-position: top; margin: 0; }
+.mw-ql-chip { display: inline-flex; align-items: center; gap: 0.4rem; font: inherit; font-size: 0.85rem; padding: 0.1rem 0.7rem 0.1rem 0.2rem; border-radius: 999px; border: 1px solid var(--secondary); background: color-mix(in srgb, var(--secondary) 16%, transparent); color: var(--dark); cursor: pointer; }
+.mw-ql-card .mw-connected { margin: 0.3rem 0 0; }
+@media (max-width: 600px) { .mw-ql-pick { margin-left: 0; } .mw-ql-menu { left: 0; right: auto; } }
 `;
 
-// src/components/QuestLog.tsx
+// ../page-header/src/components/header.tsx
+import { pathToRoot, resolveRelative } from "@quartz-community/utils";
 import { Fragment, jsx, jsxs } from "preact/jsx-runtime";
+function connectedOf(fm) {
+  const v = fm.player_connected;
+  return (Array.isArray(v) ? v : []).filter(
+    (x) => !!x && typeof x === "object" && typeof x.to === "string" && typeof x.title === "string"
+  );
+}
+var KIND_ICON = { faction: "\u2691", place: "\u2316", page: "\u2022" };
+function ConnectedChips({ items, slug, links = true }) {
+  const root = pathToRoot(slug);
+  const inner = (c) => /* @__PURE__ */ jsxs(Fragment, { children: [
+    c.img ? /* @__PURE__ */ jsx("img", { src: `${root}/${c.img}`, alt: "" }) : /* @__PURE__ */ jsx("span", { class: "mw-conn-icon", children: KIND_ICON[c.kind] ?? c.title.charAt(0) }),
+    c.title
+  ] });
+  return /* @__PURE__ */ jsx("div", { class: "mw-connected", children: items.map(
+    (c) => links ? /* @__PURE__ */ jsx("a", { href: resolveRelative(slug, c.to), class: `internal mw-conn mw-conn-${c.kind}`, children: inner(c) }) : /* @__PURE__ */ jsx("span", { class: `mw-conn mw-conn-${c.kind}`, children: inner(c) })
+  ) });
+}
+
+// src/components/QuestLog.tsx
+import { Fragment as Fragment2, jsx as jsx2, jsxs as jsxs2 } from "preact/jsx-runtime";
 var ORDER = ["main", "personal", "faction", "side"];
 var LABELS = { main: "Main", personal: "Personal", faction: "Faction", side: "Side" };
 var SHOWN = 5;
@@ -338,54 +377,54 @@ function HomeBoxes({ fm, go }) {
   const changes = fm.mw_changes;
   const upcoming = fm.mw_coming_up ?? [];
   const items = changes?.items ?? [];
-  const row = (c) => /* @__PURE__ */ jsxs("li", { class: "mw-home-change", children: [
-    /* @__PURE__ */ jsx("span", { class: `mw-home-tag mw-home-${c.kind}`, children: c.kind === "new" ? "New" : "Updated" }),
-    /* @__PURE__ */ jsx("a", { href: go(c.to), class: "internal", children: c.title }),
-    /* @__PURE__ */ jsx("small", { children: c.section })
+  const row = (c) => /* @__PURE__ */ jsxs2("li", { class: "mw-home-change", children: [
+    /* @__PURE__ */ jsx2("span", { class: `mw-home-tag mw-home-${c.kind}`, children: c.kind === "new" ? "New" : "Updated" }),
+    /* @__PURE__ */ jsx2("a", { href: go(c.to), class: "internal", children: c.title }),
+    /* @__PURE__ */ jsx2("small", { children: c.section })
   ] });
   if (!last && !items.length && !upcoming.length) return null;
-  return /* @__PURE__ */ jsxs("div", { class: "mw-home", children: [
-    last && /* @__PURE__ */ jsx("a", { href: go(last.to), class: "internal mw-home-prev", children: /* @__PURE__ */ jsxs("span", { class: "mw-home-prev-inner", children: [
-      /* @__PURE__ */ jsxs("span", { class: "mw-home-kicker", children: [
+  return /* @__PURE__ */ jsxs2("div", { class: "mw-home", children: [
+    last && /* @__PURE__ */ jsx2("a", { href: go(last.to), class: "internal mw-home-prev", children: /* @__PURE__ */ jsxs2("span", { class: "mw-home-prev-inner", children: [
+      /* @__PURE__ */ jsxs2("span", { class: "mw-home-kicker", children: [
         "Previously on\u2026 \xB7 ",
         last.session,
-        last.date && /* @__PURE__ */ jsx("span", { class: "mw-home-prev-date", children: last.date })
+        last.date && /* @__PURE__ */ jsx2("span", { class: "mw-home-prev-date", children: last.date })
       ] }),
-      /* @__PURE__ */ jsx("span", { class: "mw-home-prev-title", children: last.title ?? last.session }),
-      last.lead && /* @__PURE__ */ jsx("span", { class: "mw-home-prev-lead", children: last.lead }),
-      last.points && last.points.length > 0 && /* @__PURE__ */ jsx("ul", { children: last.points.map((p) => /* @__PURE__ */ jsx("li", { children: p })) }),
-      /* @__PURE__ */ jsx("span", { class: "mw-home-more", children: "Read the whole recap \u2192" })
+      /* @__PURE__ */ jsx2("span", { class: "mw-home-prev-title", children: last.title ?? last.session }),
+      last.lead && /* @__PURE__ */ jsx2("span", { class: "mw-home-prev-lead", children: last.lead }),
+      last.points && last.points.length > 0 && /* @__PURE__ */ jsx2("ul", { children: last.points.map((p) => /* @__PURE__ */ jsx2("li", { children: p })) }),
+      /* @__PURE__ */ jsx2("span", { class: "mw-home-more", children: "Read the whole recap \u2192" })
     ] }) }),
-    (items.length > 0 || upcoming.length > 0) && /* @__PURE__ */ jsxs("div", { class: "mw-home-boxes", children: [
-      items.length > 0 && /* @__PURE__ */ jsxs("section", { class: "mw-home-box", children: [
-        /* @__PURE__ */ jsx("h3", { children: changes?.since ? `New since ${changes.since}` : "Recently updated" }),
-        /* @__PURE__ */ jsx("ul", { class: "mw-home-list", children: items.slice(0, SHOWN).map(row) }),
-        items.length > SHOWN && /* @__PURE__ */ jsxs("details", { class: "mw-home-all", children: [
-          /* @__PURE__ */ jsxs("summary", { children: [
+    (items.length > 0 || upcoming.length > 0) && /* @__PURE__ */ jsxs2("div", { class: "mw-home-boxes", children: [
+      items.length > 0 && /* @__PURE__ */ jsxs2("section", { class: "mw-home-box", children: [
+        /* @__PURE__ */ jsx2("h3", { children: changes?.since ? `New since ${changes.since}` : "Recently updated" }),
+        /* @__PURE__ */ jsx2("ul", { class: "mw-home-list", children: items.slice(0, SHOWN).map(row) }),
+        items.length > SHOWN && /* @__PURE__ */ jsxs2("details", { class: "mw-home-all", children: [
+          /* @__PURE__ */ jsxs2("summary", { children: [
             "Show all (",
             items.length,
             ")"
           ] }),
-          /* @__PURE__ */ jsx("ul", { class: "mw-home-list", children: items.slice(SHOWN).map(row) })
+          /* @__PURE__ */ jsx2("ul", { class: "mw-home-list", children: items.slice(SHOWN).map(row) })
         ] })
       ] }),
-      upcoming.length > 0 && /* @__PURE__ */ jsxs("section", { class: "mw-home-box", children: [
-        /* @__PURE__ */ jsx("h3", { children: "Coming up" }),
-        /* @__PURE__ */ jsx("ul", { class: "mw-home-list", children: upcoming.map((u) => /* @__PURE__ */ jsxs("li", { class: "mw-home-soon", children: [
-          /* @__PURE__ */ jsx("span", { class: "mw-home-days", children: u.days === 0 ? /* @__PURE__ */ jsx("b", { children: "Today" }) : /* @__PURE__ */ jsxs(Fragment, { children: [
-            /* @__PURE__ */ jsx("b", { children: u.days }),
+      upcoming.length > 0 && /* @__PURE__ */ jsxs2("section", { class: "mw-home-box", children: [
+        /* @__PURE__ */ jsx2("h3", { children: "Coming up" }),
+        /* @__PURE__ */ jsx2("ul", { class: "mw-home-list", children: upcoming.map((u) => /* @__PURE__ */ jsxs2("li", { class: "mw-home-soon", children: [
+          /* @__PURE__ */ jsx2("span", { class: "mw-home-days", children: u.days === 0 ? /* @__PURE__ */ jsx2("b", { children: "Today" }) : /* @__PURE__ */ jsxs2(Fragment2, { children: [
+            /* @__PURE__ */ jsx2("b", { children: u.days }),
             u.days === 1 ? "day" : "days"
           ] }) }),
-          /* @__PURE__ */ jsxs("span", { children: [
+          /* @__PURE__ */ jsxs2("span", { children: [
             u.name,
-            /* @__PURE__ */ jsxs("small", { children: [
+            /* @__PURE__ */ jsxs2("small", { children: [
               u.kind,
               " \xB7 ",
               u.date
             ] })
           ] })
         ] })) }),
-        /* @__PURE__ */ jsx("a", { href: go("calendar"), class: "internal mw-home-link", children: "Full calendar \u2192" })
+        /* @__PURE__ */ jsx2("a", { href: go("calendar"), class: "internal mw-home-link", children: "Full calendar \u2192" })
       ] })
     ] })
   ] });
@@ -403,7 +442,7 @@ function QuestLanding({ slug, allFiles }) {
     return s.startsWith(inside) && s !== slug && typeof f.frontmatter?.quest === "string";
   }).map((f) => ({ f, fm: f.frontmatter ?? {} }));
   if (!quests.length) return null;
-  const go = (f) => resolveRelative(slug, String(f.slug));
+  const go = (f) => resolveRelative2(slug, String(f.slug));
   const title = (q) => String(q.fm.title ?? q.f.slug);
   const type = (q) => String(q.fm.quest).toLowerCase();
   const byType = (a, b) => (ORDER.indexOf(type(a)) + 99) % 99 - (ORDER.indexOf(type(b)) + 99) % 99 || title(a).localeCompare(title(b));
@@ -411,63 +450,91 @@ function QuestLanding({ slug, allFiles }) {
   const notStarted = quests.filter((q) => statusOf(q.fm) === "not started").sort(byType);
   const finished = quests.filter((q) => !["active", "not started"].includes(statusOf(q.fm))).sort((a, b) => sessionNum(b.fm.mw_quest_last) - sessionNum(a.fm.mw_quest_last) || title(a).localeCompare(title(b)));
   const types = ORDER.filter((t) => quests.some((q) => type(q) === t));
+  const picks = /* @__PURE__ */ new Map();
+  for (const q of quests)
+    for (const c of connectedOf(q.fm)) {
+      if (!picks.has(c.to)) picks.set(c.to, { ...c, n: 0 });
+      if (c.home && c.group && !picks.has(c.home)) picks.set(c.home, { to: c.home, title: c.group, kind: "place", n: 0 });
+    }
+  const folderOf = (to) => to.replace(/\/index$/, "");
+  const within = (to, place) => !!to && (to === place || folderOf(to).startsWith(folderOf(place) + "/"));
+  const matchesOf = (q) => {
+    const conn = connectedOf(q.fm);
+    const keys = new Set(conn.map((c) => c.to));
+    for (const p of picks.values())
+      if (p.kind === "place" && conn.some((c) => c.kind === "place" && within(c.to, p.to) || within(c.home, p.to))) keys.add(p.to);
+    return [...keys];
+  };
+  const matches = new Map(quests.map((q) => [q, matchesOf(q)]));
+  for (const keys of matches.values()) for (const k of keys) if (picks.has(k)) picks.get(k).n++;
+  const groupOf = (p) => p.kind === "party" ? "Party" : p.kind === "person" ? p.group ? `People \xB7 ${p.group}` : "People" : p.kind === "faction" ? "Factions" : p.kind === "place" ? "Places" : "Other";
+  const rank = (g) => g === "Party" ? 0 : g.startsWith("People") ? 1 : g === "Factions" ? 2 : g === "Places" ? 3 : 4;
+  const pickList = [...picks.values()].map((p) => ({ to: p.to, title: p.title, kind: p.kind, img: p.img, n: p.n, group: groupOf(p) })).sort((a, b) => rank(a.group) - rank(b.group) || a.group.localeCompare(b.group) || a.title.localeCompare(b.title));
   const card = (q, when) => {
     const t = type(q);
     const main = t === "main" && statusOf(q.fm) === "active";
     const summary = typeof q.f.description === "string" ? q.f.description.replace(/^Overview\s+/, "").split(/\s+What we know\b/)[0] : "";
     const handouts = Array.isArray(q.fm.player_handouts) ? q.fm.player_handouts.length : 0;
     const meta = [when, handouts ? `${handouts} handout${handouts === 1 ? "" : "s"}` : ""].filter(Boolean).join(" \xB7 ");
-    return /* @__PURE__ */ jsxs("a", { href: go(q.f), class: `internal mw-ql-card ${main ? "mw-ql-main" : ""}`, "data-type": t, children: [
-      /* @__PURE__ */ jsx("span", { class: `mw-quest-type mw-quest-${t}`, children: main ? "Main quest" : LABELS[t] ?? t }),
-      /* @__PURE__ */ jsx("span", { class: "mw-ql-title", children: title(q) }),
-      summary && /* @__PURE__ */ jsx("span", { class: "mw-ql-summary", children: summary }),
-      meta && /* @__PURE__ */ jsx("span", { class: "mw-ql-meta", children: meta })
+    return /* @__PURE__ */ jsxs2("a", { href: go(q.f), class: `internal mw-ql-card ${main ? "mw-ql-main" : ""}`, "data-type": t, "data-match": matches.get(q).join("|"), children: [
+      /* @__PURE__ */ jsx2("span", { class: `mw-quest-type mw-quest-${t}`, children: main ? "Main quest" : LABELS[t] ?? t }),
+      /* @__PURE__ */ jsx2("span", { class: "mw-ql-title", children: title(q) }),
+      summary && /* @__PURE__ */ jsx2("span", { class: "mw-ql-summary", children: summary }),
+      connectedOf(q.fm).length > 0 && /* @__PURE__ */ jsx2(ConnectedChips, { items: connectedOf(q.fm), slug, links: false }),
+      meta && /* @__PURE__ */ jsx2("span", { class: "mw-ql-meta", children: meta })
     ] });
   };
-  const section = (name, cls, items, body) => items.length > 0 && /* @__PURE__ */ jsxs("section", { class: `mw-ql-section ${cls}`, children: [
-    /* @__PURE__ */ jsxs("h2", { children: [
+  const section = (name, cls, items, body) => items.length > 0 && /* @__PURE__ */ jsxs2("section", { class: `mw-ql-section ${cls}`, children: [
+    /* @__PURE__ */ jsxs2("h2", { children: [
       name,
       " ",
-      /* @__PURE__ */ jsx("span", { class: "mw-ql-count", children: items.length })
+      /* @__PURE__ */ jsx2("span", { class: "mw-ql-count", children: items.length })
     ] }),
     body
   ] });
-  return /* @__PURE__ */ jsxs("div", { class: "mw-ql", children: [
-    /* @__PURE__ */ jsx("p", { class: "mw-ql-lead", children: "What the party has taken on, heard about, and left behind." }),
-    types.length > 1 && /* @__PURE__ */ jsxs("div", { class: "mw-ql-filters", role: "group", "aria-label": "Show quests of type", children: [
-      /* @__PURE__ */ jsx("button", { class: "mw-ql-filter mw-on", "data-type": "", children: "All" }),
-      types.map((t) => /* @__PURE__ */ jsx("button", { class: "mw-ql-filter", "data-type": t, children: LABELS[t] }))
+  return /* @__PURE__ */ jsxs2("div", { class: "mw-ql", children: [
+    /* @__PURE__ */ jsx2("p", { class: "mw-ql-lead", children: "What the party has taken on, heard about, and left behind." }),
+    (types.length > 1 || pickList.length > 0) && /* @__PURE__ */ jsxs2("div", { class: "mw-ql-filters", children: [
+      types.length > 1 && /* @__PURE__ */ jsxs2("div", { class: "mw-ql-types", role: "group", "aria-label": "Show quests of type", children: [
+        /* @__PURE__ */ jsx2("button", { class: "mw-ql-filter mw-on", "data-type": "", children: "All" }),
+        types.map((t) => /* @__PURE__ */ jsx2("button", { class: "mw-ql-filter", "data-type": t, children: LABELS[t] }))
+      ] }),
+      pickList.length > 0 && /* @__PURE__ */ jsxs2("div", { class: "mw-ql-pick", "data-picks": JSON.stringify(pickList), "data-root": pathToRoot2(slug), children: [
+        /* @__PURE__ */ jsx2("input", { type: "search", class: "mw-ql-search", placeholder: "Connected to\u2026", "aria-label": "Show quests connected to a person, place or faction", autocomplete: "off" }),
+        /* @__PURE__ */ jsx2("div", { class: "mw-ql-menu", role: "listbox", hidden: true }),
+        /* @__PURE__ */ jsx2("button", { class: "mw-ql-chip", hidden: true })
+      ] })
     ] }),
-    section("Active", "mw-ql-active", active, /* @__PURE__ */ jsx("div", { class: "mw-ql-grid", children: active.map((q) => card(q, q.fm.mw_quest_last ? `Updated ${q.fm.mw_quest_last}` : void 0)) })),
-    section("Not started", "mw-ql-not-started", notStarted, /* @__PURE__ */ jsx("div", { class: "mw-ql-grid", children: notStarted.map((q) => card(q, q.fm.mw_quest_first ? `Heard about in ${q.fm.mw_quest_first}` : void 0)) })),
+    section("Active", "mw-ql-active", active, /* @__PURE__ */ jsx2("div", { class: "mw-ql-grid", children: active.map((q) => card(q, q.fm.mw_quest_last ? `Updated ${q.fm.mw_quest_last}` : void 0)) })),
+    section("Not started", "mw-ql-not-started", notStarted, /* @__PURE__ */ jsx2("div", { class: "mw-ql-grid", children: notStarted.map((q) => card(q, q.fm.mw_quest_first ? `Heard about in ${q.fm.mw_quest_first}` : void 0)) })),
     section(
       "Finished",
       "mw-ql-finished",
       finished,
-      /* @__PURE__ */ jsx("ul", { class: "mw-ql-list", children: finished.map((q) => {
+      /* @__PURE__ */ jsx2("ul", { class: "mw-ql-list", children: finished.map((q) => {
         const s = statusOf(q.fm);
-        return /* @__PURE__ */ jsxs("li", { "data-type": type(q), children: [
-          /* @__PURE__ */ jsx("span", { class: `mw-ql-status mw-ql-${s.replace(/\s+/g, "-")}`, children: STATUS_LABELS[s] ?? s }),
-          /* @__PURE__ */ jsx("a", { href: go(q.f), class: "internal", children: title(q) }),
-          /* @__PURE__ */ jsx("span", { class: "mw-ql-when", children: String(q.fm.mw_quest_last ?? "") })
+        return /* @__PURE__ */ jsxs2("li", { "data-type": type(q), "data-match": matches.get(q).join("|"), children: [
+          /* @__PURE__ */ jsx2("span", { class: `mw-ql-status mw-ql-${s.replace(/\s+/g, "-")}`, children: STATUS_LABELS[s] ?? s }),
+          /* @__PURE__ */ jsx2("a", { href: go(q.f), class: "internal", children: title(q) }),
+          /* @__PURE__ */ jsx2("span", { class: "mw-ql-when", children: String(q.fm.mw_quest_last ?? "") })
         ] });
       }) })
     ),
-    /* @__PURE__ */ jsx("p", { class: "mw-ql-none", hidden: true, children: "No quests of this type yet." })
+    /* @__PURE__ */ jsx2("p", { class: "mw-ql-none", hidden: true, children: "No quests of this type yet." })
   ] });
 }
 var FILTER_SCRIPT = `
 document.addEventListener("nav", () => {
   const log = document.querySelector(".mw-ql");
   if (!log) return;
-  const buttons = log.querySelectorAll(".mw-ql-filter");
-  const show = (type) => {
-    buttons.forEach((b) => b.classList.toggle("mw-on", b.dataset.type === type));
+  let type = "", pick = "";
+  const apply = () => {
+    log.querySelectorAll(".mw-ql-filter").forEach((b) => b.classList.toggle("mw-on", b.dataset.type === type));
     let any = false;
     log.querySelectorAll(".mw-ql-section").forEach((sec) => {
       let n = 0;
-      sec.querySelectorAll("[data-type]").forEach((item) => {
-        const on = !type || item.dataset.type === type;
+      sec.querySelectorAll("[data-match]").forEach((item) => {
+        const on = (!type || item.dataset.type === type) && (!pick || item.dataset.match.split("|").includes(pick));
         item.hidden = !on;
         if (on) n++;
       });
@@ -478,41 +545,96 @@ document.addEventListener("nav", () => {
     });
     log.querySelector(".mw-ql-none").hidden = any;
   };
-  buttons.forEach((b) => b.addEventListener("click", () => show(b.dataset.type)));
+  log.querySelectorAll(".mw-ql-filter").forEach((b) => b.addEventListener("click", () => { type = b.dataset.type; apply(); }));
+
+  // Connected to: type to search, pick from the list (grouped), clear with the chip
+  const box = log.querySelector(".mw-ql-pick");
+  if (box) {
+    const picks = JSON.parse(box.dataset.picks || "[]");
+    const root = box.dataset.root || ".";
+    const input = box.querySelector(".mw-ql-search");
+    const menu = box.querySelector(".mw-ql-menu");
+    const chip = box.querySelector(".mw-ql-chip");
+    let active = 0, shown = [];
+    const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+    const icon = (p) => p.img ? '<img src="' + esc(root + "/" + p.img) + '" alt="">' : '<span class="mw-conn-icon">' + ({ faction: "\u2691", place: "\u2316" }[p.kind] || esc(p.title.charAt(0))) + "</span>";
+    const draw = () => {
+      const q = input.value.trim().toLowerCase();
+      shown = picks.filter((p) => !q || p.title.toLowerCase().includes(q) || p.group.toLowerCase().includes(q));
+      active = Math.min(active, Math.max(shown.length - 1, 0));
+      let html = "", last = "";
+      shown.forEach((p, i) => {
+        if (p.group !== last) { html += '<div class="mw-ql-group">' + esc(p.group) + "</div>"; last = p.group; }
+        html += '<div class="mw-ql-opt mw-conn-' + p.kind + (i === active ? " mw-on" : "") + '" role="option" data-i="' + i + '">' + icon(p) + "<span>" + esc(p.title) + '</span><small>' + p.n + (p.n === 1 ? " quest" : " quests") + "</small></div>";
+      });
+      menu.innerHTML = html || '<div class="mw-ql-group">Nothing matches</div>';
+      menu.hidden = false;
+    };
+    const choose = (p) => {
+      pick = p.to;
+      chip.innerHTML = icon(p) + "<span>" + esc(p.title) + "</span> \u2715";
+      chip.setAttribute("aria-label", "Stop showing only quests connected to " + p.title);
+      chip.hidden = false;
+      input.hidden = true;
+      menu.hidden = true;
+      input.value = "";
+      apply();
+    };
+    input.addEventListener("focus", draw);
+    input.addEventListener("input", () => { active = 0; draw(); });
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowDown") { active = Math.min(active + 1, shown.length - 1); draw(); e.preventDefault(); }
+      else if (e.key === "ArrowUp") { active = Math.max(active - 1, 0); draw(); e.preventDefault(); }
+      else if (e.key === "Enter" && shown[active]) { choose(shown[active]); e.preventDefault(); }
+      else if (e.key === "Escape") { menu.hidden = true; input.blur(); }
+    });
+    menu.addEventListener("mousedown", (e) => {
+      const opt = e.target.closest(".mw-ql-opt");
+      if (opt) { e.preventDefault(); choose(shown[Number(opt.dataset.i)]); }
+    });
+    input.addEventListener("blur", () => setTimeout(() => (menu.hidden = true), 100));
+    chip.addEventListener("click", () => {
+      pick = "";
+      chip.hidden = true;
+      input.hidden = false;
+      input.focus();
+      apply();
+    });
+  }
 });
 `;
 var QuestLog_default2 = (() => {
   const QuestLog = ({ fileData, allFiles }) => {
     const slug = String(fileData.slug ?? "");
     const fm = fileData.frontmatter ?? {};
-    if (fm.mw_folder === true && slug.endsWith("index")) return /* @__PURE__ */ jsx(QuestLanding, { slug, allFiles });
+    if (fm.mw_folder === true && slug.endsWith("index")) return /* @__PURE__ */ jsx2(QuestLanding, { slug, allFiles });
     if (slug !== "index") return null;
     const fm0 = fileData.frontmatter ?? {};
-    const go = (to) => resolveRelative(slug, to);
-    const home = /* @__PURE__ */ jsx(HomeBoxes, { fm: fm0, go });
+    const go = (to) => resolveRelative2(slug, to);
+    const home = /* @__PURE__ */ jsx2(HomeBoxes, { fm: fm0, go });
     const quests = allFiles.map((f) => ({ f, fm: f.frontmatter ?? {} })).filter(({ fm: fm2 }) => fm2.pinned === true && statusOf(fm2) === "active" && typeof fm2.quest === "string").sort((a, b) => ORDER.indexOf(String(a.fm.quest)) - ORDER.indexOf(String(b.fm.quest)));
     if (quests.length === 0) return home;
-    const link = (f) => resolveRelative(slug, String(f.slug));
+    const link = (f) => resolveRelative2(slug, String(f.slug));
     const titleOf = (f, fm2) => String(fm2.title ?? f.slug);
     const main = quests.filter(({ fm: fm2 }) => fm2.quest === "main");
     const others = quests.filter(({ fm: fm2 }) => fm2.quest !== "main");
-    return /* @__PURE__ */ jsxs(Fragment, { children: [
+    return /* @__PURE__ */ jsxs2(Fragment2, { children: [
       home,
-      /* @__PURE__ */ jsxs("section", { class: "mw-quest-log", children: [
-        /* @__PURE__ */ jsx("h2", { children: "Active quests" }),
+      /* @__PURE__ */ jsxs2("section", { class: "mw-quest-log", children: [
+        /* @__PURE__ */ jsx2("h2", { children: "Active quests" }),
         main.map(({ f, fm: fm2 }) => {
           const summary = typeof f.description === "string" ? f.description.replace(/^Overview\s+/, "") : "";
-          return /* @__PURE__ */ jsxs("a", { href: link(f), class: "internal mw-quest-main-card", children: [
-            /* @__PURE__ */ jsx("span", { class: "mw-quest-type mw-quest-main", children: "Main quest" }),
-            /* @__PURE__ */ jsx("span", { class: "mw-quest-main-title", children: titleOf(f, fm2) }),
-            summary && /* @__PURE__ */ jsx("span", { class: "mw-quest-summary", children: summary })
+          return /* @__PURE__ */ jsxs2("a", { href: link(f), class: "internal mw-quest-main-card", children: [
+            /* @__PURE__ */ jsx2("span", { class: "mw-quest-type mw-quest-main", children: "Main quest" }),
+            /* @__PURE__ */ jsx2("span", { class: "mw-quest-main-title", children: titleOf(f, fm2) }),
+            summary && /* @__PURE__ */ jsx2("span", { class: "mw-quest-summary", children: summary })
           ] });
         }),
-        others.length > 0 && /* @__PURE__ */ jsx("ul", { class: "mw-quest-list", children: others.map(({ f, fm: fm2 }) => {
+        others.length > 0 && /* @__PURE__ */ jsx2("ul", { class: "mw-quest-list", children: others.map(({ f, fm: fm2 }) => {
           const type = String(fm2.quest);
-          return /* @__PURE__ */ jsxs("li", { children: [
-            /* @__PURE__ */ jsx("span", { class: `mw-quest-type mw-quest-${type}`, children: LABELS[type] ?? type }),
-            /* @__PURE__ */ jsx("a", { href: link(f), class: "internal mw-quest-title", children: titleOf(f, fm2) })
+          return /* @__PURE__ */ jsxs2("li", { children: [
+            /* @__PURE__ */ jsx2("span", { class: `mw-quest-type mw-quest-${type}`, children: LABELS[type] ?? type }),
+            /* @__PURE__ */ jsx2("a", { href: link(f), class: "internal mw-quest-title", children: titleOf(f, fm2) })
           ] });
         }) })
       ] })

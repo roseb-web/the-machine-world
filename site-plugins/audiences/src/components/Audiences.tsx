@@ -9,7 +9,7 @@ import style from "./Audiences.css"
 declare const __CLIENT__: string
 
 // The properties the page header shows
-const HEADER = ["title", "banner", "banner_focus", "photo", "player_sigil", "player_title", "player_say", "player_artist", "player_type", "player_species", "player_status", "player_faction", "player_favour", "player_standing", "player_seen", "spotify", "mw_dates", "mw_folder"]
+const HEADER = ["title", "banner", "banner_focus", "photo", "player_sigil", "player_title", "player_say", "player_artist", "player_type", "player_species", "player_status", "player_faction", "player_favour", "player_standing", "player_seen", "spotify", "player_connected", "mw_dates", "mw_folder"]
 
 export default (() => {
   const Audiences: QuartzComponent = ({ fileData }: QuartzComponentProps) => {

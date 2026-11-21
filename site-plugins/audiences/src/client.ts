@@ -10,7 +10,7 @@ import { headerView } from "../../page-header/src/components/header";
 const LABELS: Record<string, string> = {
   player_title: "Subtitle", player_say: "Say it", photo: "Portrait", player_artist: "Artist", player_sigil: "Symbol",
   player_type: "Type", player_species: "Species", player_status: "Status", player_faction: "Faction", player_seen: "Last seen",
-  player_favour: "Favour", player_standing: "Standing", banner: "Banner", spotify: "Theme song",
+  player_favour: "Favour", player_standing: "Standing", banner: "Banner", spotify: "Theme song", player_connected: "Connected to",
 };
 
 interface Session {

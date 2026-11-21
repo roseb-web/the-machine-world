@@ -249,3 +249,11 @@
   border: 0;
   border-radius: 12px;
 }
+
+/* Connected to: faces and icons with names (quests) */
+.mw-connected { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.5rem 0 0.2rem; }
+a.mw-conn, span.mw-conn { text-decoration: none !important; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.1rem 0.65rem 0.1rem 0.15rem !important; border-radius: 999px; background: var(--lightgray) !important; color: var(--darkgray) !important; font-size: 0.8rem; font-weight: 400 !important; text-decoration: none; line-height: 1.6; }
+a.mw-conn:hover { background: color-mix(in srgb, var(--secondary) 20%, var(--lightgray)) !important; }
+a.mw-conn img, span.mw-conn img { width: 1.35rem; height: 1.35rem; border-radius: 50%; object-fit: cover; object-position: top; margin: 0; }
+.mw-conn-icon { width: 1.35rem; height: 1.35rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; background: var(--light); color: var(--secondary); }
+a.mw-conn-party, span.mw-conn-party { background: color-mix(in srgb, #5d7a2e 18%, var(--light)) !important; color: #3f5a1c !important; }

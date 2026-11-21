@@ -19,6 +19,7 @@ export const LOCKABLE_DETAILS = [
   "player_standing",
   "banner",
   "spotify",
+  "player_connected",
 ];
 
 // Details that go with another one: the banner's focus goes wherever the banner goes

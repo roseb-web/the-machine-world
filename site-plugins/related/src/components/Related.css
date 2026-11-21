@@ -610,3 +610,5 @@ a.internal.mw-gchip {
     font-size: 0.85rem;
   }
 }
+
+.mw-quest-status { color: var(--gray); font-size: 0.8em; }

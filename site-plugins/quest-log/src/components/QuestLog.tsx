@@ -4,8 +4,9 @@
 // The data comes from Publish: mw_last_session, mw_changes and mw_coming_up on the home page.
 
 import type { QuartzComponent, QuartzComponentConstructor, QuartzComponentProps } from "@quartz-community/types"
-import { resolveRelative } from "@quartz-community/utils"
+import { pathToRoot, resolveRelative } from "@quartz-community/utils"
 import style from "./QuestLog.css"
+import { Connected, ConnectedChips, connectedOf } from "../../../page-header/src/components/header"
 
 const ORDER = ["main", "personal", "faction", "side"]
 const LABELS: Record<string, string> = { main: "Main", personal: "Personal", faction: "Faction", side: "Side" }
@@ -154,6 +155,34 @@ function QuestLanding({ slug, allFiles }: { slug: string; allFiles: File[] }) {
     .sort((a, b) => sessionNum(b.fm.mw_quest_last) - sessionNum(a.fm.mw_quest_last) || title(a).localeCompare(title(b)))
   const types = ORDER.filter((t) => quests.some((q) => type(q) === t))
 
+  // ---- Connected to: what the filter can pick, and which quests each one matches ----
+  // Everything tagged on a quest, plus the homes of tagged people (so their place can be picked).
+  // A place matches quests tagged with it, with places inside it, or with people who live there.
+  const picks = new Map<string, Connected & { n: number }>()
+  for (const q of quests)
+    for (const c of connectedOf(q.fm)) {
+      if (!picks.has(c.to)) picks.set(c.to, { ...c, n: 0 })
+      if (c.home && c.group && !picks.has(c.home)) picks.set(c.home, { to: c.home, title: c.group, kind: "place", n: 0 })
+    }
+  const folderOf = (to: string) => to.replace(/\/index$/, "")
+  const within = (to: string | undefined, place: string) => !!to && (to === place || folderOf(to).startsWith(folderOf(place) + "/"))
+  const matchesOf = (q: (typeof quests)[number]) => {
+    const conn = connectedOf(q.fm)
+    const keys = new Set(conn.map((c) => c.to))
+    for (const p of picks.values())
+      if (p.kind === "place" && conn.some((c) => (c.kind === "place" && within(c.to, p.to)) || within(c.home, p.to))) keys.add(p.to)
+    return [...keys]
+  }
+  const matches = new Map(quests.map((q) => [q, matchesOf(q)]))
+  for (const keys of matches.values()) for (const k of keys) if (picks.has(k)) picks.get(k)!.n++
+  // In the list: the party, people by where they live, factions, places, anything else
+  const groupOf = (p: Connected) =>
+    p.kind === "party" ? "Party" : p.kind === "person" ? (p.group ? `People · ${p.group}` : "People") : p.kind === "faction" ? "Factions" : p.kind === "place" ? "Places" : "Other"
+  const rank = (g: string) => (g === "Party" ? 0 : g.startsWith("People") ? 1 : g === "Factions" ? 2 : g === "Places" ? 3 : 4)
+  const pickList = [...picks.values()]
+    .map((p) => ({ to: p.to, title: p.title, kind: p.kind, img: p.img, n: p.n, group: groupOf(p) }))
+    .sort((a, b) => rank(a.group) - rank(b.group) || a.group.localeCompare(b.group) || a.title.localeCompare(b.title))
+
   const card = (q: (typeof quests)[number], when: string | undefined) => {
     const t = type(q)
     const main = t === "main" && statusOf(q.fm) === "active"
@@ -162,10 +191,11 @@ function QuestLanding({ slug, allFiles }: { slug: string; allFiles: File[] }) {
     const handouts = Array.isArray(q.fm.player_handouts) ? q.fm.player_handouts.length : 0
     const meta = [when, handouts ? `${handouts} handout${handouts === 1 ? "" : "s"}` : ""].filter(Boolean).join(" · ")
     return (
-      <a href={go(q.f)} class={`internal mw-ql-card ${main ? "mw-ql-main" : ""}`} data-type={t}>
+      <a href={go(q.f)} class={`internal mw-ql-card ${main ? "mw-ql-main" : ""}`} data-type={t} data-match={matches.get(q)!.join("|")}>
         <span class={`mw-quest-type mw-quest-${t}`}>{main ? "Main quest" : (LABELS[t] ?? t)}</span>
         <span class="mw-ql-title">{title(q)}</span>
         {summary && <span class="mw-ql-summary">{summary}</span>}
+        {connectedOf(q.fm).length > 0 && <ConnectedChips items={connectedOf(q.fm)} slug={slug} links={false} />}
         {meta && <span class="mw-ql-meta">{meta}</span>}
       </a>
     )
@@ -183,16 +213,27 @@ function QuestLanding({ slug, allFiles }: { slug: string; allFiles: File[] }) {
   return (
     <div class="mw-ql">
       <p class="mw-ql-lead">What the party has taken on, heard about, and left behind.</p>
-      {types.length > 1 && (
-        <div class="mw-ql-filters" role="group" aria-label="Show quests of type">
-          <button class="mw-ql-filter mw-on" data-type="">
-            All
-          </button>
-          {types.map((t) => (
-            <button class="mw-ql-filter" data-type={t}>
-              {LABELS[t]}
-            </button>
-          ))}
+      {(types.length > 1 || pickList.length > 0) && (
+        <div class="mw-ql-filters">
+          {types.length > 1 && (
+            <div class="mw-ql-types" role="group" aria-label="Show quests of type">
+              <button class="mw-ql-filter mw-on" data-type="">
+                All
+              </button>
+              {types.map((t) => (
+                <button class="mw-ql-filter" data-type={t}>
+                  {LABELS[t]}
+                </button>
+              ))}
+            </div>
+          )}
+          {pickList.length > 0 && (
+            <div class="mw-ql-pick" data-picks={JSON.stringify(pickList)} data-root={pathToRoot(slug as never)}>
+              <input type="search" class="mw-ql-search" placeholder="Connected to…" aria-label="Show quests connected to a person, place or faction" autocomplete="off" />
+              <div class="mw-ql-menu" role="listbox" hidden />
+              <button class="mw-ql-chip" hidden />
+            </div>
+          )}
         </div>
       )}
       {section("Active", "mw-ql-active", active, <div class="mw-ql-grid">{active.map((q) => card(q, q.fm.mw_quest_last ? `Updated ${q.fm.mw_quest_last}` : undefined))}</div>)}
@@ -205,7 +246,7 @@ function QuestLanding({ slug, allFiles }: { slug: string; allFiles: File[] }) {
           {finished.map((q) => {
             const s = statusOf(q.fm)
             return (
-              <li data-type={type(q)}>
+              <li data-type={type(q)} data-match={matches.get(q)!.join("|")}>
                 <span class={`mw-ql-status mw-ql-${s.replace(/\s+/g, "-")}`}>{STATUS_LABELS[s] ?? s}</span>
                 <a href={go(q.f)} class="internal">
                   {title(q)}
@@ -223,19 +264,19 @@ function QuestLanding({ slug, allFiles }: { slug: string; allFiles: File[] }) {
   )
 }
 
-// Filters: show one type of quest (sections with none left are hidden)
+// Filters: one type of quest, and/or what it's connected to. Sections with nothing left are hidden.
 const FILTER_SCRIPT = `
 document.addEventListener("nav", () => {
   const log = document.querySelector(".mw-ql");
   if (!log) return;
-  const buttons = log.querySelectorAll(".mw-ql-filter");
-  const show = (type) => {
-    buttons.forEach((b) => b.classList.toggle("mw-on", b.dataset.type === type));
+  let type = "", pick = "";
+  const apply = () => {
+    log.querySelectorAll(".mw-ql-filter").forEach((b) => b.classList.toggle("mw-on", b.dataset.type === type));
     let any = false;
     log.querySelectorAll(".mw-ql-section").forEach((sec) => {
       let n = 0;
-      sec.querySelectorAll("[data-type]").forEach((item) => {
-        const on = !type || item.dataset.type === type;
+      sec.querySelectorAll("[data-match]").forEach((item) => {
+        const on = (!type || item.dataset.type === type) && (!pick || item.dataset.match.split("|").includes(pick));
         item.hidden = !on;
         if (on) n++;
       });
@@ -246,7 +287,62 @@ document.addEventListener("nav", () => {
     });
     log.querySelector(".mw-ql-none").hidden = any;
   };
-  buttons.forEach((b) => b.addEventListener("click", () => show(b.dataset.type)));
+  log.querySelectorAll(".mw-ql-filter").forEach((b) => b.addEventListener("click", () => { type = b.dataset.type; apply(); }));
+
+  // Connected to: type to search, pick from the list (grouped), clear with the chip
+  const box = log.querySelector(".mw-ql-pick");
+  if (box) {
+    const picks = JSON.parse(box.dataset.picks || "[]");
+    const root = box.dataset.root || ".";
+    const input = box.querySelector(".mw-ql-search");
+    const menu = box.querySelector(".mw-ql-menu");
+    const chip = box.querySelector(".mw-ql-chip");
+    let active = 0, shown = [];
+    const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+    const icon = (p) => p.img ? '<img src="' + esc(root + "/" + p.img) + '" alt="">' : '<span class="mw-conn-icon">' + ({ faction: "⚑", place: "⌖" }[p.kind] || esc(p.title.charAt(0))) + "</span>";
+    const draw = () => {
+      const q = input.value.trim().toLowerCase();
+      shown = picks.filter((p) => !q || p.title.toLowerCase().includes(q) || p.group.toLowerCase().includes(q));
+      active = Math.min(active, Math.max(shown.length - 1, 0));
+      let html = "", last = "";
+      shown.forEach((p, i) => {
+        if (p.group !== last) { html += '<div class="mw-ql-group">' + esc(p.group) + "</div>"; last = p.group; }
+        html += '<div class="mw-ql-opt mw-conn-' + p.kind + (i === active ? " mw-on" : "") + '" role="option" data-i="' + i + '">' + icon(p) + "<span>" + esc(p.title) + '</span><small>' + p.n + (p.n === 1 ? " quest" : " quests") + "</small></div>";
+      });
+      menu.innerHTML = html || '<div class="mw-ql-group">Nothing matches</div>';
+      menu.hidden = false;
+    };
+    const choose = (p) => {
+      pick = p.to;
+      chip.innerHTML = icon(p) + "<span>" + esc(p.title) + "</span> ✕";
+      chip.setAttribute("aria-label", "Stop showing only quests connected to " + p.title);
+      chip.hidden = false;
+      input.hidden = true;
+      menu.hidden = true;
+      input.value = "";
+      apply();
+    };
+    input.addEventListener("focus", draw);
+    input.addEventListener("input", () => { active = 0; draw(); });
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowDown") { active = Math.min(active + 1, shown.length - 1); draw(); e.preventDefault(); }
+      else if (e.key === "ArrowUp") { active = Math.max(active - 1, 0); draw(); e.preventDefault(); }
+      else if (e.key === "Enter" && shown[active]) { choose(shown[active]); e.preventDefault(); }
+      else if (e.key === "Escape") { menu.hidden = true; input.blur(); }
+    });
+    menu.addEventListener("mousedown", (e) => {
+      const opt = e.target.closest(".mw-ql-opt");
+      if (opt) { e.preventDefault(); choose(shown[Number(opt.dataset.i)]); }
+    });
+    input.addEventListener("blur", () => setTimeout(() => (menu.hidden = true), 100));
+    chip.addEventListener("click", () => {
+      pick = "";
+      chip.hidden = true;
+      input.hidden = false;
+      input.focus();
+      apply();
+    });
+  }
 });
 `
 

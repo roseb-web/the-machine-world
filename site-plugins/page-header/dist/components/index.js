@@ -1,6 +1,6 @@
 // src/components/header.tsx
 import { pathToRoot, resolveRelative } from "@quartz-community/utils";
-import { jsx, jsxs } from "preact/jsx-runtime";
+import { Fragment, jsx, jsxs } from "preact/jsx-runtime";
 function parseLink(value) {
   const m = value.match(/^\[\[([^\]|]+)(?:\|([^\]]+))?\]\]$/);
   if (!m) return { text: value };
@@ -88,7 +88,8 @@ function renderHeader(fm, slug, str) {
   const seen = str("player_seen");
   const song = spotifyEmbed(str("spotify"));
   const dates = Array.isArray(fm.mw_dates) ? fm.mw_dates.filter((d) => typeof d === "string") : [];
-  const hasDetails = photo || sigil || subtitle || say || chips.length > 0 || faction || seen || dates.length > 0 || song;
+  const connected = connectedOf(fm);
+  const hasDetails = photo || sigil || subtitle || say || chips.length > 0 || faction || seen || dates.length > 0 || song || connected.length > 0;
   if (!hasDetails) {
     return /* @__PURE__ */ jsx("h1", { class: "article-title", children: title });
   }
@@ -123,6 +124,7 @@ function renderHeader(fm, slug, str) {
             "Last seen: ",
             renderValue(seen)
           ] }),
+          connected.length > 0 && /* @__PURE__ */ jsx(ConnectedChips, { items: connected, slug }),
           dates.map((d) => /* @__PURE__ */ jsxs("p", { class: "mw-datecard", children: [
             /* @__PURE__ */ jsxs("svg", { viewBox: "0 0 16 16", width: "14", height: "14", "aria-hidden": "true", children: [
               /* @__PURE__ */ jsx("rect", { x: "1.5", y: "2.5", width: "13", height: "12", rx: "1.5", fill: "none", stroke: "currentColor" }),
@@ -151,6 +153,23 @@ function spotifyEmbed(url) {
   const m = url?.match(/^https:\/\/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(track|album|playlist|episode)\/([A-Za-z0-9]+)/);
   if (!m) return null;
   return { src: `https://open.spotify.com/embed/${m[1]}/${m[2]}?utm_source=generator`, height: m[1] === "track" || m[1] === "episode" ? 80 : 152 };
+}
+function connectedOf(fm) {
+  const v = fm.player_connected;
+  return (Array.isArray(v) ? v : []).filter(
+    (x) => !!x && typeof x === "object" && typeof x.to === "string" && typeof x.title === "string"
+  );
+}
+var KIND_ICON = { faction: "\u2691", place: "\u2316", page: "\u2022" };
+function ConnectedChips({ items, slug, links = true }) {
+  const root = pathToRoot(slug);
+  const inner = (c) => /* @__PURE__ */ jsxs(Fragment, { children: [
+    c.img ? /* @__PURE__ */ jsx("img", { src: `${root}/${c.img}`, alt: "" }) : /* @__PURE__ */ jsx("span", { class: "mw-conn-icon", children: KIND_ICON[c.kind] ?? c.title.charAt(0) }),
+    c.title
+  ] });
+  return /* @__PURE__ */ jsx("div", { class: "mw-connected", children: items.map(
+    (c) => links ? /* @__PURE__ */ jsx("a", { href: resolveRelative(slug, c.to), class: `internal mw-conn mw-conn-${c.kind}`, children: inner(c) }) : /* @__PURE__ */ jsx("span", { class: `mw-conn mw-conn-${c.kind}`, children: inner(c) })
+  ) });
 }
 
 // src/components/PageHeader.css
@@ -405,6 +424,14 @@ var PageHeader_default = `.mw-header {
   border: 0;
   border-radius: 12px;
 }
+
+/* Connected to: faces and icons with names (quests) */
+.mw-connected { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.5rem 0 0.2rem; }
+a.mw-conn, span.mw-conn { text-decoration: none !important; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.1rem 0.65rem 0.1rem 0.15rem !important; border-radius: 999px; background: var(--lightgray) !important; color: var(--darkgray) !important; font-size: 0.8rem; font-weight: 400 !important; text-decoration: none; line-height: 1.6; }
+a.mw-conn:hover { background: color-mix(in srgb, var(--secondary) 20%, var(--lightgray)) !important; }
+a.mw-conn img, span.mw-conn img { width: 1.35rem; height: 1.35rem; border-radius: 50%; object-fit: cover; object-position: top; margin: 0; }
+.mw-conn-icon { width: 1.35rem; height: 1.35rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; background: var(--light); color: var(--secondary); }
+a.mw-conn-party, span.mw-conn-party { background: color-mix(in srgb, #5d7a2e 18%, var(--light)) !important; color: #3f5a1c !important; }
 `;
 
 // src/components/PageHeader.tsx

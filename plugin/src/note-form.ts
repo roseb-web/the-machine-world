@@ -13,7 +13,7 @@ import type { SectionRule } from "../../shared/export";
 import { renderHeaderCard } from "./header-card";
 
 type Kind = "person" | "place" | "faction" | "god" | "quest" | "session" | "page" | "other";
-type FieldType = "text" | "link" | "image" | "images" | "list" | "choice" | "toggle" | "url" | "section" | "date";
+type FieldType = "text" | "link" | "image" | "images" | "list" | "choice" | "toggle" | "url" | "section" | "date" | "links";
 
 interface Field {
   key: string;
@@ -73,6 +73,7 @@ const KIND_FIELDS: Record<Kind, { title: string; main: Field[] }> = {
       { key: "quest", label: "Quest type", type: "choice", choices: ["main", "personal", "faction", "side"] },
       { key: "quest_status", label: "Status", type: "choice", choices: ["not started", "active", "completed", "failed", "missed"] },
       { key: "pinned", label: "On the home page", type: "toggle", hint: "Shown while it's active" },
+      { key: "player_connected", label: "Connected to", type: "links", hint: "People, party, factions and places" },
     ],
   },
   session: { title: "Session recap", main: [{ key: "fc-date", label: "In-world date", type: "date", hint: "Puts it on the calendar. The newest becomes \"Previously on…\" on the home page." }] },
@@ -307,6 +308,10 @@ export class NoteForm extends Modal {
       this.dateField(control, v, set);
       return;
     }
+    if (f.type === "links") {
+      this.linksField(control, v, set);
+      return;
+    }
     if (f.type === "images") {
       const ta = control.createEl("textarea", { cls: "mw-nf-input" });
       ta.rows = 2;
@@ -337,6 +342,42 @@ export class NoteForm extends Modal {
       if (f.type === "list") set(t ? t.split(",").map((x) => x.trim()).filter(Boolean) : undefined);
       else set(t || undefined);
     });
+  }
+
+  // A list of notes, as chips: pick one from the suggestions (or type a name and press Enter) to add it
+  private linksField(control: HTMLElement, v: unknown, set: (v: unknown) => void) {
+    let items = (Array.isArray(v) ? v : isEmpty(v) ? [] : [v]).map(unlink).filter(Boolean);
+    control.addClass("mw-nf-links");
+    const chips = control.createDiv({ cls: "mw-nf-link-chips" });
+    const input = control.createEl("input", { type: "text", cls: "mw-nf-input", attr: { placeholder: "Add..." } });
+    const draw = () => {
+      chips.empty();
+      for (const name of items) {
+        const chip = chips.createSpan({ cls: "mw-nf-link-chip", text: name });
+        const x = chip.createEl("button", { cls: "mw-nf-link-x", text: "✕", attr: { "aria-label": `Remove ${name}` } });
+        x.addEventListener("click", () => {
+          items = items.filter((i) => i !== name);
+          set(items.length ? items : undefined);
+          draw();
+        });
+      }
+    };
+    const add = () => {
+      const name = input.value.trim();
+      input.value = "";
+      if (!name || items.includes(name)) return;
+      items = [...items, name];
+      set(items);
+      draw();
+    };
+    new FileSuggest(this.app, input, false, add);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        add();
+      }
+    });
+    draw();
   }
 
   // Who can see this detail: everyone, one player, or the DM (who can always see what a player can)
@@ -490,6 +531,7 @@ export class NoteForm extends Modal {
           return l;
         });
       } else if (f.type === "link") out[f.key] = link(String(now), false) ?? String(now); // plain text if there's no such note
+      else if (f.type === "links") out[f.key] = (now as string[]).map((n) => link(n, false) ?? n);
       else if (f.type === "url" && f.key === "spotify" && !/^https:\/\/open\.spotify\.com\//.test(String(now))) throw new Error("the theme song must be a Spotify link");
       else out[f.key] = now;
     }

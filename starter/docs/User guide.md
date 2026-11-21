@@ -286,6 +286,7 @@ The tables below list every property, if you'd rather type them yourself.
 | `quest` | `main`, `personal`, `faction` or `side` |
 | `quest_status` | `not started`, `active`, `completed`, `failed` or `missed`. No status counts as `active`. Only `active` quests show on the home page. |
 | `pinned` | `true` shows it on the home page (only while it's `active`) |
+| `player_connected` | A list of people, party members, factions and places the quest involves, e.g. `["[[Mira]]", "[[Millbrook]]"]`. Shown as **Connected to** in Edit wiki details. |
 
 **The quest log page** (the Quest log in the menu) shows every quest on the wiki:
 
@@ -293,6 +294,11 @@ The tables below list every property, if you'd rather type them yourself.
 - **Not started:** dashed cards, for quests the party knows about but hasn't begun (like jobs from a notice board). They say "Heard about in Session 2".
 - **Finished:** Completed, Failed and Missed, in a short list, newest first.
 - **Filters** at the top show one type: Main, Personal, Faction or Side.
+- **Connected to…** search box: type a name to show only the quests connected to that person, party member, faction or place. The list is grouped (the party, people by where they live, factions, places), shows how many quests each has, and only lists what's actually tagged. Picking a place also shows quests tagged with places inside it, or with people who live there. Click the chip to clear it.
+
+**Connected to** (`player_connected`) shows as small faces or icons with names, under the quest's title and on its card. The party are green. Each person, faction or place page lists its quests under **Related quests**, with the status if it isn't active.
+
+Only notes that are on the wiki show up: anything else in the list is left out completely, not even its name. Like other details, you can set **Connected to** to 🔒 one player or the DM.
 
 The session numbers come from the "Session N" headings in the quest's "What we know", worked out when you publish. A quest only goes on the wiki once it has something for the party, so quests they haven't heard of stay hidden.
 
