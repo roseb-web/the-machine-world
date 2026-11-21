@@ -200,7 +200,7 @@ Properties go at the top of a note. **All of them are optional.** Each part of a
 
 ### The easy way: ✎ Edit wiki details
 
-Every note has a **✎ button** at the top right (or use Ctrl+P, "Edit wiki details"). It opens a form with:
+Every note has a **scroll button** (📜) at the top right, and an **Edit details** button on its header card (or use Ctrl+P, "Edit wiki details"). It opens a form with:
 
 - **Overview:** what the party knows. This is the note's `> [!player] Overview` callout. Writing one puts the note on the wiki. Emptying it removes the callout.
 - **Only the fields for that kind of note.** People get species, faction and favour. Places get "Inside". Quests get type, status and "On the home page". Session recaps get a date picker. The kind comes from the note's menu section. Less common fields are under **More**.
@@ -208,6 +208,18 @@ Every note has a **✎ button** at the top right (or use Ctrl+P, "Edit wiki deta
 - **A preview** of how the top of the page will look on the wiki, and what else changes (like "Listed under the guild's Key NPCs").
 
 It only saves the wiki's own properties and the Overview. Your other properties and the rest of the note aren't touched, and Obsidian can stay open.
+
+### The banner and header card in notes
+
+Notes with a banner or wiki details show the top of their wiki page at the top of the note, in editing and reading view:
+
+- The **banner**, then the **portrait** (or symbol), the **name the party knows**, the subtitle and the chips.
+- The name only shows if it's different from the note's own name. Obsidian's title already shows that.
+- **Locked details** have a 🔒 and who they're for, e.g. "🔒 Missing · Tam". The portrait and banner get a small 🔒 badge.
+- **Edit details** opens the Edit wiki details form.
+- Notes without a banner or wiki details look the same as before.
+
+To turn it off: plugin settings, **In Obsidian**, "Banner and header card on notes".
 
 The tables below list every property, if you'd rather type them yourself.
 

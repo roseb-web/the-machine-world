@@ -46,4 +46,5 @@ export const DEFAULT_SETTINGS: WikiSettings = {
   audiencePasswords: {},
   audienceSalt: "",
   lockSecret: "",
+  noteHeaders: true,
 };

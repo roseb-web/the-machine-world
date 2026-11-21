@@ -15,6 +15,7 @@ import type { Eras, SecondCalendar } from "../../shared/eras";
 import { TIMELINE_VIEW, TimelineView } from "./timeline-view";
 import { PeopleWebView, WEB_VIEW } from "./web-view";
 import { NoteForm } from "./note-form";
+import { NoteHeaders } from "./note-header";
 import { readSections, writeSections } from "../../shared/sections";
 import { audienceIndex, fromB64, keyBytes, randomBytes, sealSections, toB64 } from "../../shared/audiences";
 import { PREVIEW_VIEW, WikiPreviewView } from "./wiki-preview";
@@ -22,6 +23,7 @@ import { calendarium } from "./event-modal";
 import { gameDateFrom } from "../../shared/calendar";
 
 export default class MachineWorldWiki extends Plugin {
+  noteHeaders: NoteHeaders | null = null;
   settings: WikiSettings = DEFAULT_SETTINGS;
 
   async onload() {
@@ -106,6 +108,16 @@ export default class MachineWorldWiki extends Plugin {
     this.app.workspace.onLayoutReady(addButtons);
     this.registerEvent(this.app.workspace.on("layout-change", addButtons));
     this.registerEvent(this.app.workspace.on("active-leaf-change", addButtons));
+
+    // The wiki page's banner and header card at the top of notes
+    this.noteHeaders = new NoteHeaders(this.app, () => this.settings.noteHeaders, (f) => this.editDetails(f));
+    const headers = () => this.noteHeaders?.refreshAll();
+    this.app.workspace.onLayoutReady(headers);
+    this.registerEvent(this.app.workspace.on("layout-change", headers));
+    this.registerEvent(this.app.workspace.on("active-leaf-change", headers));
+    this.registerEvent(this.app.workspace.on("file-open", headers));
+    this.registerEvent(this.app.metadataCache.on("changed", (f) => this.noteHeaders?.refreshFile(f)));
+    this.register(() => this.noteHeaders?.remove());
   }
 
   openPreview(view: MarkdownView) {
@@ -505,6 +517,17 @@ class WikiSettingTab extends PluginSettingTab {
       .setDesc("If another country names the months differently. Its name, then its month names, one per line, in the same order as Calendarium's.")
       .addText((t) => t.setPlaceholder("e.g. the old calendar").setValue(s.secondCalendarLabel).onChange((v) => { s.secondCalendarLabel = v; save(); }))
       .addTextArea((t) => t.setValue(s.secondCalendarMonths.join("\n")).onChange((v) => { s.secondCalendarMonths = v.split("\n").map((x) => x.trim()).filter(Boolean); save(); }));
+    new Setting(containerEl).setName("In Obsidian").setHeading();
+    new Setting(containerEl)
+      .setName("Banner and header card on notes")
+      .setDesc("Shows the top of the wiki page (banner, portrait, name, subtitle and chips) at the top of notes that have them.")
+      .addToggle((t) =>
+        t.setValue(s.noteHeaders).onChange(async (v) => {
+          s.noteHeaders = v;
+          await this.plugin.saveSettings();
+          this.plugin.noteHeaders?.refreshAll();
+        }),
+      );
     new Setting(containerEl).setName("Audiences").setHeading();
     containerEl.createEl("p", {
       cls: "setting-item-description",

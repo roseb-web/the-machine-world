@@ -224,3 +224,26 @@ textarea.mw-nf-input { resize: vertical; font-family: inherit; }
 .mw-wp-tag.mw-dm { background: #b0402f; }
 
 .mw-settings-warning { padding: 0.5rem 0.8rem; border-radius: 6px; background: rgba(214, 160, 40, 0.15); color: var(--text-normal); font-size: 0.9em; }
+
+/* Lock markers on the header card (details only some can see) */
+.mw-nf-lock { font-size: 0.85em; color: #6b3f93; white-space: nowrap; }
+.mw-nf-lock.mw-dm { color: #9b3b2e; }
+.mw-nf-chip.mw-locked { background: rgba(138, 92, 181, 0.16); color: #6b3f93; }
+.mw-nf-chip.mw-locked.mw-dm { background: rgba(176, 64, 47, 0.14); color: #9b3b2e; }
+.mw-nf-banner, .mw-nf-picture { position: relative; }
+.mw-nf-picture { flex: none; line-height: 0; }
+.mw-nf-lock-badge { position: absolute; right: 4px; bottom: 4px; line-height: 1.4; font-size: 0.68rem; padding: 0 0.4rem; border-radius: 999px; background: #8a5cb5; color: #fff; }
+.mw-nf-lock-badge.mw-dm { background: #b0402f; }
+
+/* The banner and header card at the top of notes */
+.mw-note-header { margin: 0 0 1rem; }
+.markdown-source-view .mw-note-header { padding-top: var(--file-margins, 0); }
+.mw-note-header .mw-nf-card { border: 0; background: transparent; overflow: visible; }
+.mw-note-header .mw-nf-banner { height: 180px; border-radius: 12px; }
+.mw-note-header .mw-nf-card-body { padding: 0.8rem 0 0; align-items: flex-start; }
+.mw-note-header .mw-nf-banner + .mw-nf-card-body .mw-nf-picture { margin-top: -2.8rem; }
+.mw-note-header .mw-nf-portrait { width: 96px; height: 120px; border: 3px solid var(--background-primary); border-radius: 10px; }
+.mw-note-header .mw-nf-sigil { width: 72px; height: 72px; }
+.mw-note-header .mw-nf-card-title { font-size: 1.5em; }
+.mw-note-header .mw-nf-card-text { flex: 1; }
+.mw-note-header-edit { flex: none; font-size: 0.78em; padding: 0.2rem 0.6rem; height: auto; }

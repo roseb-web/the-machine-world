@@ -430,7 +430,7 @@ export class NoteForm extends Modal {
       const x = this.values[k];
       return typeof x === "string" && x.trim() ? x.trim() : undefined;
     };
-    renderHeaderCard(p, this.app, this.ctx.file.path, this.values, v("player_name") ?? this.ctx.file.basename);
+    renderHeaderCard(p, this.app, this.ctx.file.path, this.values, v("player_name") ?? this.ctx.file.basename, this.vis);
     if (this.overview.trim()) p.createDiv({ cls: "mw-nf-card-overview", text: this.overview.trim() });
     if (v("spotify")) {
       const ok = /^https:\/\/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(track|album|playlist|episode)\//.test(v("spotify")!);
