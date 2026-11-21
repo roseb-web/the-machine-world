@@ -396,7 +396,7 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
     const pic = [page.props.photo, page.props.player_sigil].find((x): x is string => typeof x === "string" && !!x.trim());
     const picPath = pic ? opts.resolveLink(pic.replace(/^!?\[\[|\]\]$/g, "").split("|")[0], page.from) : null;
     if (picPath && IMAGE_EXT.test(picPath)) out.img = imageTarget(picPath);
-    // Where a person lives: their folder (people/the-marrowlands/thornwick is "Thornwick"),
+    // Where a person lives: their folder (people/eldmoor/millbrook is "Millbrook"),
     // and the place with the same folder, if it's on the wiki
     if (kind === "person") {
       const dir = page.to.split("/").slice(0, -1).join("/");

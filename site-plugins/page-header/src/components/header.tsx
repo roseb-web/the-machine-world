@@ -197,7 +197,7 @@ export interface Connected {
   title: string
   kind: string // party, person, faction, place or page
   img?: string
-  group?: string // where a person lives, e.g. "Thornwick"
+  group?: string // where a person lives, e.g. "Millbrook"
   home?: string // that place's page
 }
 
