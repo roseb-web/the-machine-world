@@ -47,4 +47,6 @@ export const DEFAULT_SETTINGS: WikiSettings = {
   audienceSalt: "",
   lockSecret: "",
   noteHeaders: true,
+  compactProperties: true,
+  foldProperties: true,
 };

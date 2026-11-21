@@ -21,6 +21,7 @@ export class NoteHeaders {
     private app: App,
     private enabled: () => boolean,
     private onEdit: (file: TFile) => void,
+    private foldProps: () => boolean = () => false,
   ) {}
 
   // Every open note: add, update or take away its header
@@ -43,9 +44,27 @@ export class NoteHeaders {
     document.querySelectorAll(".mw-note-header").forEach((el) => el.remove());
   }
 
+  // Properties start folded: once each time a note opens in a tab, so they can still be opened by hand
+  private fold(view: MarkdownView & { _mwFolded?: string }) {
+    if (!this.foldProps() || !view.file || view._mwFolded === view.file.path) return;
+    const file = view.file.path;
+    // Obsidian draws Properties a moment after the note opens
+    window.setTimeout(() => {
+      if (view.file?.path !== file) return;
+      const containers = view.containerEl.querySelectorAll<HTMLElement>(".metadata-container");
+      if (!containers.length) return; // not drawn yet (or no properties): try again next time
+      view._mwFolded = file;
+      containers.forEach((c) => {
+        const h = c.querySelector<HTMLElement>(":scope > .metadata-properties-heading");
+        if (h && !c.classList.contains("is-collapsed") && h.offsetParent !== null) h.click(); // only the one on screen
+      });
+    }, 60);
+  }
+
   private apply(view: MarkdownView) {
     try {
       if (!view.containerEl) return; // a tab that hasn't loaded yet
+      this.fold(view);
       const file = view.file;
       const fm = (file && this.app.metadataCache.getFileCache(file)?.frontmatter) as Record<string, unknown> | undefined;
       const show = !!file && !!fm && this.enabled() && HEADER_KEYS.some((k) => has(fm, k));

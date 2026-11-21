@@ -219,7 +219,12 @@ Notes with a banner or wiki details show the top of their wiki page at the top o
 - **Edit details** opens the Edit wiki details form.
 - Notes without a banner or wiki details look the same as before.
 
-To turn it off: plugin settings, **In Obsidian**, "Banner and header card on notes".
+Also under **In Obsidian** in the plugin settings (both on to start with):
+
+- **Less space under Properties:** tightens the gap between Properties and the note, on every note.
+- **Properties start folded:** notes open with Properties folded. Click them to open as usual. They stay open until you open another note.
+
+To turn the card off: plugin settings, **In Obsidian**, "Banner and header card on notes".
 
 The tables below list every property, if you'd rather type them yourself.
 

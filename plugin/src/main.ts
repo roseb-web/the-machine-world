@@ -110,7 +110,13 @@ export default class MachineWorldWiki extends Plugin {
     this.registerEvent(this.app.workspace.on("active-leaf-change", addButtons));
 
     // The wiki page's banner and header card at the top of notes
-    this.noteHeaders = new NoteHeaders(this.app, () => this.settings.noteHeaders, (f) => this.editDetails(f));
+    this.noteHeaders = new NoteHeaders(this.app, () => this.settings.noteHeaders, (f) => this.editDetails(f), () => this.settings.foldProperties);
+    try {
+      document.body.toggleClass("mw-compact-props", this.settings.compactProperties);
+      this.register(() => document.body.removeClass("mw-compact-props"));
+    } catch (e) {
+      console.warn("Machine World Wiki: couldn't tidy Properties", e);
+    }
     const headers = () => this.noteHeaders?.refreshAll();
     this.app.workspace.onLayoutReady(headers);
     this.registerEvent(this.app.workspace.on("layout-change", headers));
@@ -526,6 +532,25 @@ class WikiSettingTab extends PluginSettingTab {
           s.noteHeaders = v;
           await this.plugin.saveSettings();
           this.plugin.noteHeaders?.refreshAll();
+        }),
+      );
+    new Setting(containerEl)
+      .setName("Less space under Properties")
+      .setDesc("Tightens the gap between Properties and the note, on every note.")
+      .addToggle((t) =>
+        t.setValue(s.compactProperties).onChange(async (v) => {
+          s.compactProperties = v;
+          await this.plugin.saveSettings();
+          document.body.toggleClass("mw-compact-props", v);
+        }),
+      );
+    new Setting(containerEl)
+      .setName("Properties start folded")
+      .setDesc("Notes open with Properties folded. Click them to open as usual.")
+      .addToggle((t) =>
+        t.setValue(s.foldProperties).onChange(async (v) => {
+          s.foldProperties = v;
+          await this.plugin.saveSettings();
         }),
       );
     new Setting(containerEl).setName("Audiences").setHeading();
