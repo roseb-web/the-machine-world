@@ -120,3 +120,58 @@
 .mw-menu-sub .mw-active-section > a:not(.mw-active) {
   color: var(--darkgray);
 }
+
+/* Folder rows: the name is a link to the folder's landing page, the arrow is its own button */
+.mw-menu summary {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+.mw-menu summary::after {
+  content: none;
+}
+.mw-menu summary > .mw-menu-name {
+  display: inline;
+  padding: 0.05rem 0.35rem;
+  margin-left: -0.35rem;
+  border-radius: 6px;
+  color: inherit;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.mw-menu summary > a.mw-menu-name:hover {
+  background: color-mix(in srgb, var(--secondary) 14%, transparent);
+  color: var(--secondary);
+}
+.mw-menu summary > a.mw-menu-name.mw-active {
+  color: var(--secondary);
+}
+.mw-menu summary:hover {
+  color: inherit;
+}
+.mw-menu-arrow {
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  color: var(--gray);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.mw-menu-arrow::before {
+  content: "›";
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+.mw-menu details[open] > summary > .mw-menu-arrow::before {
+  transform: rotate(90deg);
+}
+.mw-menu-arrow:hover {
+  background: var(--lightgray);
+  color: var(--dark);
+}
+@media (max-width: 800px) {
+  .mw-menu-arrow { width: 2rem; height: 2rem; }
+}

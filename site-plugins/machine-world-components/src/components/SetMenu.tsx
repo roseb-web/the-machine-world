@@ -128,6 +128,24 @@ export default ((userOpts?: Partial<SetMenuOptions>) => {
       return root
     }
 
+    const exists = new Set(allFiles.map((f) => String(f.slug)))
+    // A folder's landing page: its own page (e.g. Thornwick's), or its folder page (e.g. "The Marrowlands")
+    const landingOf = (path: string, page?: string) => page ?? (exists.has(`${path}/index`) ? `${path}/index` : undefined)
+    // A folder's row: the name opens its landing page, the arrow opens or closes the list
+    // (clicks on the link go to the page; clicks anywhere else on the row open or close it).
+    const folderRow = (title: string, landing: string | undefined, open: boolean) => (
+      <summary class={open ? "mw-active-section" : ""}>
+        {landing ? (
+          <a href={link(landing)} class={`mw-menu-name ${current === landing ? "mw-active" : ""}`}>
+            {title}
+          </a>
+        ) : (
+          <span class="mw-menu-name">{title}</span>
+        )}
+        <span class="mw-menu-arrow" title="Show or hide what's inside" />
+      </summary>
+    )
+
     // data-mw-path: where signed-in readers' locked pages go (see the audiences plugin)
     const renderFolder = (f: Folder) => (
       <ul class="mw-menu-sub" data-mw-path={f.path}>
@@ -136,15 +154,7 @@ export default ((userOpts?: Partial<SetMenuOptions>) => {
           return (
             <li>
               <details open={open}>
-                <summary class={open ? "mw-active-section" : ""}>
-                  {sub.page ? (
-                    <a href={link(sub.page)} class={current === sub.page ? "mw-active" : ""}>
-                      {sub.title}
-                    </a>
-                  ) : (
-                    sub.title
-                  )}
-                </summary>
+                {folderRow(sub.title, landingOf(sub.path, sub.page), open)}
                 {renderFolder(sub)}
               </details>
             </li>
@@ -159,7 +169,6 @@ export default ((userOpts?: Partial<SetMenuOptions>) => {
         ))}
       </ul>
     )
-    const exists = new Set(allFiles.map((f) => String(f.slug)))
     const link = (target: string) => resolveRelative(current as never, target as never)
 
     const groups = opts.groups
@@ -208,7 +217,7 @@ export default ((userOpts?: Partial<SetMenuOptions>) => {
                   ) : (
                     <li>
                       <details open={active}>
-                        <summary class={active ? "mw-active-section" : ""}>{item.title}</summary>
+                        {folderRow(item.title, landingOf(item.section!), active)}
                         {tree && renderFolder(tree)}
                       </details>
                     </li>
