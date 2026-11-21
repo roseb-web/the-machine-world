@@ -166,6 +166,14 @@ function prepare(note: VaultNote, opts: ExportOptions): Prepared | null {
       delete extracted.properties[key];
     }
     props = extracted.properties;
+    // Quests: the first and latest sessions in "What we know" ("Heard about in Session 2", "Updated Session 5")
+    if (typeof props.quest === "string") {
+      const nums = extracted.entries.map((e) => e.label.match(/\bsession\s*(\d+)/i)).filter((m): m is RegExpMatchArray => !!m).map((m) => Number(m[1]));
+      if (nums.length) {
+        props.mw_quest_first = `Session ${Math.min(...nums)}`;
+        props.mw_quest_last = `Session ${Math.max(...nums)}`;
+      }
+    }
     const override = extracted.properties["wiki_section"];
     if (typeof override === "string") section = override;
     markdown = renderPlayerNote(extracted, opts.yaml);
@@ -371,6 +379,43 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
     });
   }
 
+  // "Connected to" on a quest: each note it names, if it's on the wiki, with what the quest log needs to
+  // show and filter it. Anything not on the wiki is left out completely (not even its name).
+  // withLocked: locked pages count too (only in locked details).
+  function connectedItem(target: string, fromPath: string, withLocked: boolean): Record<string, string> | null {
+    const name = target.replace(/^!?\[\[|\]\]$/g, "").split("|")[0].split("#")[0].trim();
+    const resolved = name ? opts.resolveLink(name, fromPath) : null;
+    const page = resolved ? byVaultPath.get(resolved) : undefined;
+    if (!page) {
+      const lp = withLocked && resolved ? lockedByVaultPath.get(resolved) : undefined;
+      return lp ? { to: lp.to, title: lp.title, kind: "page" } : null;
+    }
+    const kinds: Record<string, string> = { party: "party", people: "person", factions: "faction", places: "place" };
+    const kind = kinds[page.section] ?? "page";
+    const out: Record<string, string> = { to: page.to, title: page.title, kind };
+    const pic = [page.props.photo, page.props.player_sigil].find((x): x is string => typeof x === "string" && !!x.trim());
+    const picPath = pic ? opts.resolveLink(pic.replace(/^!?\[\[|\]\]$/g, "").split("|")[0], page.from) : null;
+    if (picPath && IMAGE_EXT.test(picPath)) out.img = imageTarget(picPath);
+    // Where a person lives: their folder (people/eldmoor/millbrook is "Millbrook"),
+    // and the place with the same folder, if it's on the wiki
+    if (kind === "person") {
+      const dir = page.to.split("/").slice(0, -1).join("/");
+      if (dir.includes("/")) {
+        const rest = dir.slice(dir.indexOf("/") + 1);
+        const place = prepared.find((x) => (kinds[x.section] === "place") && (x.to === `${x.section}/${rest}/index` || x.to === `${x.section}/${rest}`));
+        const group = folderPages.get(dir) ?? place?.title;
+        if (group) out.group = group;
+        if (place) out.home = place.to;
+      }
+    }
+    return out;
+  }
+  const connectedList = (v: unknown, fromPath: string, withLocked: boolean) =>
+    (Array.isArray(v) ? v : [v])
+      .filter((x): x is string => typeof x === "string")
+      .map((x) => connectedItem(x, fromPath, withLocked))
+      .filter((x): x is Record<string, string> => x !== null);
+
   function rewriteImageProperties(markdown: string, fromPath: string): string {
     const match = markdown.match(/^---\r?\n([\s\S]*?)\r?\n---/);
     if (!match) return markdown;
@@ -409,6 +454,13 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
         delete props[key];
         changed = true;
       }
+    }
+    // Connected to: the notes that are on the wiki, with their details
+    if ("player_connected" in props) {
+      const items = connectedList(props.player_connected, fromPath, false);
+      if (items.length) props.player_connected = items;
+      else delete props.player_connected;
+      changed = true;
     }
     // Links inside properties (e.g. player_seen: "[[Thornwick]]"), and inside lists, follow the same rules.
     for (const [key, v] of Object.entries(props)) {
@@ -463,6 +515,10 @@ export function exportWiki(notes: VaultNote[], opts: ExportOptions): ExportResul
   // A locked detail's value, written like the page's own properties: pictures as their path on the wiki,
   // links as "[[people/pell|Pell]]" (or plain text if their page isn't on the wiki). null: leave it out.
   function lockedValue(key: string, value: unknown, fromPath: string): unknown {
+    if (key === "player_connected") {
+      const items = connectedList(value, fromPath, true);
+      return items.length ? items : null;
+    }
     if (["photo", "banner", "player_sigil"].includes(key)) {
       if (typeof value !== "string") return null;
       const link = value.replace(/^!?\[\[|\]\]$/g, "").split("|")[0];

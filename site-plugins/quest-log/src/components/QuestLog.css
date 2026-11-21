@@ -280,3 +280,63 @@ a.internal.mw-home-link {
   font-weight: 600;
   color: var(--secondary);
 }
+
+/* ---- The quest log page ---- */
+.mw-ql-lead { color: var(--gray); margin: 0 0 1rem; }
+.mw-ql-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem; }
+.mw-ql-types { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.mw-ql-filter { font: inherit; font-size: 0.8rem; padding: 0.15rem 0.8rem; border-radius: 999px; border: 1px solid var(--lightgray); background: transparent; color: var(--darkgray); cursor: pointer; }
+.mw-ql-filter:hover { border-color: var(--secondary); }
+.mw-ql-filter.mw-on { background: color-mix(in srgb, var(--secondary) 16%, transparent); border-color: var(--secondary); color: var(--dark); }
+.mw-ql-section h2 { display: flex; align-items: baseline; gap: 0.5rem; margin: 1.6rem 0 0.7rem; }
+.mw-ql-count { font-family: var(--bodyFont); font-size: 0.8rem; font-weight: 400; color: var(--gray); }
+.mw-ql-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 0.8rem; }
+a.mw-ql-card { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.8rem 1rem; border: 1px solid var(--lightgray); border-radius: 10px; background: var(--light); color: var(--darkgray); text-decoration: none; transition: border-color 0.15s ease, transform 0.15s ease; }
+a.mw-ql-card:hover { border-color: var(--secondary); transform: translateY(-1px); }
+a.mw-ql-card[hidden] { display: none; }
+.mw-ql-card .mw-quest-type { align-self: flex-start; }
+.mw-ql-main { grid-column: 1 / -1; border: 1.5px solid var(--secondary) !important; }
+.mw-ql-title { font-family: var(--headerFont); font-size: 1.15rem; color: var(--dark); line-height: 1.25; }
+.mw-ql-main .mw-ql-title { font-size: 1.35rem; }
+.mw-ql-summary { font-size: 0.88rem; line-height: 1.45; color: var(--darkgray); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.mw-ql-meta { margin-top: auto; padding-top: 0.3rem; font-size: 0.75rem; color: var(--gray); }
+.mw-ql-not-started a.mw-ql-card { border-style: dashed; background: transparent; }
+.mw-ql-list { list-style: none; padding: 0; margin: 0; }
+.mw-ql-list li { display: flex; align-items: center; gap: 0.8rem; padding: 0.45rem 0; border-bottom: 1px solid var(--lightgray); }
+.mw-ql-list li[hidden] { display: none; }
+.mw-ql-list a { flex: 1; }
+.mw-ql-when { font-size: 0.78rem; color: var(--gray); }
+.mw-ql-status { flex: none; min-width: 5.5rem; text-align: center; font-size: 0.72rem; padding: 0.05rem 0.6rem; border-radius: 999px; }
+.mw-ql-completed { background: color-mix(in srgb, #5d7a2e 20%, transparent); color: #3f5a1c; }
+.mw-ql-failed { background: color-mix(in srgb, #a33a2a 17%, transparent); color: #8a2f22; }
+.mw-ql-missed { background: var(--lightgray); color: var(--darkgray); }
+.mw-ql-none { color: var(--gray); font-style: italic; }
+/* Quartz gives links a highlight and bold text: not wanted on cards and list rows */
+.mw-ql a.internal { background: none; padding: 0; font-weight: inherit; }
+.mw-ql a.mw-ql-card { padding: 0.8rem 1rem; background: var(--light); }
+.mw-ql .mw-ql-not-started a.mw-ql-card { background: transparent; }
+.mw-ql-summary, .mw-ql-meta { font-weight: 400; }
+.mw-ql-list a.internal { font-weight: 500; color: var(--dark); }
+.mw-ql-list a.internal:hover { color: var(--secondary); }
+/* The quest log replaces Quartz's dated list of the folder's pages */
+body:has(.mw-ql) .page-listing,
+body:has(.mw-ql) .center > hr {
+  display: none;
+}
+
+/* Connected to: the search box, its grouped list, and the chosen chip */
+.mw-ql-pick { position: relative; margin-left: auto; }
+.mw-ql-search { font: inherit; font-size: 0.85rem; width: 14rem; max-width: 60vw; padding: 0.25rem 0.7rem; border: 1px solid var(--lightgray); border-radius: 999px; background: var(--light); color: var(--darkgray); }
+.mw-ql-search:focus { outline: none; border-color: var(--secondary); }
+.mw-ql-search[hidden], .mw-ql-chip[hidden], .mw-ql-menu[hidden] { display: none; }
+.mw-ql-menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 20; width: 17rem; max-height: 22rem; overflow-y: auto; padding: 0.3rem 0; border: 1px solid var(--lightgray); border-radius: 10px; background: var(--light); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); }
+.mw-ql-group { padding: 0.45rem 0.8rem 0.15rem; font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray); }
+.mw-ql-opt { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.8rem; font-size: 0.88rem; cursor: pointer; color: var(--darkgray); }
+.mw-ql-opt.mw-on, .mw-ql-opt:hover { background: color-mix(in srgb, var(--secondary) 12%, transparent); }
+.mw-ql-opt > span:not(.mw-conn-icon) { flex: 1; }
+.mw-ql-opt .mw-conn-icon, .mw-ql-chip .mw-conn-icon { flex: none; width: 1.35rem; height: 1.35rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; background: var(--lightgray); color: var(--secondary); }
+.mw-ql-opt small { font-size: 0.72rem; color: var(--gray); }
+.mw-ql-opt img, .mw-ql-chip img { width: 1.35rem; height: 1.35rem; border-radius: 50%; object-fit: cover; object-position: top; margin: 0; }
+.mw-ql-chip { display: inline-flex; align-items: center; gap: 0.4rem; font: inherit; font-size: 0.85rem; padding: 0.1rem 0.7rem 0.1rem 0.2rem; border-radius: 999px; border: 1px solid var(--secondary); background: color-mix(in srgb, var(--secondary) 16%, transparent); color: var(--dark); cursor: pointer; }
+.mw-ql-card .mw-connected { margin: 0.3rem 0 0; }
+@media (max-width: 600px) { .mw-ql-pick { margin-left: 0; } .mw-ql-menu { left: 0; right: auto; } }

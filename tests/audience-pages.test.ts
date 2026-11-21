@@ -89,3 +89,36 @@ test("without passwords, nothing locked is published at all", () => {
   const bran = plain.files.find((f) => f.path === "people/bran.md")!.text!;
   assert.ok(!bran.includes("Missing"));
 });
+
+test("quests: their first and latest session headings, for the quest log", () => {
+  const r2 = exportWiki(
+    [{ path: "Quests/Bell.md", text: "---\nquest: side\nquest_status: not started\n---\n> [!player] Overview\n> A bell.\n\n> [!player] Session 4\n> Heard it.\n\n> [!player] Session 2\n> First heard.\n\n> [!player-tam] Session 9\n> Secret.\n" }],
+    { ...opts, sections: [{ folder: "Quests", section: "quests" }] },
+  );
+  const bell = r2.files.find((f) => f.path === "quests/bell.md")!.text!;
+  assert.ok(bell.includes("mw_quest_first: Session 2") && bell.includes("mw_quest_last: Session 4")); // not the locked Session 9
+});
+
+test("quests: 'Connected to' keeps only notes on the wiki, with their picture, kind and home", () => {
+  const notes2 = [
+    { path: "Quests/Bell.md", text: '---\nquest: side\nplayer_connected:\n  - "[[Bran]]"\n  - "[[Millbrook]]"\n  - "[[The Grey Queen]]"\n  - "[[Tam]]"\n---\n> [!player] Overview\n> A bell.\n' },
+    { path: "People/Millbrook/Bran.md", text: '---\nphoto: "[[bran.png]]"\nplayer_in: "[[Millbrook]]"\n---\n> [!player] Overview\n> A miller.\n' },
+    { path: "Places/Millbrook.md", text: "> [!player] Overview\n> A village.\n" },
+    { path: "People/The Grey Queen.md", text: "Secret.\n" },
+    { path: "Party/Tam.md", text: "> [!player] Overview\n> Our hero.\n" },
+  ];
+  const all2 = [...notes2.map((n) => n.path), "Art/bran.png"];
+  const r2 = exportWiki(notes2, {
+    ...opts,
+    sections: [{ folder: "Quests", section: "quests" }, { folder: "People", section: "people" }, { folder: "Places", section: "places" }, { folder: "Party", section: "party" }],
+    resolveLink: (l: string) => all2.find((p) => p.endsWith(`/${l}`) || p.endsWith(`/${l}.md`)) ?? null,
+  });
+  const bell = r2.files.find((f) => f.path === "quests/bell.md")!.text!;
+  const fm = parse(bell.match(/^---\n([\s\S]*?)\n---/)![1]);
+  assert.deepEqual(fm.player_connected, [
+    { to: "people/millbrook/bran", title: "Bran", kind: "person", img: "assets/bran.png", group: "Millbrook", home: "places/millbrook" },
+    { to: "places/millbrook", title: "Millbrook", kind: "place" },
+    { to: "party/tam", title: "Tam", kind: "party" },
+  ]);
+  assert.ok(!bell.includes("Grey Queen"));
+});
