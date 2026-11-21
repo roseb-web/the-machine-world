@@ -3,6 +3,8 @@ title: The Lantern Hunt
 quest: side
 quest_status: active
 pinned: true
+mw_quest_first: Session 3
+mw_quest_last: Session 5
 ---
 
 ## Overview

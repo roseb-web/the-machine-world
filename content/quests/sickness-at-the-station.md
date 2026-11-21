@@ -7,6 +7,8 @@ player_handouts:
   - assets/the-fever-list.png
   - assets/bredes-wagon-list.png
   - assets/lore-card-l01-dear-mam-the-pay-is-good.png
+mw_quest_first: Session 2
+mw_quest_last: Session 5
 mw_handout_names:
   - The fever list
   - Brede's wagon list

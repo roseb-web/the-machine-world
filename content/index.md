@@ -36,6 +36,22 @@ mw_coming_up:
 mw_changes:
   since:
   items:
+    - to: quests/six-fingered-man
+      title: Six Fingered Man
+      kind: new
+      section: Quest log
+    - to: quests/stalk-men
+      title: Stalk-men
+      kind: new
+      section: Quest log
+    - to: quests/something-on-the-roof
+      title: Something on the Roof
+      kind: new
+      section: Quest log
+    - to: quests/the-thornwick-notice-board
+      title: The Thornwick Notice Board
+      kind: new
+      section: Quest log
     - to: people/the-marrowlands/thornwick/wil-carder
       title: Wil Carder
       kind: updated
@@ -108,10 +124,6 @@ mw_changes:
       title: People web
       kind: new
       section: People-web
-    - to: gallery
-      title: Gallery
-      kind: new
-      section: Gallery
 ---
 Vaharan is a cold, old land of forest, marsh and mountain. Lately, something is wrong with it. Harvests fail. Animals sicken. The winters feel longer than they used to.
 
