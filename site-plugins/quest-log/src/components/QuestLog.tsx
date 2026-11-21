@@ -1,5 +1,6 @@
 // The home page boxes: "Previously on…", "New since Session N", "Coming up",
 // then the quest log (pinned, active quests, main quests first).
+// Also the quest log page: the folder page of a folder of quests (Active, Not started, Finished).
 // The data comes from Publish: mw_last_session, mw_changes and mw_coming_up on the home page.
 
 import type { QuartzComponent, QuartzComponentConstructor, QuartzComponentProps } from "@quartz-community/types"
@@ -119,9 +120,141 @@ function HomeBoxes({ fm, go }: { fm: Record<string, unknown>; go: (to: string) =
   )
 }
 
+// ---- The quest log page: the folder page of a folder of quests ----
+
+type File = QuartzComponentProps["allFiles"][number]
+const STATUS_LABELS: Record<string, string> = { "not started": "Not started", active: "Active", completed: "Completed", failed: "Failed", missed: "Missed" }
+// "Not Started", "not_started", "not-started" all mean the same. No status: active.
+const statusOf = (fm: Record<string, unknown>) => {
+  const s = typeof fm.quest_status === "string" ? fm.quest_status.trim().toLowerCase().replace(/[-_]+/g, " ") : ""
+  return s || "active"
+}
+const sessionNum = (v: unknown) => Number(String(v ?? "").match(/\d+/)?.[0] ?? 0)
+
+function QuestLanding({ slug, allFiles }: { slug: string; allFiles: File[] }) {
+  const inside = slug.slice(0, -"index".length)
+  const quests = allFiles
+    .filter((f) => {
+      const s = String(f.slug ?? "")
+      return s.startsWith(inside) && s !== slug && typeof (f.frontmatter as Record<string, unknown> | undefined)?.quest === "string"
+    })
+    .map((f) => ({ f, fm: (f.frontmatter ?? {}) as Record<string, unknown> }))
+  if (!quests.length) return null
+  const go = (f: File) => resolveRelative(slug as never, String(f.slug) as never)
+  const title = (q: (typeof quests)[number]) => String(q.fm.title ?? q.f.slug)
+  const type = (q: (typeof quests)[number]) => String(q.fm.quest).toLowerCase()
+  // Main quests first, then by type, then by name
+  const byType = (a: (typeof quests)[number], b: (typeof quests)[number]) =>
+    (ORDER.indexOf(type(a)) + 99) % 99 - (ORDER.indexOf(type(b)) + 99) % 99 || title(a).localeCompare(title(b))
+  const active = quests.filter((q) => statusOf(q.fm) === "active").sort(byType)
+  const notStarted = quests.filter((q) => statusOf(q.fm) === "not started").sort(byType)
+  // Finished: newest first (by their latest session)
+  const finished = quests
+    .filter((q) => !["active", "not started"].includes(statusOf(q.fm)))
+    .sort((a, b) => sessionNum(b.fm.mw_quest_last) - sessionNum(a.fm.mw_quest_last) || title(a).localeCompare(title(b)))
+  const types = ORDER.filter((t) => quests.some((q) => type(q) === t))
+
+  const card = (q: (typeof quests)[number], when: string | undefined) => {
+    const t = type(q)
+    const main = t === "main" && statusOf(q.fm) === "active"
+    // The start of the Overview (Quartz's description runs on into the rest of the page)
+    const summary = typeof q.f.description === "string" ? q.f.description.replace(/^Overview\s+/, "").split(/\s+What we know\b/)[0] : ""
+    const handouts = Array.isArray(q.fm.player_handouts) ? q.fm.player_handouts.length : 0
+    const meta = [when, handouts ? `${handouts} handout${handouts === 1 ? "" : "s"}` : ""].filter(Boolean).join(" · ")
+    return (
+      <a href={go(q.f)} class={`internal mw-ql-card ${main ? "mw-ql-main" : ""}`} data-type={t}>
+        <span class={`mw-quest-type mw-quest-${t}`}>{main ? "Main quest" : (LABELS[t] ?? t)}</span>
+        <span class="mw-ql-title">{title(q)}</span>
+        {summary && <span class="mw-ql-summary">{summary}</span>}
+        {meta && <span class="mw-ql-meta">{meta}</span>}
+      </a>
+    )
+  }
+  const section = (name: string, cls: string, items: typeof quests, body: any) =>
+    items.length > 0 && (
+      <section class={`mw-ql-section ${cls}`}>
+        <h2>
+          {name} <span class="mw-ql-count">{items.length}</span>
+        </h2>
+        {body}
+      </section>
+    )
+
+  return (
+    <div class="mw-ql">
+      <p class="mw-ql-lead">What the party has taken on, heard about, and left behind.</p>
+      {types.length > 1 && (
+        <div class="mw-ql-filters" role="group" aria-label="Show quests of type">
+          <button class="mw-ql-filter mw-on" data-type="">
+            All
+          </button>
+          {types.map((t) => (
+            <button class="mw-ql-filter" data-type={t}>
+              {LABELS[t]}
+            </button>
+          ))}
+        </div>
+      )}
+      {section("Active", "mw-ql-active", active, <div class="mw-ql-grid">{active.map((q) => card(q, q.fm.mw_quest_last ? `Updated ${q.fm.mw_quest_last}` : undefined))}</div>)}
+      {section("Not started", "mw-ql-not-started", notStarted, <div class="mw-ql-grid">{notStarted.map((q) => card(q, q.fm.mw_quest_first ? `Heard about in ${q.fm.mw_quest_first}` : undefined))}</div>)}
+      {section(
+        "Finished",
+        "mw-ql-finished",
+        finished,
+        <ul class="mw-ql-list">
+          {finished.map((q) => {
+            const s = statusOf(q.fm)
+            return (
+              <li data-type={type(q)}>
+                <span class={`mw-ql-status mw-ql-${s.replace(/\s+/g, "-")}`}>{STATUS_LABELS[s] ?? s}</span>
+                <a href={go(q.f)} class="internal">
+                  {title(q)}
+                </a>
+                <span class="mw-ql-when">{String(q.fm.mw_quest_last ?? "")}</span>
+              </li>
+            )
+          })}
+        </ul>,
+      )}
+      <p class="mw-ql-none" hidden>
+        No quests of this type yet.
+      </p>
+    </div>
+  )
+}
+
+// Filters: show one type of quest (sections with none left are hidden)
+const FILTER_SCRIPT = `
+document.addEventListener("nav", () => {
+  const log = document.querySelector(".mw-ql");
+  if (!log) return;
+  const buttons = log.querySelectorAll(".mw-ql-filter");
+  const show = (type) => {
+    buttons.forEach((b) => b.classList.toggle("mw-on", b.dataset.type === type));
+    let any = false;
+    log.querySelectorAll(".mw-ql-section").forEach((sec) => {
+      let n = 0;
+      sec.querySelectorAll("[data-type]").forEach((item) => {
+        const on = !type || item.dataset.type === type;
+        item.hidden = !on;
+        if (on) n++;
+      });
+      sec.hidden = n === 0;
+      const count = sec.querySelector(".mw-ql-count");
+      if (count) count.textContent = String(n);
+      if (n) any = true;
+    });
+    log.querySelector(".mw-ql-none").hidden = any;
+  };
+  buttons.forEach((b) => b.addEventListener("click", () => show(b.dataset.type)));
+});
+`
+
 export default (() => {
   const QuestLog: QuartzComponent = ({ fileData, allFiles }: QuartzComponentProps) => {
     const slug = String(fileData.slug ?? "")
+    const fm = (fileData.frontmatter ?? {}) as Record<string, unknown>
+    if (fm.mw_folder === true && slug.endsWith("index")) return <QuestLanding slug={slug} allFiles={allFiles} />
     if (slug !== "index") return null
 
     const fm0 = (fileData.frontmatter ?? {}) as Record<string, unknown>
@@ -130,7 +263,7 @@ export default (() => {
 
     const quests = allFiles
       .map((f) => ({ f, fm: (f.frontmatter ?? {}) as Record<string, unknown> }))
-      .filter(({ fm }) => fm.pinned === true && fm.quest_status === "active" && typeof fm.quest === "string")
+      .filter(({ fm }) => fm.pinned === true && statusOf(fm) === "active" && typeof fm.quest === "string")
       .sort((a, b) => ORDER.indexOf(String(a.fm.quest)) - ORDER.indexOf(String(b.fm.quest)))
     if (quests.length === 0) return home
 
@@ -177,5 +310,6 @@ export default (() => {
   }
 
   QuestLog.css = style
+  QuestLog.afterDOMLoaded = FILTER_SCRIPT
   return QuestLog
 }) satisfies QuartzComponentConstructor

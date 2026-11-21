@@ -89,3 +89,12 @@ test("without passwords, nothing locked is published at all", () => {
   const bran = plain.files.find((f) => f.path === "people/bran.md")!.text!;
   assert.ok(!bran.includes("Missing"));
 });
+
+test("quests: their first and latest session headings, for the quest log", () => {
+  const r2 = exportWiki(
+    [{ path: "Quests/Bell.md", text: "---\nquest: side\nquest_status: not started\n---\n> [!player] Overview\n> A bell.\n\n> [!player] Session 4\n> Heard it.\n\n> [!player] Session 2\n> First heard.\n\n> [!player-tam] Session 9\n> Secret.\n" }],
+    { ...opts, sections: [{ folder: "Quests", section: "quests" }] },
+  );
+  const bell = r2.files.find((f) => f.path === "quests/bell.md")!.text!;
+  assert.ok(bell.includes("mw_quest_first: Session 2") && bell.includes("mw_quest_last: Session 4")); // not the locked Session 9
+});

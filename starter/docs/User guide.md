@@ -284,8 +284,17 @@ The tables below list every property, if you'd rather type them yourself.
 | Property | Values |
 |---|---|
 | `quest` | `main`, `personal`, `faction` or `side` |
-| `quest_status` | `active`, `completed` or `failed`. Only `active` quests show on the home page. |
+| `quest_status` | `not started`, `active`, `completed`, `failed` or `missed`. No status counts as `active`. Only `active` quests show on the home page. |
 | `pinned` | `true` shows it on the home page (only while it's `active`) |
+
+**The quest log page** (the Quest log in the menu) shows every quest on the wiki:
+
+- **Active:** cards, with main quests first and full width. Each card has the start of its Overview, "Updated Session 5" and its number of handouts.
+- **Not started:** dashed cards, for quests the party knows about but hasn't begun (like jobs from a notice board). They say "Heard about in Session 2".
+- **Finished:** Completed, Failed and Missed, in a short list, newest first.
+- **Filters** at the top show one type: Main, Personal, Faction or Side.
+
+The session numbers come from the "Session N" headings in the quest's "What we know", worked out when you publish. A quest only goes on the wiki once it has something for the party, so quests they haven't heard of stay hidden.
 
 ### Session recaps
 

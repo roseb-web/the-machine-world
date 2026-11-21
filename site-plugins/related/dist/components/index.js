@@ -637,6 +637,7 @@ function Landing({ slug, root, href, allFiles }) {
   const overviews = kids.filter((f) => props(f).player_type === "Overview");
   const cards = kids.filter((f) => props(f).player_type !== "Overview");
   if (cards.length === 0 && overviews.length === 0) return null;
+  if (cards.every((f) => typeof props(f).quest === "string")) return null;
   const types = /* @__PURE__ */ new Map();
   for (const f of cards) {
     const t = str(props(f).player_type) ?? "";

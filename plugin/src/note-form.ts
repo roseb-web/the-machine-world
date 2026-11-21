@@ -71,7 +71,7 @@ const KIND_FIELDS: Record<Kind, { title: string; main: Field[] }> = {
     title: "Quest",
     main: [
       { key: "quest", label: "Quest type", type: "choice", choices: ["main", "personal", "faction", "side"] },
-      { key: "quest_status", label: "Status", type: "choice", choices: ["active", "completed", "failed"] },
+      { key: "quest_status", label: "Status", type: "choice", choices: ["not started", "active", "completed", "failed", "missed"] },
       { key: "pinned", label: "On the home page", type: "toggle", hint: "Shown while it's active" },
     ],
   },

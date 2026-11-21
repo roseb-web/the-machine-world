@@ -37,6 +37,8 @@ function Landing({ slug, root, href, allFiles }: { slug: string; root: string; h
   const overviews = kids.filter((f) => props(f).player_type === "Overview")
   const cards = kids.filter((f) => props(f).player_type !== "Overview")
   if (cards.length === 0 && overviews.length === 0) return null
+  // A folder of quests gets the quest log instead (quest-log plugin)
+  if (cards.every((f) => typeof props(f).quest === "string")) return null
 
   // Group by type only when every type has at least two cards (e.g. New gods / Old gods)
   const types = new Map<string, File[]>()

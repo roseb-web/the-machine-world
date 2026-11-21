@@ -166,6 +166,14 @@ function prepare(note: VaultNote, opts: ExportOptions): Prepared | null {
       delete extracted.properties[key];
     }
     props = extracted.properties;
+    // Quests: the first and latest sessions in "What we know" ("Heard about in Session 2", "Updated Session 5")
+    if (typeof props.quest === "string") {
+      const nums = extracted.entries.map((e) => e.label.match(/\bsession\s*(\d+)/i)).filter((m): m is RegExpMatchArray => !!m).map((m) => Number(m[1]));
+      if (nums.length) {
+        props.mw_quest_first = `Session ${Math.min(...nums)}`;
+        props.mw_quest_last = `Session ${Math.max(...nums)}`;
+      }
+    }
     const override = extracted.properties["wiki_section"];
     if (typeof override === "string") section = override;
     markdown = renderPlayerNote(extracted, opts.yaml);
