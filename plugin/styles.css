@@ -242,8 +242,16 @@ textarea.mw-nf-input { resize: vertical; font-family: inherit; }
 .mw-note-header .mw-nf-banner { height: 180px; border-radius: 12px; }
 .mw-note-header .mw-nf-card-body { padding: 0.8rem 0 0; align-items: flex-start; }
 .mw-note-header .mw-nf-banner + .mw-nf-card-body .mw-nf-picture { margin-top: -2.8rem; }
-.mw-note-header .mw-nf-portrait { width: 96px; height: 120px; border: 3px solid var(--background-primary); border-radius: 10px; }
-.mw-note-header .mw-nf-sigil { width: 72px; height: 72px; }
+.mw-note-header .mw-nf-portrait { width: 160px; height: 200px; border: 3px solid var(--background-primary); border-radius: 10px; }
+.mw-note-header .mw-nf-banner + .mw-nf-card-body .mw-nf-portrait { width: 120px; height: 150px; }
+.mw-note-header .mw-nf-sigil { width: 96px; height: 96px; }
 .mw-note-header .mw-nf-card-title { font-size: 1.5em; }
 .mw-note-header .mw-nf-card-text { flex: 1; }
 .mw-note-header-edit { flex: none; font-size: 0.78em; padding: 0.2rem 0.6rem; height: auto; }
+
+/* Less space under Properties, on every note (setting: "Less space under Properties") */
+body.mw-compact-props .metadata-container { margin-block-end: 0.4rem !important; padding-block-end: 0 !important; }
+body.mw-compact-props .markdown-source-view.mod-cm6 .cm-content { padding-top: 0 !important; }
+body.mw-compact-props .markdown-source-view.mod-cm6 .cm-content > .cm-line:first-child { padding-top: 0 !important; margin-top: 0 !important; }
+body.mw-compact-props .markdown-preview-sizer > .mod-header { margin-block-end: 0 !important; padding-block-end: 0 !important; }
+body.mw-compact-props .markdown-preview-sizer > .mod-header + div > :first-child { margin-top: 0.4rem !important; }

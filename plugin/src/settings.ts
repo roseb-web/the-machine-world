@@ -26,5 +26,7 @@ export interface WikiSettings {
   audiencePasswords: Record<string, string>; // "tam" -> password, "dm" -> password. Never published.
   audienceSalt: string; // random, made once (base64): part of turning passwords into keys
   noteHeaders: boolean; // the wiki banner and header card at the top of notes
+  compactProperties: boolean; // less space under Properties
+  foldProperties: boolean; // notes open with Properties folded
   lockSecret: string; // random, made once, never published: gives locked pages addresses that don't show their names
 }
