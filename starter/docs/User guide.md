@@ -179,6 +179,8 @@ The menu's headings and items are in `quartz.config.yaml`, under `machine-world-
 - You can make up new sections. Add a line to **Menu sections** in the plugin settings (e.g. `Monsters = monsters`), and an item here with the same section name.
 - A section only shows in the menu once it has published pages.
 
+**Using the menu:** a section or folder's **name** opens its landing page (e.g. People, or a region), and the menu opens to show what's inside. The **arrow** next to it opens or closes the list without leaving the page you're on.
+
 ---
 
 ## 3. Publishing
