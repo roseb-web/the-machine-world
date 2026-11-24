@@ -1,5 +1,7 @@
 // Pushes the exported wiki to GitHub as one commit.
 // Only the content folder is replaced. Everything else in the repo (the Quartz site, this plugin's code) is kept.
+// Only what changed is sent: new and changed files, and files to remove. GitHub builds the rest from the
+// last commit, so publishing stays quick however big the repo gets.
 
 import { requestUrl, RequestUrlParam } from "obsidian";
 
@@ -25,7 +27,7 @@ interface TreeEntry {
   path: string;
   mode: string;
   type: string;
-  sha: string;
+  sha: string | null; // null: remove the file
 }
 
 async function api<T>(s: RepoSettings, method: string, path: string, body?: unknown): Promise<T> {
@@ -104,10 +106,8 @@ export async function pushWiki(s: RepoSettings, files: OutFile[], message: strin
   const prefix = s.contentPath.replace(/\/+$/, "") + "/";
   const existing = new Map(oldTree.tree.filter((e) => e.type === "blob").map((e) => [e.path, e.sha]));
 
-  // Keep everything outside the content folder exactly as it is.
-  const entries: TreeEntry[] = oldTree.tree
-    .filter((e) => e.type === "blob" && !e.path.startsWith(prefix) && e.path !== tracker?.path)
-    .map((e) => ({ path: e.path, mode: e.mode, type: "blob", sha: e.sha }));
+  // Only changes go in the list: everything else (outside the content folder too) stays as it is.
+  const entries: TreeEntry[] = [];
 
   if (tracker) {
     const old = existing.get(tracker.path);
@@ -121,25 +121,31 @@ export async function pushWiki(s: RepoSettings, files: OutFile[], message: strin
     files = result.files;
     const bytes = toBytes(result.state);
     let sha = await gitBlobSha(bytes);
-    if (old !== sha) sha = (await api<{ sha: string }>(s, "POST", "/git/blobs", { content: toBase64(bytes), encoding: "base64" })).sha;
-    entries.push({ path: tracker.path, mode: "100644", type: "blob", sha });
+    if (old !== sha) {
+      sha = (await api<{ sha: string }>(s, "POST", "/git/blobs", { content: toBase64(bytes), encoding: "base64" })).sha;
+      entries.push({ path: tracker.path, mode: "100644", type: "blob", sha });
+    }
   }
 
+  const keep = new Set<string>();
   for (const f of files) {
     const fullPath = prefix + f.path;
+    keep.add(fullPath);
     const bytes = toBytes(f.data);
-    let sha = await gitBlobSha(bytes);
-    if (existing.get(fullPath) !== sha) {
-      const blob = await api<{ sha: string }>(s, "POST", "/git/blobs", {
-        content: toBase64(bytes),
-        encoding: "base64",
-      });
-      sha = blob.sha;
-    }
-    entries.push({ path: fullPath, mode: "100644", type: "blob", sha });
+    if (existing.get(fullPath) === (await gitBlobSha(bytes))) continue; // unchanged
+    const blob = await api<{ sha: string }>(s, "POST", "/git/blobs", {
+      content: toBase64(bytes),
+      encoding: "base64",
+    });
+    entries.push({ path: fullPath, mode: "100644", type: "blob", sha: blob.sha });
   }
+  // Files in the content folder that aren't published any more
+  for (const path of existing.keys()) {
+    if (path.startsWith(prefix) && !keep.has(path)) entries.push({ path, mode: "100644", type: "blob", sha: null });
+  }
+  if (!entries.length) return { changed: false };
 
-  const tree = await api<{ sha: string }>(s, "POST", "/git/trees", { tree: entries });
+  const tree = await api<{ sha: string }>(s, "POST", "/git/trees", { base_tree: parent.tree.sha, tree: entries });
   if (tree.sha === parent.tree.sha) return { changed: false };
 
   const commit = await api<{ sha: string; html_url: string }>(s, "POST", "/git/commits", {
