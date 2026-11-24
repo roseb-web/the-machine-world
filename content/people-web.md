@@ -9,13 +9,6 @@ mw_web:
       groups:
         - thornwick residents
       open: people/the-marrowlands/thornwick/wil-carder
-    - id: people/the-marrowlands/thornwick/reeve-tomas-ashdown
-      name: Reeve Tomas Ashdown
-      title: Head of the village
-      photo: assets/reeve-tomas-ashdown.png
-      groups:
-        - thornwick residents
-      open: people/the-marrowlands/thornwick/reeve-tomas-ashdown
     - id: people/the-marrowlands/thornwick/pell
       name: Pell
       title: Mr Penn, paper and ink
@@ -23,6 +16,13 @@ mw_web:
       groups:
         - thornwick residents
       open: people/the-marrowlands/thornwick/pell
+    - id: people/the-marrowlands/thornwick/reeve-tomas-ashdown
+      name: Reeve Tomas Ashdown
+      title: Head of the village
+      photo: assets/reeve-tomas-ashdown.png
+      groups:
+        - thornwick residents
+      open: people/the-marrowlands/thornwick/reeve-tomas-ashdown
     - id: people/the-marrowlands/thornwick/old-corwin
       name: Old Corwin
       title: Gravedigger
